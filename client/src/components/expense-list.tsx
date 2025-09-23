@@ -49,9 +49,9 @@ export function ExpenseList({ expenses, onEdit, onDelete }: ExpenseListProps) {
   const totalAmount = filteredExpenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Search and Filter Controls */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col sm:flex-row gap-4 p-4 bg-muted/50 rounded-lg border border-border/50">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -78,29 +78,41 @@ export function ExpenseList({ expenses, onEdit, onDelete }: ExpenseListProps) {
       </div>
 
       {/* Summary */}
-      <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-        <span className="text-sm text-muted-foreground">
-          {filteredExpenses.length} expenses found
-        </span>
-        <span className="text-lg font-semibold tabular-nums" data-testid="text-total-amount">
-          Total: ${totalAmount.toFixed(2)}
+      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg border border-primary/20">
+        <div className="flex items-center gap-2">
+          <span className="inline-block w-2 h-2 bg-primary rounded-full"></span>
+          <span className="text-sm font-medium text-primary">
+            {filteredExpenses.length} expenses found
+          </span>
+        </div>
+        <span className="text-xl font-bold tabular-nums text-primary" data-testid="text-total-amount">
+          ${totalAmount.toFixed(2)}
         </span>
       </div>
 
       {/* Expense List */}
       {filteredExpenses.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground" data-testid="text-no-expenses">
-          No expenses found. Try adjusting your search or filters.
+        <div className="text-center py-12" data-testid="text-no-expenses">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted/50 flex items-center justify-center">
+            <Search className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-medium mb-2">No expenses found</h3>
+          <p className="text-muted-foreground">Try adjusting your search or filters to find what you're looking for.</p>
         </div>
       ) : (
-        <div className="grid gap-4" data-testid="expense-list">
-          {filteredExpenses.map((expense) => (
-            <ExpenseCard
+        <div className="grid gap-3" data-testid="expense-list">
+          {filteredExpenses.map((expense, index) => (
+            <div 
               key={expense.id}
-              expense={expense}
-              onEdit={onEdit}
-              onDelete={onDelete}
-            />
+              className="animate-in fade-in-0 slide-in-from-bottom-2"
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
+              <ExpenseCard
+                expense={expense}
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
+            </div>
           ))}
         </div>
       )}

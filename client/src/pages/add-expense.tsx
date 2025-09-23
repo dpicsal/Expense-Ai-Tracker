@@ -24,11 +24,13 @@ export default function AddExpense() {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Add Expense</h1>
-        <p className="text-muted-foreground">
-          Record a new expense to track your spending
+    <div className="space-y-8">
+      <div className="space-y-2">
+        <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+          Add Expense
+        </h1>
+        <p className="text-lg text-muted-foreground">
+          Record a new expense to track your spending effectively
         </p>
       </div>
 

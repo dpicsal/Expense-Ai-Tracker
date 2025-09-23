@@ -40,11 +40,13 @@ export default function Categories() {
   const totalSpent = expenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Categories</h1>
-        <p className="text-muted-foreground">
-          Manage your expense categories and view spending breakdown
+    <div className="space-y-8">
+      <div className="space-y-2">
+        <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+          Categories
+        </h1>
+        <p className="text-lg text-muted-foreground">
+          Manage your expense categories and analyze spending patterns
         </p>
       </div>
 
@@ -58,7 +60,7 @@ export default function Categories() {
             const percentage = totalSpent > 0 ? (total / totalSpent) * 100 : 0;
             
             return (
-              <Card key={category} className="hover-elevate" data-testid={`category-card-${category}`}>
+              <Card key={category} className="hover-elevate border-0 shadow-md bg-gradient-to-r from-card to-card/50 transition-all duration-200" data-testid={`category-card-${category}`}>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
