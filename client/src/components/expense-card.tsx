@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 import { type Expense } from "@shared/schema";
 
 interface ExpenseCardProps {
@@ -13,15 +14,15 @@ interface ExpenseCardProps {
 }
 
 const categoryColors: Record<string, string> = {
-  "Food & Dining": "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
-  "Transportation": "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  "Shopping": "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
-  "Entertainment": "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
-  "Bills & Utilities": "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-  "Healthcare": "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  "Travel": "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200",
-  "Education": "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
-  "Other": "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
+  "Food & Dining": "bg-gradient-to-r from-orange-600 to-orange-700 text-white shadow-orange-200 dark:shadow-orange-900",
+  "Transportation": "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-blue-200 dark:shadow-blue-900",
+  "Shopping": "bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-purple-200 dark:shadow-purple-900",
+  "Entertainment": "bg-gradient-to-r from-pink-600 to-pink-700 text-white shadow-pink-200 dark:shadow-pink-900",
+  "Bills & Utilities": "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-red-200 dark:shadow-red-900",
+  "Healthcare": "bg-gradient-to-r from-green-600 to-green-700 text-white shadow-green-200 dark:shadow-green-900",
+  "Travel": "bg-gradient-to-r from-cyan-600 to-cyan-700 text-white shadow-cyan-200 dark:shadow-cyan-900",
+  "Education": "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-indigo-200 dark:shadow-indigo-900",
+  "Other": "bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-gray-200 dark:shadow-gray-900",
 };
 
 export function ExpenseCard({ expense, onEdit, onDelete }: ExpenseCardProps) {
@@ -36,32 +37,32 @@ export function ExpenseCard({ expense, onEdit, onDelete }: ExpenseCardProps) {
   };
 
   return (
-    <Card className="hover-elevate border-0 shadow-sm bg-gradient-to-r from-card to-card/50 transition-all duration-200" data-testid={`expense-card-${expense.id}`}>
-      <CardContent className="p-4">
+    <Card className="hover-elevate ios-scale-press border-0 shadow-lg bg-card transition-all duration-300" data-testid={`expense-card-${expense.id}`}>
+      <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-2xl font-semibold tabular-nums" data-testid={`expense-amount-${expense.id}`}>
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-3xl font-bold tabular-nums text-foreground" data-testid={`expense-amount-${expense.id}`}>
                 ${parseFloat(expense.amount).toFixed(2)}
               </span>
               <Badge 
-                className={categoryColors[expense.category] || categoryColors["Other"]}
+                className={cn("px-3 py-1 text-xs font-medium rounded-full shadow-sm", categoryColors[expense.category] || categoryColors["Other"])}
                 data-testid={`expense-category-${expense.id}`}
               >
                 {expense.category}
               </Badge>
             </div>
-            <p className="text-sm text-muted-foreground mb-1 truncate" data-testid={`expense-description-${expense.id}`}>
+            <p className="text-base text-foreground/80 mb-2 truncate font-medium" data-testid={`expense-description-${expense.id}`}>
               {expense.description}
             </p>
-            <p className="text-xs text-muted-foreground" data-testid={`expense-date-${expense.id}`}>
+            <p className="text-sm text-muted-foreground font-medium" data-testid={`expense-date-${expense.id}`}>
               {format(new Date(expense.date), "MMM dd, yyyy")}
             </p>
           </div>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="icon" variant="ghost" data-testid={`button-expense-menu-${expense.id}`}>
+              <Button size="icon" variant="ghost" className="ios-transition" data-testid={`button-expense-menu-${expense.id}`}>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
