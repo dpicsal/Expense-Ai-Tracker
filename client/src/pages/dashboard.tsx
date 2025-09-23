@@ -8,6 +8,7 @@ import { ExpenseForm } from "@/components/expense-form";
 import { ExpenseList } from "@/components/expense-list";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense } from "@/hooks/use-expenses";
 import { type Expense, type InsertExpense } from "@shared/schema";
 
@@ -15,6 +16,7 @@ export default function Dashboard() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   
   const { data: expenses = [], isLoading } = useExpenses();
   const createExpense = useCreateExpense();
@@ -100,14 +102,14 @@ export default function Dashboard() {
   const monthlyChange = lastMonthTotal > 0 ? ((thisMonthTotal - lastMonthTotal) / lastMonthTotal) * 100 : 0;
 
   return (
-    <div className="space-y-8">
+    <div className={`${isMobile ? 'space-y-6' : 'space-y-8'}`}>
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+          <h1 className="text-2xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
             Dashboard
           </h1>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-base md:text-lg text-muted-foreground">
             Track your expenses and visualize your spending patterns
           </p>
         </div>
@@ -116,7 +118,11 @@ export default function Dashboard() {
           if (!open) setEditingExpense(null);
         }}>
           <DialogTrigger asChild>
-            <Button data-testid="button-add-expense">
+            <Button 
+              data-testid="button-add-expense"
+              size="lg"
+              className={isMobile ? 'w-full sm:w-auto' : ''}
+            >
               <PlusCircle className="h-4 w-4 mr-2" />
               Add Expense
             </Button>
@@ -142,7 +148,7 @@ export default function Dashboard() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid grid-cols-1 min-[380px]:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
         <Card className="hover-elevate border-0 shadow-md bg-gradient-to-br from-card to-card/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Expenses</CardTitle>
@@ -151,7 +157,7 @@ export default function Dashboard() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold tabular-nums tracking-tight" data-testid="total-expenses">
+            <div className="text-2xl md:text-3xl font-bold tabular-nums tracking-tight" data-testid="total-expenses">
               ${totalExpenses.toFixed(2)}
             </div>
             <p className="text-sm text-muted-foreground mt-2 flex items-center gap-1">
@@ -169,7 +175,7 @@ export default function Dashboard() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold tabular-nums tracking-tight text-blue-900 dark:text-blue-100" data-testid="month-expenses">
+            <div className="text-2xl md:text-3xl font-bold tabular-nums tracking-tight text-blue-900 dark:text-blue-100" data-testid="month-expenses">
               ${thisMonthTotal.toFixed(2)}
             </div>
             <p className="text-sm text-blue-600 dark:text-blue-400 mt-2 flex items-center gap-1">
@@ -201,7 +207,7 @@ export default function Dashboard() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className={`text-3xl font-bold tabular-nums tracking-tight ${
+            <div className={`text-2xl md:text-3xl font-bold tabular-nums tracking-tight ${
               monthlyChange >= 0 ? 'text-red-900 dark:text-red-100' : 'text-green-900 dark:text-green-100'
             }`} data-testid="monthly-change">
               {monthlyChange > 0 ? '+' : ''}{monthlyChange.toFixed(1)}%
@@ -224,9 +230,13 @@ export default function Dashboard() {
       {/* Recent Expenses */}
       <Card className="border-0 shadow-md">
         <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-xl font-semibold">Recent Expenses</CardTitle>
-            <Button variant="outline" size="sm" asChild>
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle className="text-lg md:text-xl font-semibold">Recent Expenses</CardTitle>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              asChild
+            >
               <Link href="/analytics">View All</Link>
             </Button>
           </div>
