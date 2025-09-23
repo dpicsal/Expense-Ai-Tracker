@@ -36,7 +36,7 @@ export function ExpenseCard({ expense, onEdit, onDelete }: ExpenseCardProps) {
   };
 
   return (
-    <Card className="hover-elevate" data-testid={`expense-card-${expense.id}`}>
+    <Card className="hover-elevate border-0 shadow-sm bg-gradient-to-r from-card to-card/50 transition-all duration-200" data-testid={`expense-card-${expense.id}`}>
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">

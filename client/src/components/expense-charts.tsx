@@ -43,9 +43,10 @@ export function ExpenseCharts({ expenses }: ExpenseChartsProps) {
   return (
     <div className="grid gap-6 md:grid-cols-2">
       {/* Category Distribution */}
-      <Card data-testid="chart-category-distribution">
-        <CardHeader>
-          <CardTitle>Spending by Category</CardTitle>
+      <Card className="border-0 shadow-md" data-testid="chart-category-distribution">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl font-semibold">Spending by Category</CardTitle>
+          <p className="text-sm text-muted-foreground">Breakdown of your expenses by category</p>
         </CardHeader>
         <CardContent>
           {pieData.length > 0 ? (
@@ -77,9 +78,10 @@ export function ExpenseCharts({ expenses }: ExpenseChartsProps) {
       </Card>
 
       {/* Monthly Spending */}
-      <Card data-testid="chart-monthly-spending">
-        <CardHeader>
-          <CardTitle>Monthly Spending</CardTitle>
+      <Card className="border-0 shadow-md" data-testid="chart-monthly-spending">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl font-semibold">Monthly Spending</CardTitle>
+          <p className="text-sm text-muted-foreground">Track your spending trends over time</p>
         </CardHeader>
         <CardContent>
           {barData.length > 0 ? (
@@ -101,9 +103,10 @@ export function ExpenseCharts({ expenses }: ExpenseChartsProps) {
       </Card>
 
       {/* Summary Stats */}
-      <Card className="md:col-span-2" data-testid="summary-stats">
-        <CardHeader>
-          <CardTitle>Summary Statistics</CardTitle>
+      <Card className="md:col-span-2 border-0 shadow-md bg-gradient-to-br from-primary/5 to-primary/10" data-testid="summary-stats">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl font-semibold">Summary Statistics</CardTitle>
+          <p className="text-sm text-muted-foreground">Key metrics about your spending habits</p>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

@@ -59,16 +59,21 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Plus className="h-5 w-5" />
+    <Card className="border-0 shadow-lg">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-3 text-xl">
+          <div className="p-2 rounded-lg bg-primary/10">
+            <Plus className="h-5 w-5 text-primary" />
+          </div>
           {isEditing ? 'Edit Expense' : 'Add New Expense'}
         </CardTitle>
+        <p className="text-sm text-muted-foreground mt-2">
+          {isEditing ? 'Update your expense details below' : 'Enter your expense information below'}
+        </p>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-6">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
             <FormField
               control={form.control}
               name="amount"
@@ -182,11 +187,21 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
 
             <Button 
               type="submit" 
-              className="w-full" 
+              className="w-full h-12 text-base font-medium" 
               disabled={isSubmitting}
               data-testid="button-submit-expense"
             >
-              {isSubmitting ? 'Saving...' : (isEditing ? 'Update Expense' : 'Add Expense')}
+              {isSubmitting ? (
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-background border-t-transparent"></div>
+                  Saving...
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  {isEditing ? 'Update Expense' : 'Add Expense'}
+                </div>
+              )}
             </Button>
           </form>
         </Form>

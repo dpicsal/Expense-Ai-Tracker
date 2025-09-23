@@ -36,15 +36,25 @@ function App() {
       <TooltipProvider>
         <ThemeProvider>
           <SidebarProvider style={style as React.CSSProperties}>
-            <div className="flex h-screen w-full">
+            <div className="flex h-screen w-full bg-background">
               <AppSidebar />
-              <div className="flex flex-col flex-1">
-                <header className="flex items-center justify-between p-4 border-b">
-                  <SidebarTrigger data-testid="button-sidebar-toggle" />
-                  <ThemeToggle />
+              <div className="flex flex-col flex-1 min-w-0">
+                <header className="flex items-center justify-between p-4 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                  <div className="flex items-center gap-4">
+                    <SidebarTrigger data-testid="button-sidebar-toggle" className="hover:bg-accent/50" />
+                    <div className="hidden sm:block">
+                      <h2 className="font-semibold text-lg">Welcome back</h2>
+                      <p className="text-sm text-muted-foreground">Manage your expenses effectively</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <ThemeToggle />
+                  </div>
                 </header>
-                <main className="flex-1 overflow-auto p-6">
-                  <Router />
+                <main className="flex-1 overflow-auto bg-muted/30">
+                  <div className="container mx-auto p-6 max-w-7xl">
+                    <Router />
+                  </div>
                 </main>
               </div>
             </div>
