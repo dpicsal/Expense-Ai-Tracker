@@ -1,6 +1,6 @@
-import { expenses, type Expense, type InsertExpense } from "@shared/schema";
+import { expenses, categories, type Expense, type InsertExpense, type Category, type InsertCategory } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 
 export interface IStorage {
   getAllExpenses(): Promise<Expense[]>;
@@ -8,6 +8,13 @@ export interface IStorage {
   createExpense(expense: InsertExpense): Promise<Expense>;
   updateExpense(id: string, expense: Partial<InsertExpense>): Promise<Expense | undefined>;
   deleteExpense(id: string): Promise<boolean>;
+  
+  // Category management
+  getAllCategories(): Promise<Category[]>;
+  getCategory(id: string): Promise<Category | undefined>;
+  createCategory(category: InsertCategory): Promise<Category>;
+  updateCategory(id: string, category: Partial<InsertCategory>): Promise<Category | undefined>;
+  deleteCategory(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -47,6 +54,54 @@ export class DatabaseStorage implements IStorage {
 
   async deleteExpense(id: string): Promise<boolean> {
     const result = await db.delete(expenses).where(eq(expenses.id, id));
+    return (result.rowCount || 0) > 0;
+  }
+
+  // Category management methods
+  async getAllCategories(): Promise<Category[]> {
+    return await db.select().from(categories).orderBy(categories.name);
+  }
+
+  async getCategory(id: string): Promise<Category | undefined> {
+    const [category] = await db.select().from(categories).where(eq(categories.id, id));
+    return category || undefined;
+  }
+
+  async createCategory(insertCategory: InsertCategory): Promise<Category> {
+    const categoryValues: any = { 
+      ...insertCategory,
+      updatedAt: sql`NOW()`
+    };
+    if (insertCategory.budget !== undefined) {
+      categoryValues.budget = insertCategory.budget.toString();
+    }
+    
+    const [category] = await db
+      .insert(categories)
+      .values(categoryValues)
+      .returning();
+    return category;
+  }
+
+  async updateCategory(id: string, updateData: Partial<InsertCategory>): Promise<Category | undefined> {
+    const updateValues: any = { 
+      ...updateData,
+      updatedAt: sql`NOW()`
+    };
+    if (updateData.budget !== undefined) {
+      updateValues.budget = updateData.budget.toString();
+    }
+    
+    const [category] = await db
+      .update(categories)
+      .set(updateValues)
+      .where(eq(categories.id, id))
+      .returning();
+    return category || undefined;
+  }
+
+  async deleteCategory(id: string): Promise<boolean> {
+    const result = await db.delete(categories).where(eq(categories.id, id));
     return (result.rowCount || 0) > 0;
   }
 }
