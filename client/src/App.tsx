@@ -46,8 +46,8 @@ function App() {
             <div className="flex h-screen w-full bg-background">
               <AppSidebar />
               <div className="flex flex-col flex-1 min-w-0">
-                <header className={`flex items-center justify-between border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 ${isMobile ? 'p-3' : 'p-4'}`}>
-                  <div className="flex items-center gap-3">
+                <header className={`flex items-center justify-between gap-2 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 ${isMobile ? 'px-3 py-2' : 'p-4'}`}>
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
                     <SidebarTrigger 
                       data-testid="button-sidebar-toggle" 
                       className={`hover:bg-accent/50 ${isMobile ? 'h-11 w-11' : ''}`} 
@@ -59,8 +59,8 @@ function App() {
                       </div>
                     )}
                     {isMobile && (
-                      <div>
-                        <h2 className="font-semibold text-base">ExpenseTracker</h2>
+                      <div className="min-w-0">
+                        <h2 className="font-semibold text-base truncate">ExpenseTracker</h2>
                       </div>
                     )}
                   </div>

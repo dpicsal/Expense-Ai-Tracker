@@ -1,9 +1,11 @@
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/providers/theme-provider";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
+  const isMobile = useIsMobile();
 
   return (
     <Button
@@ -11,7 +13,7 @@ export function ThemeToggle() {
       variant="ghost"
       onClick={toggleTheme}
       data-testid="button-theme-toggle"
-      className="relative overflow-hidden"
+      className={`relative overflow-hidden ${isMobile ? 'h-11 w-11' : ''}`}
     >
       <div className="relative">
         {theme === "light" ? (
