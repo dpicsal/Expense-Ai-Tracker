@@ -1,10 +1,26 @@
 import { ExpenseForm } from "@/components/expense-form";
+import { useToast } from "@/hooks/use-toast";
+import { useCreateExpense } from "@/hooks/use-expenses";
 import { type InsertExpense } from "@shared/schema";
 
 export default function AddExpense() {
-  const handleSubmit = (expense: InsertExpense) => {
-    console.log('New expense:', expense);
-    // todo: remove mock functionality - integrate with backend
+  const { toast } = useToast();
+  const createExpense = useCreateExpense();
+
+  const handleSubmit = async (expense: InsertExpense) => {
+    try {
+      await createExpense.mutateAsync(expense);
+      toast({
+        title: "Success",
+        description: "Expense added successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add expense",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

@@ -2,74 +2,83 @@ import { useState } from "react";
 import { PlusCircle, TrendingDown, TrendingUp, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { ExpenseCharts } from "@/components/expense-charts";
 import { ExpenseForm } from "@/components/expense-form";
 import { ExpenseList } from "@/components/expense-list";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { useExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense } from "@/hooks/use-expenses";
 import { type Expense, type InsertExpense } from "@shared/schema";
 
 export default function Dashboard() {
-  // todo: remove mock functionality
-  const [expenses, setExpenses] = useState<Expense[]>([
-    {
-      id: '1',
-      amount: '45.50',
-      description: 'Lunch at downtown restaurant',
-      category: 'Food & Dining',
-      date: new Date('2024-01-15'),
-    },
-    {
-      id: '2',
-      amount: '85.00',
-      description: 'Gas station fill-up',
-      category: 'Transportation',
-      date: new Date('2024-01-14'),
-    },
-    {
-      id: '3',
-      amount: '120.00',
-      description: 'Grocery shopping for the week',
-      category: 'Shopping',
-      date: new Date('2024-01-13'),
-    },
-    {
-      id: '4',
-      amount: '25.00',
-      description: 'Movie tickets',
-      category: 'Entertainment',
-      date: new Date('2024-02-01'),
-    },
-    {
-      id: '5',
-      amount: '150.00',
-      description: 'Electric bill',
-      category: 'Bills & Utilities',
-      date: new Date('2024-02-05'),
-    },
-  ]);
-
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const { toast } = useToast();
+  
+  const { data: expenses = [], isLoading } = useExpenses();
+  const createExpense = useCreateExpense();
+  const updateExpense = useUpdateExpense();
+  const deleteExpense = useDeleteExpense();
 
-  const handleAddExpense = (newExpense: InsertExpense) => {
-    console.log('Adding expense:', newExpense);
-    const expense: Expense = {
-      id: Date.now().toString(),
-      ...newExpense,
-      amount: newExpense.amount.toString(),
-    };
-    setExpenses(prev => [expense, ...prev]);
-    setIsDialogOpen(false);
+  const handleAddExpense = async (newExpense: InsertExpense) => {
+    try {
+      await createExpense.mutateAsync(newExpense);
+      setIsDialogOpen(false);
+      toast({
+        title: "Success",
+        description: "Expense added successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add expense",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleEditExpense = (expense: Expense) => {
-    console.log('Edit expense:', expense);
-    // Implementation would go here
+    setEditingExpense(expense);
+    setIsDialogOpen(true);
   };
 
-  const handleDeleteExpense = (id: string) => {
-    console.log('Delete expense:', id);
-    setExpenses(prev => prev.filter(exp => exp.id !== id));
+  const handleUpdateExpense = async (updatedExpense: InsertExpense) => {
+    if (!editingExpense) return;
+    
+    try {
+      await updateExpense.mutateAsync({
+        id: editingExpense.id,
+        expense: updatedExpense,
+      });
+      setIsDialogOpen(false);
+      setEditingExpense(null);
+      toast({
+        title: "Success",
+        description: "Expense updated successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update expense",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteExpense = async (id: string) => {
+    try {
+      await deleteExpense.mutateAsync(id);
+      toast({
+        title: "Success",
+        description: "Expense deleted successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete expense",
+        variant: "destructive",
+      });
+    }
   };
 
   const totalExpenses = expenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
@@ -99,7 +108,10 @@ export default function Dashboard() {
             Track your expenses and visualize your spending patterns
           </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) setEditingExpense(null);
+        }}>
           <DialogTrigger asChild>
             <Button data-testid="button-add-expense">
               <PlusCircle className="h-4 w-4 mr-2" />
@@ -108,9 +120,20 @@ export default function Dashboard() {
           </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>Add New Expense</DialogTitle>
+              <DialogTitle>
+                {editingExpense ? 'Edit Expense' : 'Add New Expense'}
+              </DialogTitle>
             </DialogHeader>
-            <ExpenseForm onSubmit={handleAddExpense} />
+            <ExpenseForm 
+              onSubmit={editingExpense ? handleUpdateExpense : handleAddExpense}
+              initialData={editingExpense ? {
+                amount: parseFloat(editingExpense.amount),
+                description: editingExpense.description,
+                category: editingExpense.category,
+                date: new Date(editingExpense.date),
+              } : undefined}
+              isEditing={!!editingExpense}
+            />
           </DialogContent>
         </Dialog>
       </div>
@@ -176,11 +199,17 @@ export default function Dashboard() {
           <CardTitle>Recent Expenses</CardTitle>
         </CardHeader>
         <CardContent>
-          <ExpenseList
-            expenses={expenses.slice(0, 10)}
-            onEdit={handleEditExpense}
-            onDelete={handleDeleteExpense}
-          />
+          {isLoading ? (
+            <div className="text-center py-8 text-muted-foreground">
+              Loading expenses...
+            </div>
+          ) : (
+            <ExpenseList
+              expenses={expenses.slice(0, 10)}
+              onEdit={handleEditExpense}
+              onDelete={handleDeleteExpense}
+            />
+          )}
         </CardContent>
       </Card>
     </div>
