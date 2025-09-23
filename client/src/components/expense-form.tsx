@@ -12,6 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { insertExpenseSchema, type InsertExpense } from "@shared/schema";
 
 const categories = [
@@ -34,6 +35,7 @@ interface ExpenseFormProps {
 
 export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isMobile = useIsMobile();
 
   const form = useForm<InsertExpense>({
     resolver: zodResolver(insertExpenseSchema),
@@ -60,8 +62,8 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
 
   return (
     <Card className="border-0 shadow-lg">
-      <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-3 text-xl">
+      <CardHeader className={isMobile ? "pb-3" : "pb-4"}>
+        <CardTitle className={`flex items-center gap-3 ${isMobile ? 'text-lg' : 'text-xl'}`}>
           <div className="p-2 rounded-lg bg-primary/10">
             <Plus className="h-5 w-5 text-primary" />
           </div>
@@ -71,9 +73,9 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
           {isEditing ? 'Update your expense details below' : 'Enter your expense information below'}
         </p>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className={isMobile ? "space-y-4" : "space-y-6"}>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className={isMobile ? "space-y-4" : "space-y-6"}>
             <FormField
               control={form.control}
               name="amount"
@@ -89,7 +91,8 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
                         step="0.01"
                         min="0"
                         placeholder="0.00"
-                        className="pl-8"
+                        className={`pl-8 ${isMobile ? 'h-11' : ''}`}
+                        inputMode="decimal"
                         data-testid="input-amount"
                       />
                     </div>
@@ -109,6 +112,7 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
                     <Textarea
                       {...field}
                       placeholder="What did you spend on?"
+                      className={isMobile ? 'h-20 resize-none' : ''}
                       data-testid="input-description"
                     />
                   </FormControl>
@@ -125,7 +129,7 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
                   <FormLabel>Category</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger data-testid="select-category">
+                      <SelectTrigger className={isMobile ? 'h-11' : ''} data-testid="select-category">
                         <SelectValue placeholder="Select a category" />
                       </SelectTrigger>
                     </FormControl>
@@ -153,6 +157,7 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
                       <FormControl>
                         <Button
                           variant="outline"
+                          size={isMobile ? "lg" : "default"}
                           className={cn(
                             "w-full pl-3 text-left font-normal",
                             !field.value && "text-muted-foreground"
@@ -168,7 +173,7 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
+                    <PopoverContent className={`w-auto p-0 ${isMobile ? 'w-screen max-w-sm' : ''}`} align={isMobile ? "center" : "start"}>
                       <Calendar
                         mode="single"
                         selected={field.value}
@@ -187,7 +192,8 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
 
             <Button 
               type="submit" 
-              className="w-full h-12 text-base font-medium" 
+              size="lg"
+              className="w-full text-base font-medium" 
               disabled={isSubmitting}
               data-testid="button-submit-expense"
             >
