@@ -199,7 +199,7 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
             >
               {isSubmitting ? (
                 <div className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-background border-t-transparent"></div>
+                  <div className="w-4 h-4 border-2 border-background border-t-transparent rounded-full animate-ios-spinner"></div>
                   Saving...
                 </div>
               ) : (

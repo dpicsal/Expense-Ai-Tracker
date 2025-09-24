@@ -102,7 +102,7 @@ export default function Dashboard() {
   const monthlyChange = lastMonthTotal > 0 ? ((thisMonthTotal - lastMonthTotal) / lastMonthTotal) * 100 : 0;
 
   return (
-    <div className={`${isMobile ? 'space-y-6' : 'space-y-8'}`}>
+    <div className={`${isMobile ? 'space-y-6' : 'space-y-8'} animate-fade-in-up`}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="space-y-1">
@@ -149,7 +149,7 @@ export default function Dashboard() {
 
       {/* Summary Cards */}
       <div className={`grid grid-cols-1 min-[380px]:grid-cols-2 md:grid-cols-3 ${isMobile ? 'gap-3' : 'gap-4 sm:gap-5 lg:gap-6'}`}>
-        <Card className={`border-0 shadow-ios-sm bg-gradient-to-br from-card/95 to-card/80 backdrop-blur-md ${isMobile ? 'min-h-[7rem]' : ''}`}>
+        <Card className={`border-0 shadow-ios-sm bg-gradient-to-br from-card/95 to-card/80 backdrop-blur-md stagger-fade-in ${isMobile ? 'min-h-[7rem]' : ''}`}>
           <CardHeader className={`flex flex-row items-center justify-between space-y-0 ${isMobile ? 'pb-2 px-4 pt-4' : 'pb-3'}`}>
             <CardTitle className={`text-sm font-medium text-muted-foreground ${isMobile ? 'text-xs' : ''}`}>Total Expenses</CardTitle>
             <div className={`${isMobile ? 'p-1.5' : 'p-2'} rounded-xl bg-primary/10 shadow-sm`}>
@@ -167,7 +167,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className={`border-0 shadow-ios-sm bg-gradient-to-br from-blue-50/95 to-blue-100/90 dark:from-blue-950/95 dark:to-blue-900/90 backdrop-blur-md ${isMobile ? 'min-h-[7rem]' : ''}`}>
+        <Card className={`border-0 shadow-ios-sm bg-gradient-to-br from-blue-50/95 to-blue-100/90 dark:from-blue-950/95 dark:to-blue-900/90 backdrop-blur-md stagger-fade-in ${isMobile ? 'min-h-[7rem]' : ''}`}>
           <CardHeader className={`flex flex-row items-center justify-between space-y-0 ${isMobile ? 'pb-2 px-4 pt-4' : 'pb-3'}`}>
             <CardTitle className={`text-sm font-medium text-blue-700 dark:text-blue-300 ${isMobile ? 'text-xs' : ''}`}>This Month</CardTitle>
             <div className={`${isMobile ? 'p-1.5' : 'p-2'} rounded-xl bg-blue-500/10 shadow-sm`}>
@@ -185,7 +185,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className={`border-0 shadow-ios-sm backdrop-blur-md ${isMobile ? 'min-h-[7rem]' : ''} ${
+        <Card className={`border-0 shadow-ios-sm backdrop-blur-md stagger-fade-in ${isMobile ? 'min-h-[7rem]' : ''} ${
           monthlyChange >= 0 
             ? 'bg-gradient-to-br from-red-50/95 to-red-100/90 dark:from-red-950/95 dark:to-red-900/90' 
             : 'bg-gradient-to-br from-green-50/95 to-green-100/90 dark:from-green-950/95 dark:to-green-900/90'
@@ -244,7 +244,10 @@ export default function Dashboard() {
         <CardContent>
           {isLoading ? (
             <div className="text-center py-12 text-muted-foreground">
-              <div className="animate-pulse">Loading expenses...</div>
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-ios-spinner"></div>
+                <div className="animate-pulse-glow">Loading expenses...</div>
+              </div>
             </div>
           ) : (
             <ExpenseList
