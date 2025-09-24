@@ -41,16 +41,16 @@ export function ExpenseCharts({ expenses }: ExpenseChartsProps) {
   const totalExpenses = expenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
 
   return (
-    <div className="grid gap-6 md:grid-cols-2">
+    <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
       {/* Category Distribution */}
-      <Card className="border-0 shadow-md" data-testid="chart-category-distribution">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-semibold">Spending by Category</CardTitle>
-          <p className="text-sm text-muted-foreground">Breakdown of your expenses by category</p>
+      <Card className="border-0 shadow-ios-sm bg-card/95 backdrop-blur-md" data-testid="chart-category-distribution">
+        <CardHeader className="pb-3 sm:pb-4">
+          <CardTitle className="text-lg sm:text-xl font-semibold">Spending by Category</CardTitle>
+          <p className="text-xs sm:text-sm text-muted-foreground">Breakdown of your expenses by category</p>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pb-4 sm:pb-6">
           {pieData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
+            <ResponsiveContainer width="100%" height={280}>
               <PieChart>
                 <Pie
                   data={pieData}
@@ -58,81 +58,121 @@ export function ExpenseCharts({ expenses }: ExpenseChartsProps) {
                   cy="50%"
                   labelLine={false}
                   label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
+                  outerRadius={75}
                   fill="#8884d8"
                   dataKey="value"
+                  stroke="none"
                 >
                   {pieData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value) => [`$${Number(value).toFixed(2)}`, 'Amount']} />
+                <Tooltip 
+                  formatter={(value) => [`$${Number(value).toFixed(2)}`, 'Amount']} 
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    border: 'none',
+                    borderRadius: '1rem',
+                    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                  }}
+                />
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-              No data to display
+            <div className="h-[280px] flex items-center justify-center text-muted-foreground">
+              <div className="text-center">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-muted/50 flex items-center justify-center">
+                  <PieChart className="h-6 w-6" />
+                </div>
+                <p className="text-sm">No data to display</p>
+              </div>
             </div>
           )}
         </CardContent>
       </Card>
 
       {/* Monthly Spending */}
-      <Card className="border-0 shadow-md" data-testid="chart-monthly-spending">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-semibold">Monthly Spending</CardTitle>
-          <p className="text-sm text-muted-foreground">Track your spending trends over time</p>
+      <Card className="border-0 shadow-ios-sm bg-card/95 backdrop-blur-md" data-testid="chart-monthly-spending">
+        <CardHeader className="pb-3 sm:pb-4">
+          <CardTitle className="text-lg sm:text-xl font-semibold">Monthly Spending</CardTitle>
+          <p className="text-xs sm:text-sm text-muted-foreground">Track your spending trends over time</p>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pb-4 sm:pb-6">
           {barData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={barData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip formatter={(value) => [`$${Number(value).toFixed(2)}`, 'Amount']} />
-                <Bar dataKey="amount" fill="hsl(var(--primary))" />
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={barData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="2 2" stroke="hsl(var(--border))" opacity={0.3} />
+                <XAxis 
+                  dataKey="month" 
+                  tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis 
+                  tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip 
+                  formatter={(value) => [`$${Number(value).toFixed(2)}`, 'Amount']} 
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    border: 'none',
+                    borderRadius: '1rem',
+                    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+                  }}
+                />
+                <Bar 
+                  dataKey="amount" 
+                  fill="hsl(var(--primary))" 
+                  radius={[6, 6, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-              No data to display
+            <div className="h-[280px] flex items-center justify-center text-muted-foreground">
+              <div className="text-center">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-muted/50 flex items-center justify-center">
+                  <BarChart className="h-6 w-6" />
+                </div>
+                <p className="text-sm">No data to display</p>
+              </div>
             </div>
           )}
         </CardContent>
       </Card>
 
       {/* Summary Stats */}
-      <Card className="md:col-span-2 border-0 shadow-md bg-gradient-to-br from-primary/5 to-primary/10" data-testid="summary-stats">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-semibold">Summary Statistics</CardTitle>
-          <p className="text-sm text-muted-foreground">Key metrics about your spending habits</p>
+      <Card className="md:col-span-2 border-0 shadow-ios-sm bg-gradient-to-br from-primary/8 to-primary/12 backdrop-blur-md" data-testid="summary-stats">
+        <CardHeader className="pb-3 sm:pb-4">
+          <CardTitle className="text-lg sm:text-xl font-semibold">Summary Statistics</CardTitle>
+          <p className="text-xs sm:text-sm text-muted-foreground">Key metrics about your spending habits</p>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold tabular-nums" data-testid="stat-total-expenses">
+        <CardContent className="pb-4 sm:pb-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+            <div className="text-center p-3 sm:p-4 rounded-xl bg-card/60 backdrop-blur-sm">
+              <div className="text-lg sm:text-2xl font-bold tabular-nums text-primary" data-testid="stat-total-expenses">
                 ${totalExpenses.toFixed(2)}
               </div>
-              <div className="text-sm text-muted-foreground">Total Expenses</div>
+              <div className="text-xs sm:text-sm text-muted-foreground mt-1">Total Expenses</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold tabular-nums" data-testid="stat-expense-count">
+            <div className="text-center p-3 sm:p-4 rounded-xl bg-card/60 backdrop-blur-sm">
+              <div className="text-lg sm:text-2xl font-bold tabular-nums text-primary" data-testid="stat-expense-count">
                 {expenses.length}
               </div>
-              <div className="text-sm text-muted-foreground">Total Transactions</div>
+              <div className="text-xs sm:text-sm text-muted-foreground mt-1">Total Transactions</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold tabular-nums" data-testid="stat-average-expense">
+            <div className="text-center p-3 sm:p-4 rounded-xl bg-card/60 backdrop-blur-sm">
+              <div className="text-lg sm:text-2xl font-bold tabular-nums text-primary" data-testid="stat-average-expense">
                 ${expenses.length > 0 ? (totalExpenses / expenses.length).toFixed(2) : '0.00'}
               </div>
-              <div className="text-sm text-muted-foreground">Average Expense</div>
+              <div className="text-xs sm:text-sm text-muted-foreground mt-1">Average Expense</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold tabular-nums" data-testid="stat-categories-count">
+            <div className="text-center p-3 sm:p-4 rounded-xl bg-card/60 backdrop-blur-sm">
+              <div className="text-lg sm:text-2xl font-bold tabular-nums text-primary" data-testid="stat-categories-count">
                 {Object.keys(categoryData).length}
               </div>
-              <div className="text-sm text-muted-foreground">Categories Used</div>
+              <div className="text-xs sm:text-sm text-muted-foreground mt-1">Categories Used</div>
             </div>
           </div>
         </CardContent>
