@@ -158,7 +158,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className={isMobile ? 'px-4 pb-4' : ''}>
             <div className={`${isMobile ? 'text-xl' : 'text-2xl md:text-3xl'} font-bold tabular-nums tracking-tight`} data-testid="total-expenses">
-              ${totalExpenses.toFixed(2)}
+              AED {totalExpenses.toFixed(2)}
             </div>
             <p className={`${isMobile ? 'text-xs mt-1' : 'text-sm mt-2'} text-muted-foreground flex items-center gap-1`}>
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary"></span>
@@ -176,7 +176,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className={isMobile ? 'px-4 pb-4' : ''}>
             <div className={`${isMobile ? 'text-xl' : 'text-2xl md:text-3xl'} font-bold tabular-nums tracking-tight text-blue-900 dark:text-blue-100`} data-testid="month-expenses">
-              ${thisMonthTotal.toFixed(2)}
+              AED {thisMonthTotal.toFixed(2)}
             </div>
             <p className={`${isMobile ? 'text-xs mt-1' : 'text-sm mt-2'} text-blue-600 dark:text-blue-400 flex items-center gap-1`}>
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-500"></span>

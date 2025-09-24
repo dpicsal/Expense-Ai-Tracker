@@ -75,7 +75,7 @@ export default function Categories() {
                       </span>
                     </div>
                     <div className="text-lg font-semibold tabular-nums" data-testid={`category-total-${category}`}>
-                      ${total.toFixed(2)}
+                      AED {total.toFixed(2)}
                     </div>
                   </div>
                   

@@ -40,7 +40,7 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
   const form = useForm<InsertExpense>({
     resolver: zodResolver(insertExpenseSchema),
     defaultValues: {
-      amount: initialData?.amount || 0,
+      amount: initialData?.amount,
       description: initialData?.description || "",
       category: initialData?.category || "",
       date: initialData?.date || new Date(),
@@ -84,14 +84,14 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
                   <FormLabel className={`text-base font-medium ${isMobile ? 'mb-2' : ''}`}>Amount</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground font-medium">$</span>
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground font-medium">AED</span>
                       <Input
                         {...field}
                         type="number"
                         step="0.01"
                         min="0"
                         placeholder="0.00"
-                        className="pl-8"
+                        className="pl-12"
                         inputMode="decimal"
                         data-testid="input-amount"
                       />
