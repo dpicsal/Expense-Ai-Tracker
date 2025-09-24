@@ -14,61 +14,62 @@
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
 
-  --background: 0 0% 99%;
+  /* iOS-style light mode colors */
+  --background: 240 12% 95%; /* iOS characteristic light gray background */
 
-  --foreground: 220 10% 8%;
+  --foreground: 210 11% 15%; /* iOS dark text */
 
-  --border: 220 6% 92%;
+  --border: 220 13% 87%; /* Subtle iOS borders */
 
-  --card: 0 0% 100%;
+  --card: 0 0% 100%; /* Pure white cards like iOS */
 
-  --card-foreground: 220 10% 8%;
+  --card-foreground: 210 11% 15%;
 
-  --card-border: 220 6% 94%;
+  --card-border: 220 13% 91%; /* Soft card borders */
 
-  --sidebar: 0 0% 98%;
+  --sidebar: 0 0% 98%; /* Clean sidebar background */
 
-  --sidebar-foreground: 220 10% 8%;
+  --sidebar-foreground: 210 11% 15%;
 
-  --sidebar-border: 220 6% 92%;
+  --sidebar-border: 220 13% 87%;
 
-  --sidebar-primary: 211 100% 50%;
+  --sidebar-primary: 211 100% 50%; /* iOS Blue #007AFF */
 
   --sidebar-primary-foreground: 0 0% 100%;
 
-  --sidebar-accent: 220 8% 95%;
+  --sidebar-accent: 220 14% 95%; /* Soft accent for sidebar */
 
-  --sidebar-accent-foreground: 220 10% 20%;
+  --sidebar-accent-foreground: 210 11% 25%;
 
   --sidebar-ring: 211 100% 50%;
 
   --popover: 0 0% 100%;
 
-  --popover-foreground: 220 10% 8%;
+  --popover-foreground: 210 11% 15%;
 
-  --popover-border: 220 6% 94%;
+  --popover-border: 220 13% 91%;
 
-  --primary: 211 100% 50%;
+  --primary: 211 100% 50%; /* Classic iOS Blue */
 
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 220 6% 96%;
+  --secondary: 220 14% 96%; /* Soft secondary background */
 
-  --secondary-foreground: 220 10% 20%;
+  --secondary-foreground: 210 11% 35%;
 
-  --muted: 220 4% 96%;
+  --muted: 220 14% 96%; /* iOS-style muted areas */
 
-  --muted-foreground: 220 5% 50%;
+  --muted-foreground: 210 9% 45%;
 
-  --accent: 220 4% 97%;
+  --accent: 220 14% 97%; /* Very light accent */
 
-  --accent-foreground: 220 10% 20%;
+  --accent-foreground: 210 11% 25%;
 
-  --destructive: 0 84% 55%;
+  --destructive: 0 68% 52%; /* iOS red */
 
   --destructive-foreground: 0 0% 100%;
 
-  --input: 220 6% 94%;
+  --input: 220 13% 91%; /* Clean input backgrounds */
   --ring: 211 100% 50%;
   --chart-1: 211 100% 50%;
   --chart-2: 142 76% 45%;
@@ -79,7 +80,7 @@
   --font-sans: Inter, sans-serif;
   --font-serif: Georgia, serif;
   --font-mono: Menlo, monospace;
-  --radius: .75rem; /* 12px */
+  --radius: 1rem; /* 16px - iOS-style larger radius */
   --shadow-2xs: 0px 1px 2px 0px hsl(220 6% 88% / 0.08);
   --shadow-xs: 0px 1px 3px 0px hsl(220 6% 88% / 0.10), 0px 1px 2px 0px hsl(220 6% 88% / 0.06);
   --shadow-sm: 0px 1px 3px 0px hsl(220 6% 88% / 0.12), 0px 1px 2px 0px hsl(220 6% 88% / 0.08);
@@ -132,61 +133,62 @@
   --elevate-1: rgba(255,255,255, .04);
   --elevate-2: rgba(255,255,255, .09);
 
-  --background: 220 10% 4%;
+  /* iOS-style dark mode colors */
+  --background: 0 0% 6%; /* iOS dark mode background */
 
-  --foreground: 0 0% 96%;
+  --foreground: 0 0% 96%; /* Light text for dark mode */
 
-  --border: 220 8% 15%;
+  --border: 0 0% 15%; /* Dark mode borders */
 
-  --card: 220 8% 8%;
+  --card: 0 0% 9%; /* Dark cards */
 
   --card-foreground: 0 0% 96%;
 
-  --card-border: 220 8% 16%;
+  --card-border: 0 0% 18%; /* Subtle card borders */
 
-  --sidebar: 220 10% 6%;
+  --sidebar: 0 0% 7%; /* Dark sidebar */
 
   --sidebar-foreground: 0 0% 96%;
 
-  --sidebar-border: 220 8% 15%;
+  --sidebar-border: 0 0% 15%;
 
-  --sidebar-primary: 211 100% 64%;
+  --sidebar-primary: 211 100% 64%; /* Lighter iOS blue for dark mode */
 
-  --sidebar-primary-foreground: 220 10% 4%;
+  --sidebar-primary-foreground: 0 0% 100%; /* White text on iOS blue */
 
-  --sidebar-accent: 220 8% 12%;
+  --sidebar-accent: 0 0% 14%; /* Dark accent */
 
-  --sidebar-accent-foreground: 220 5% 80%;
+  --sidebar-accent-foreground: 0 0% 80%;
 
   --sidebar-ring: 211 100% 64%;
 
-  --popover: 220 8% 10%;
+  --popover: 0 0% 10%;
 
   --popover-foreground: 0 0% 96%;
 
-  --popover-border: 220 8% 18%;
+  --popover-border: 0 0% 20%;
 
-  --primary: 211 100% 64%;
+  --primary: 211 100% 64%; /* iOS blue for dark mode */
 
-  --primary-foreground: 220 10% 4%;
+  --primary-foreground: 0 0% 100%; /* White text on iOS blue */
 
-  --secondary: 220 8% 12%;
+  --secondary: 0 0% 14%; /* Dark secondary */
 
-  --secondary-foreground: 220 5% 80%;
+  --secondary-foreground: 0 0% 80%;
 
-  --muted: 220 6% 12%;
+  --muted: 0 0% 14%; /* Dark muted areas */
 
-  --muted-foreground: 220 5% 70%;
+  --muted-foreground: 0 0% 70%;
 
-  --accent: 220 6% 14%;
+  --accent: 0 0% 16%; /* Dark accent */
 
-  --accent-foreground: 220 5% 80%;
+  --accent-foreground: 0 0% 80%;
 
-  --destructive: 0 84% 64%;
+  --destructive: 9 100% 60%; /* iOS red #FF3B30 */
 
-  --destructive-foreground: 220 10% 4%;
+  --destructive-foreground: 0 0% 100%; /* White text on red */
 
-  --input: 220 8% 16%;
+  --input: 0 0% 18%; /* Dark input backgrounds */
   --ring: 211 100% 64%;
   --chart-1: 211 100% 70%;
   --chart-2: 142 76% 65%;
