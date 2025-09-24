@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { useExpenses } from "@/hooks/use-expenses";
+import { formatCurrency } from "@/lib/utils";
 
 const mainMenuItems = [
   {
@@ -96,7 +97,7 @@ export function AppSidebar() {
               <span className="text-sm font-medium text-primary">This Month</span>
               <Calendar className="h-4 w-4 text-primary" />
             </div>
-            <div className="text-2xl font-semibold tabular-nums text-foreground">${totalThisMonth.toFixed(2)}</div>
+            <div className="text-2xl font-semibold tabular-nums text-foreground">{formatCurrency(totalThisMonth)}</div>
             <p className="text-xs text-muted-foreground mt-1">
               {expenses.filter(e => new Date(e.date).getMonth() === new Date().getMonth()).length} transactions
             </p>

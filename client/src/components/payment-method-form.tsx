@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { insertPaymentMethodSchema, type InsertPaymentMethod, type PaymentMethodType, PAYMENT_METHOD_TYPES } from "@shared/schema";
 import { PAYMENT_METHOD_LABELS, PAYMENT_METHOD_COLOR_OPTIONS } from "@shared/constants";
+import { formatCurrency } from "@/lib/utils";
 
 const paymentMethodOptions = PAYMENT_METHOD_TYPES.map(type => ({
   value: type,
@@ -239,10 +240,10 @@ export function PaymentMethodForm({ onSubmit, initialData, isEditing, isSubmitti
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-semibold">${Number(form.watch('balance') || 0).toFixed(2)}</div>
+                    <div className="font-semibold">{formatCurrency(Number(form.watch('balance') || 0))}</div>
                     {selectedType === 'credit_card' && form.watch('creditLimit') && (
                       <div className="text-sm text-muted-foreground">
-                        Limit: ${Number(form.watch('creditLimit') || 0).toFixed(2)}
+                        Limit: {formatCurrency(Number(form.watch('creditLimit') || 0))}
                       </div>
                     )}
                   </div>

@@ -1,6 +1,7 @@
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { type Expense } from "@shared/schema";
+import { formatCurrency } from "@/lib/utils";
 
 interface ExpenseChartsProps {
   expenses: Expense[];
@@ -68,7 +69,7 @@ export function ExpenseCharts({ expenses }: ExpenseChartsProps) {
                   ))}
                 </Pie>
                 <Tooltip 
-                  formatter={(value) => [`AED ${Number(value).toFixed(2)}`, 'Amount']} 
+                  formatter={(value) => [formatCurrency(Number(value)), 'Amount']} 
                   contentStyle={{
                     backgroundColor: 'hsl(var(--card))',
                     border: 'none',
@@ -114,7 +115,7 @@ export function ExpenseCharts({ expenses }: ExpenseChartsProps) {
                   tickLine={false}
                 />
                 <Tooltip 
-                  formatter={(value) => [`AED ${Number(value).toFixed(2)}`, 'Amount']} 
+                  formatter={(value) => [formatCurrency(Number(value)), 'Amount']} 
                   contentStyle={{
                     backgroundColor: 'hsl(var(--card))',
                     border: 'none',
@@ -152,7 +153,7 @@ export function ExpenseCharts({ expenses }: ExpenseChartsProps) {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             <div className="text-center p-3 sm:p-4 rounded-xl bg-card/60 backdrop-blur-sm">
               <div className="text-lg sm:text-2xl font-bold tabular-nums text-primary" data-testid="stat-total-expenses">
-                AED {totalExpenses.toFixed(2)}
+                {formatCurrency(totalExpenses)}
               </div>
               <div className="text-xs sm:text-sm text-muted-foreground mt-1">Total Expenses</div>
             </div>
@@ -164,7 +165,7 @@ export function ExpenseCharts({ expenses }: ExpenseChartsProps) {
             </div>
             <div className="text-center p-3 sm:p-4 rounded-xl bg-card/60 backdrop-blur-sm">
               <div className="text-lg sm:text-2xl font-bold tabular-nums text-primary" data-testid="stat-average-expense">
-                AED {expenses.length > 0 ? (totalExpenses / expenses.length).toFixed(2) : '0.00'}
+                {expenses.length > 0 ? formatCurrency(totalExpenses / expenses.length) : formatCurrency(0)}
               </div>
               <div className="text-xs sm:text-sm text-muted-foreground mt-1">Average Expense</div>
             </div>
