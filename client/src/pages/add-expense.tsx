@@ -24,7 +24,7 @@ export default function AddExpense() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-slide-in-right">
       <div className="space-y-2">
         <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-foreground">
           Add Expense
