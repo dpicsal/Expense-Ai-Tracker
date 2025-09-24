@@ -239,10 +239,10 @@ export function PaymentMethodForm({ onSubmit, initialData, isEditing, isSubmitti
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-semibold">${form.watch('balance')?.toFixed(2) || '0.00'}</div>
+                    <div className="font-semibold">${Number(form.watch('balance') || 0).toFixed(2)}</div>
                     {selectedType === 'credit_card' && form.watch('creditLimit') && (
                       <div className="text-sm text-muted-foreground">
-                        Limit: ${form.watch('creditLimit')?.toFixed(2)}
+                        Limit: ${Number(form.watch('creditLimit') || 0).toFixed(2)}
                       </div>
                     )}
                   </div>
