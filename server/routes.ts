@@ -1,7 +1,10 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertExpenseSchema, insertCategorySchema } from "@shared/schema";
+import { 
+  insertExpenseSchema, insertCategorySchema, 
+  insertPaymentMethodSchema, insertTransactionSchema 
+} from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -148,6 +151,158 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting category:", error);
       res.status(500).json({ error: "Failed to delete category" });
+    }
+  });
+
+  // =============== PAYMENT METHOD ROUTES ===============
+
+  // Get all payment methods
+  app.get("/api/payment-methods", async (req, res) => {
+    try {
+      const paymentMethods = await storage.getAllPaymentMethods();
+      res.json(paymentMethods);
+    } catch (error) {
+      console.error("Error fetching payment methods:", error);
+      res.status(500).json({ error: "Failed to fetch payment methods" });
+    }
+  });
+
+  // Get single payment method
+  app.get("/api/payment-methods/:id", async (req, res) => {
+    try {
+      const paymentMethod = await storage.getPaymentMethod(req.params.id);
+      if (!paymentMethod) {
+        return res.status(404).json({ error: "Payment method not found" });
+      }
+      res.json(paymentMethod);
+    } catch (error) {
+      console.error("Error fetching payment method:", error);
+      res.status(500).json({ error: "Failed to fetch payment method" });
+    }
+  });
+
+  // Create new payment method
+  app.post("/api/payment-methods", async (req, res) => {
+    try {
+      const validatedData = insertPaymentMethodSchema.parse(req.body);
+      const paymentMethod = await storage.createPaymentMethod(validatedData);
+      res.status(201).json(paymentMethod);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
+      console.error("Error creating payment method:", error);
+      res.status(500).json({ error: "Failed to create payment method" });
+    }
+  });
+
+  // Update payment method
+  app.put("/api/payment-methods/:id", async (req, res) => {
+    try {
+      const validatedData = insertPaymentMethodSchema.partial().parse(req.body);
+      const paymentMethod = await storage.updatePaymentMethod(req.params.id, validatedData);
+      if (!paymentMethod) {
+        return res.status(404).json({ error: "Payment method not found" });
+      }
+      res.json(paymentMethod);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
+      console.error("Error updating payment method:", error);
+      res.status(500).json({ error: "Failed to update payment method" });
+    }
+  });
+
+  // Delete payment method
+  app.delete("/api/payment-methods/:id", async (req, res) => {
+    try {
+      const success = await storage.deletePaymentMethod(req.params.id);
+      if (!success) {
+        return res.status(404).json({ error: "Payment method not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting payment method:", error);
+      // This might fail due to foreign key constraint, which is expected
+      if (error instanceof Error && error.message?.includes('violates foreign key constraint')) {
+        return res.status(409).json({ error: "Cannot delete payment method with existing transactions" });
+      }
+      res.status(500).json({ error: "Failed to delete payment method" });
+    }
+  });
+
+  // =============== TRANSACTION ROUTES ===============
+
+  // Get all transactions
+  app.get("/api/transactions", async (req, res) => {
+    try {
+      const transactions = await storage.getAllTransactions();
+      res.json(transactions);
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+      res.status(500).json({ error: "Failed to fetch transactions" });
+    }
+  });
+
+  // Get single transaction
+  app.get("/api/transactions/:id", async (req, res) => {
+    try {
+      const transaction = await storage.getTransaction(req.params.id);
+      if (!transaction) {
+        return res.status(404).json({ error: "Transaction not found" });
+      }
+      res.json(transaction);
+    } catch (error) {
+      console.error("Error fetching transaction:", error);
+      res.status(500).json({ error: "Failed to fetch transaction" });
+    }
+  });
+
+  // Create new transaction
+  app.post("/api/transactions", async (req, res) => {
+    try {
+      const validatedData = insertTransactionSchema.parse(req.body);
+      const transaction = await storage.createTransaction(validatedData);
+      res.status(201).json(transaction);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
+      console.error("Error creating transaction:", error);
+      res.status(500).json({ error: "Failed to create transaction" });
+    }
+  });
+
+  // Update transaction
+  app.put("/api/transactions/:id", async (req, res) => {
+    try {
+      const validatedData = insertTransactionSchema.partial().parse(req.body);
+      const transaction = await storage.updateTransaction(req.params.id, validatedData);
+      if (!transaction) {
+        return res.status(404).json({ error: "Transaction not found" });
+      }
+      res.json(transaction);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
+      console.error("Error updating transaction:", error);
+      res.status(500).json({ error: "Failed to update transaction" });
+    }
+  });
+
+  // Delete transaction
+  app.delete("/api/transactions/:id", async (req, res) => {
+    try {
+      const success = await storage.deleteTransaction(req.params.id);
+      if (!success) {
+        return res.status(404).json({ error: "Transaction not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting transaction:", error);
+      res.status(500).json({ error: "Failed to delete transaction" });
     }
   });
 
