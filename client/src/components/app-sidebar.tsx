@@ -62,29 +62,29 @@ export function AppSidebar() {
     .reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
 
   return (
-    <Sidebar className="border-r border-border/50">
+    <Sidebar className="border-r border-border/20 bg-sidebar/95 backdrop-blur-sm">
       {/* Header with Branding */}
-      <SidebarHeader className="p-6 border-b border-border/50">
+      <SidebarHeader className="p-6 border-b border-border/20">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
             <Wallet className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="font-bold text-lg tracking-tight">ExpenseTracker</h1>
-            <p className="text-xs text-muted-foreground">Personal Finance</p>
+            <h1 className="font-semibold text-lg tracking-tight text-foreground">ExpenseTracker</h1>
+            <p className="text-xs text-muted-foreground leading-tight">Personal Finance</p>
           </div>
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-4 py-6 space-y-6">
+      <SidebarContent className="px-5 py-6 space-y-8">
         {/* Quick Stats Card */}
-        <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-          <CardContent className="p-4">
+        <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/15 shadow-sm hover:shadow-md transition-all duration-200">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-primary">This Month</span>
               <Calendar className="h-4 w-4 text-primary" />
             </div>
-            <div className="text-2xl font-bold tabular-nums">${totalThisMonth.toFixed(2)}</div>
+            <div className="text-2xl font-semibold tabular-nums text-foreground">${totalThisMonth.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground mt-1">
               {expenses.filter(e => new Date(e.date).getMonth() === new Date().getMonth()).length} transactions
             </p>
@@ -93,20 +93,20 @@ export function AppSidebar() {
 
         {/* Quick Actions */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <SidebarGroupLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-2">
             Quick Actions
           </SidebarGroupLabel>
-          <SidebarGroupContent className="mt-3">
-            <div className="space-y-2">
+          <SidebarGroupContent className="mt-4">
+            <div className="space-y-3">
               {quickActions.map((item) => (
                 <Button
                   key={item.title}
                   asChild
-                  className="w-full justify-start h-11"
+                  className="w-full justify-start min-h-11 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
                   data-testid={`quick-${item.title.toLowerCase().replace(' ', '-')}`}
                 >
                   <Link href={item.url}>
-                    <item.icon className="h-4 w-4 mr-3" />
+                    <item.icon className="h-5 w-5 mr-3" />
                     {item.title}
                   </Link>
                 </Button>
@@ -119,24 +119,24 @@ export function AppSidebar() {
 
         {/* Main Navigation */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <SidebarGroupLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-2">
             Navigation
           </SidebarGroupLabel>
-          <SidebarGroupContent className="mt-3">
-            <SidebarMenu className="space-y-1">
+          <SidebarGroupContent className="mt-4">
+            <SidebarMenu className="space-y-2">
               {mainMenuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton 
                     asChild 
                     isActive={location === item.url}
-                    className="h-11 px-3 rounded-lg hover:bg-accent/50 transition-colors group"
+                    className="min-h-11 px-4 py-3 rounded-lg hover:bg-accent/50 transition-all duration-200 group"
                     data-testid={`nav-${item.title.toLowerCase().replace(' ', '-')}`}
                   >
-                    <Link href={item.url} className="flex items-center gap-3">
+                    <Link href={item.url} className="flex items-center gap-4">
                       <item.icon className="h-5 w-5 text-muted-foreground group-hover:text-foreground transition-colors" />
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium">{item.title}</div>
-                        <div className="text-xs text-muted-foreground truncate">
+                        <div className="font-medium text-foreground">{item.title}</div>
+                        <div className="text-xs text-muted-foreground truncate leading-tight">
                           {item.description}
                         </div>
                       </div>
@@ -158,9 +158,9 @@ export function AppSidebar() {
       </SidebarContent>
 
       {/* Footer with User Profile */}
-      <SidebarFooter className="p-4 border-t border-border/50">
-        <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer">
-          <Avatar className="h-8 w-8">
+      <SidebarFooter className="p-5 border-t border-border/20">
+        <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/50 transition-all duration-200 cursor-pointer min-h-11">
+          <Avatar className="h-9 w-9">
             <AvatarFallback className="bg-primary text-primary-foreground text-sm font-semibold">
               U
             </AvatarFallback>
@@ -169,7 +169,7 @@ export function AppSidebar() {
             <div className="font-medium text-sm">Personal Account</div>
             <div className="text-xs text-muted-foreground">Free Plan</div>
           </div>
-          <Button size="icon" variant="ghost" className="h-8 w-8">
+          <Button size="icon" variant="ghost" className="h-9 w-9 rounded-lg">
             <LogOut className="h-4 w-4" />
           </Button>
         </div>
