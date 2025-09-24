@@ -1,8 +1,13 @@
-import { expenses, categories, type Expense, type InsertExpense, type Category, type InsertCategory } from "@shared/schema";
+import { 
+  expenses, categories, paymentMethods, transactions,
+  type Expense, type InsertExpense, type Category, type InsertCategory,
+  type PaymentMethod, type InsertPaymentMethod, type Transaction, type InsertTransaction
+} from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql } from "drizzle-orm";
 
 export interface IStorage {
+  // Legacy expense management (keeping for backward compatibility)
   getAllExpenses(): Promise<Expense[]>;
   getExpense(id: string): Promise<Expense | undefined>;
   createExpense(expense: InsertExpense): Promise<Expense>;
@@ -15,6 +20,21 @@ export interface IStorage {
   createCategory(category: InsertCategory): Promise<Category>;
   updateCategory(id: string, category: Partial<InsertCategory>): Promise<Category | undefined>;
   deleteCategory(id: string): Promise<boolean>;
+
+  // Payment Method management
+  getAllPaymentMethods(): Promise<PaymentMethod[]>;
+  getPaymentMethod(id: string): Promise<PaymentMethod | undefined>;
+  createPaymentMethod(paymentMethod: InsertPaymentMethod): Promise<PaymentMethod>;
+  updatePaymentMethod(id: string, paymentMethod: Partial<InsertPaymentMethod>): Promise<PaymentMethod | undefined>;
+  deletePaymentMethod(id: string): Promise<boolean>;
+  updatePaymentMethodBalance(id: string, amount: number, isIncome: boolean): Promise<PaymentMethod | undefined>;
+
+  // Transaction management (unified income/expense)
+  getAllTransactions(): Promise<Transaction[]>;
+  getTransaction(id: string): Promise<Transaction | undefined>;
+  createTransaction(transaction: InsertTransaction): Promise<Transaction>;
+  updateTransaction(id: string, transaction: Partial<InsertTransaction>): Promise<Transaction | undefined>;
+  deleteTransaction(id: string): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -109,6 +129,183 @@ export class DatabaseStorage implements IStorage {
   async deleteCategory(id: string): Promise<boolean> {
     const result = await db.delete(categories).where(eq(categories.id, id));
     return (result.rowCount || 0) > 0;
+  }
+
+  // =============== PAYMENT METHOD METHODS ===============
+  
+  async getAllPaymentMethods(): Promise<PaymentMethod[]> {
+    return await db.select().from(paymentMethods).orderBy(paymentMethods.name);
+  }
+
+  async getPaymentMethod(id: string): Promise<PaymentMethod | undefined> {
+    const [paymentMethod] = await db.select().from(paymentMethods).where(eq(paymentMethods.id, id));
+    return paymentMethod || undefined;
+  }
+
+  async createPaymentMethod(insertPaymentMethod: InsertPaymentMethod): Promise<PaymentMethod> {
+    const paymentMethodValues: any = { 
+      ...insertPaymentMethod,
+      balance: insertPaymentMethod.balance.toString(),
+      updatedAt: sql`NOW()`
+    };
+    if (insertPaymentMethod.creditLimit !== undefined) {
+      paymentMethodValues.creditLimit = insertPaymentMethod.creditLimit.toString();
+    }
+    
+    const [paymentMethod] = await db
+      .insert(paymentMethods)
+      .values(paymentMethodValues)
+      .returning();
+    return paymentMethod;
+  }
+
+  async updatePaymentMethod(id: string, updateData: Partial<InsertPaymentMethod>): Promise<PaymentMethod | undefined> {
+    const updateValues: any = { 
+      ...updateData,
+      updatedAt: sql`NOW()`
+    };
+    if (updateData.balance !== undefined) {
+      updateValues.balance = updateData.balance.toString();
+    }
+    if (updateData.creditLimit !== undefined) {
+      updateValues.creditLimit = updateData.creditLimit.toString();
+    }
+    
+    const [paymentMethod] = await db
+      .update(paymentMethods)
+      .set(updateValues)
+      .where(eq(paymentMethods.id, id))
+      .returning();
+    return paymentMethod || undefined;
+  }
+
+  async deletePaymentMethod(id: string): Promise<boolean> {
+    // Note: This will be restricted by the database due to foreign key constraint
+    const result = await db.delete(paymentMethods).where(eq(paymentMethods.id, id));
+    return (result.rowCount || 0) > 0;
+  }
+
+  async updatePaymentMethodBalance(id: string, amount: string | number, isIncome: boolean, tx?: any): Promise<PaymentMethod | undefined> {
+    const dbInstance = tx || db;
+    
+    // Perform atomic balance update using SQL arithmetic to avoid floating-point issues
+    const amountStr = typeof amount === 'string' ? amount : amount.toString();
+    const balanceChange = isIncome ? amountStr : `-${amountStr}`;
+    
+    const [updatedMethod] = await dbInstance
+      .update(paymentMethods)
+      .set({
+        balance: sql`balance + ${balanceChange}`,
+        updatedAt: sql`NOW()`
+      })
+      .where(eq(paymentMethods.id, id))
+      .returning();
+      
+    return updatedMethod || undefined;
+  }
+
+  // =============== TRANSACTION METHODS ===============
+  
+  async getAllTransactions(): Promise<Transaction[]> {
+    return await db.select().from(transactions).orderBy(desc(transactions.date));
+  }
+
+  async getTransaction(id: string): Promise<Transaction | undefined> {
+    const [transaction] = await db.select().from(transactions).where(eq(transactions.id, id));
+    return transaction || undefined;
+  }
+
+  async createTransaction(insertTransaction: InsertTransaction): Promise<Transaction> {
+    return await db.transaction(async (tx) => {
+      // Create the transaction
+      const [transaction] = await tx
+        .insert(transactions)
+        .values({
+          ...insertTransaction,
+          amount: insertTransaction.amount.toString(),
+          updatedAt: sql`NOW()`
+        })
+        .returning();
+
+      // Update payment method balance atomically within the same transaction
+      await this.updatePaymentMethodBalance(
+        insertTransaction.paymentMethodId, 
+        insertTransaction.amount, 
+        insertTransaction.type === 'income',
+        tx
+      );
+
+      return transaction;
+    });
+  }
+
+  async updateTransaction(id: string, updateData: Partial<InsertTransaction>): Promise<Transaction | undefined> {
+    return await db.transaction(async (tx) => {
+      // Get the old transaction to revert balance changes (using tx instance)
+      const [oldTransaction] = await tx.select().from(transactions).where(eq(transactions.id, id));
+      if (!oldTransaction) return undefined;
+
+      const updateValues: any = { 
+        ...updateData,
+        updatedAt: sql`NOW()`
+      };
+      if (updateData.amount !== undefined) {
+        updateValues.amount = updateData.amount.toString();
+      }
+      
+      const [transaction] = await tx
+        .update(transactions)
+        .set(updateValues)
+        .where(eq(transactions.id, id))
+        .returning();
+
+      if (!transaction) return undefined;
+
+      // Revert old balance change
+      await this.updatePaymentMethodBalance(
+        oldTransaction.paymentMethodId,
+        oldTransaction.amount, // Pass string directly to avoid precision loss
+        oldTransaction.type === 'expense', // Reverse the original operation
+        tx
+      );
+
+      // Apply new balance change - use nullish coalescing for safe fallbacks
+      const newPaymentMethodId = updateData.paymentMethodId ?? oldTransaction.paymentMethodId;
+      const newAmount = updateData.amount ?? oldTransaction.amount; // No parseFloat to preserve precision
+      const newType = updateData.type ?? oldTransaction.type;
+      
+      await this.updatePaymentMethodBalance(
+        newPaymentMethodId,
+        newAmount, // This could be number (from updateData) or string (fallback)
+        newType === 'income',
+        tx
+      );
+
+      return transaction;
+    });
+  }
+
+  async deleteTransaction(id: string): Promise<boolean> {
+    return await db.transaction(async (tx) => {
+      // Get the transaction to revert balance changes (using tx instance)
+      const [transaction] = await tx.select().from(transactions).where(eq(transactions.id, id));
+      if (!transaction) return false;
+
+      const result = await tx.delete(transactions).where(eq(transactions.id, id));
+      const deleted = (result.rowCount || 0) > 0;
+
+      if (deleted) {
+        // Revert the balance change atomically within the same transaction
+        await this.updatePaymentMethodBalance(
+          transaction.paymentMethodId,
+          transaction.amount, // Pass string directly to avoid precision loss
+          transaction.type === 'expense', // Reverse the original operation
+          tx
+        );
+      }
+
+      return deleted;
+    });
   }
 }
 
