@@ -72,11 +72,12 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
     console.log('Form submitted:', data);
     setIsSubmitting(true);
     try {
-      // Find the selected payment method and map ID to type for legacy expense system
+      // Send the payment method ID directly to the server for balance updates
+      // The server will handle converting to type for legacy storage
       const selectedPaymentMethod = paymentMethods.find(pm => pm.id === data.paymentMethod);
       const mappedData: InsertExpense = {
         ...data,
-        paymentMethod: (selectedPaymentMethod?.type || "cash") as InsertExpense['paymentMethod']
+        paymentMethod: data.paymentMethod as InsertExpense['paymentMethod'] // Send ID directly
       };
       await onSubmit(mappedData);
       if (!isEditing) {

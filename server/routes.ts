@@ -36,13 +36,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create new expense
   app.post("/api/expenses", async (req, res) => {
     try {
-      // Capture the original payment method ID before validation converts it to type
-      const originalPaymentMethodId = req.body.paymentMethod;
+      // Capture the payment method ID from the request
+      const paymentMethodId = req.body.paymentMethod;
       
-      const validatedData = insertExpenseSchema.parse(req.body);
+      // Get the payment method to determine its type for legacy storage
+      const paymentMethod = await storage.getPaymentMethod(paymentMethodId);
+      if (!paymentMethod) {
+        return res.status(400).json({ error: "Invalid payment method" });
+      }
       
-      // Pass both the validated data and the original payment method ID
-      const expense = await storage.createExpense(validatedData, originalPaymentMethodId);
+      // Create the expense data with the payment method type for legacy storage
+      const expenseData = {
+        ...req.body,
+        paymentMethod: paymentMethod.type
+      };
+      
+      const validatedData = insertExpenseSchema.parse(expenseData);
+      
+      // Pass both the validated data and the payment method ID for balance updates
+      const expense = await storage.createExpense(validatedData, paymentMethodId);
       res.status(201).json(expense);
     } catch (error) {
       if (error instanceof z.ZodError) {
