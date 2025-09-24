@@ -16,15 +16,15 @@ export default {
         'full': '9999px',
       },
       fontSize: {
-        'xs': ['0.75rem', { lineHeight: '1rem' }],
-        'sm': ['0.875rem', { lineHeight: '1.25rem' }],
-        'base': ['1rem', { lineHeight: '1.5rem' }],
-        'lg': ['1.125rem', { lineHeight: '1.75rem' }],
-        'xl': ['1.25rem', { lineHeight: '1.75rem' }],
-        '2xl': ['1.5rem', { lineHeight: '2rem' }],
-        '3xl': ['1.875rem', { lineHeight: '2.25rem' }],
-        '4xl': ['2.25rem', { lineHeight: '2.5rem' }],
-        '5xl': ['3rem', { lineHeight: '1' }],
+        'xs': ['0.75rem', { lineHeight: '1rem', letterSpacing: '-0.01em' }],
+        'sm': ['0.875rem', { lineHeight: '1.25rem', letterSpacing: '-0.01em' }],
+        'base': ['1rem', { lineHeight: '1.5rem', letterSpacing: '-0.011em' }],
+        'lg': ['1.125rem', { lineHeight: '1.75rem', letterSpacing: '-0.012em' }],
+        'xl': ['1.25rem', { lineHeight: '1.75rem', letterSpacing: '-0.014em' }],
+        '2xl': ['1.5rem', { lineHeight: '2rem', letterSpacing: '-0.017em' }],
+        '3xl': ['1.875rem', { lineHeight: '2.25rem', letterSpacing: '-0.021em' }],
+        '4xl': ['2.25rem', { lineHeight: '2.5rem', letterSpacing: '-0.025em' }],
+        '5xl': ['3rem', { lineHeight: '1', letterSpacing: '-0.031em' }],
       },
       fontWeight: {
         'thin': '100',
@@ -34,6 +34,7 @@ export default {
         'semibold': '600',
         'bold': '700',
         'extrabold': '800',
+        'heavy': '900',
       },
       colors: {
         // Flat / base colors (regular buttons)
@@ -122,9 +123,9 @@ export default {
         '17': '4.25rem',   /* 68px - iOS extra large touch target */
       },
       fontFamily: {
-        sans: ["-apple-system", "BlinkMacSystemFont", "SF Pro Display", "Inter", "system-ui", "sans-serif"],
-        serif: ["SF Pro Display", "Georgia", "serif"],
-        mono: ["SF Mono", "Menlo", "Monaco", "monospace"],
+        sans: ["-apple-system", "BlinkMacSystemFont", "SF Pro Display", "SF Pro Text", "Helvetica Neue", "Inter", "system-ui", "sans-serif"],
+        serif: ["SF Pro Display", "Times New Roman", "serif"],
+        mono: ["SF Mono", "Menlo", "Monaco", "Consolas", "monospace"],
       },
       keyframes: {
         "accordion-down": {

@@ -41,8 +41,8 @@ export function BottomNavigation() {
             const Icon = item.icon;
             
             return (
-              <Link key={item.href} href={item.href}>
-                <a
+              <Link key={item.href} href={item.href} asChild>
+                <button
                   className={cn(
                     "flex flex-col items-center justify-center min-w-0 flex-1 px-2 py-2 rounded-xl transition-all duration-200",
                     "min-h-[3.5rem]", // iOS standard 56px touch target for bottom tabs
@@ -67,7 +67,7 @@ export function BottomNavigation() {
                   >
                     {item.title}
                   </span>
-                </a>
+                </button>
               </Link>
             );
           })}
