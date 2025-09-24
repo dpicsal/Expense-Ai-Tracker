@@ -146,12 +146,14 @@ export default function Settings() {
               setIsDialogOpen(open);
               if (!open) setEditingCategory(null);
             }}>
-              <DialogTrigger asChild>
-                <Button onClick={handleAddCategory} data-testid="button-add-category">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Category
-                </Button>
-              </DialogTrigger>
+              {categories.length > 0 && (
+                <DialogTrigger asChild>
+                  <Button onClick={handleAddCategory} data-testid="button-add-category">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Category
+                  </Button>
+                </DialogTrigger>
+              )}
               <DialogContent className="max-w-md">
                 <DialogHeader>
                   <DialogTitle>
@@ -182,10 +184,12 @@ export default function Settings() {
               </div>
               <h3 className="text-lg font-medium mb-2">No categories found</h3>
               <p className="text-muted-foreground mb-4">Add your first category to get started</p>
-              <Button onClick={handleAddCategory}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Category
-              </Button>
+              <DialogTrigger asChild>
+                <Button onClick={handleAddCategory} data-testid="button-add-category-empty">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Category
+                </Button>
+              </DialogTrigger>
             </div>
           ) : (
             <div className="grid gap-3" data-testid="category-list">
