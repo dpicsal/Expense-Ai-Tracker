@@ -6,33 +6,13 @@ import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { type Expense } from "@shared/schema";
+import { CATEGORY_GRADIENT_COLORS, PAYMENT_METHOD_LABELS } from "@shared/constants";
 
 interface ExpenseCardProps {
   expense: Expense;
   onEdit?: (expense: Expense) => void;
   onDelete?: (id: string) => void;
 }
-
-const categoryColors: Record<string, string> = {
-  "Food & Dining": "bg-gradient-to-r from-orange-600 to-orange-700 text-white shadow-orange-200 dark:shadow-orange-900",
-  "Transportation": "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-blue-200 dark:shadow-blue-900",
-  "Shopping": "bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-purple-200 dark:shadow-purple-900",
-  "Entertainment": "bg-gradient-to-r from-pink-600 to-pink-700 text-white shadow-pink-200 dark:shadow-pink-900",
-  "Bills & Utilities": "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-red-200 dark:shadow-red-900",
-  "Healthcare": "bg-gradient-to-r from-green-600 to-green-700 text-white shadow-green-200 dark:shadow-green-900",
-  "Travel": "bg-gradient-to-r from-cyan-600 to-cyan-700 text-white shadow-cyan-200 dark:shadow-cyan-900",
-  "Education": "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-indigo-200 dark:shadow-indigo-900",
-  "Other": "bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-gray-200 dark:shadow-gray-900",
-};
-
-const paymentMethodLabels: Record<string, string> = {
-  "cash": "Cash",
-  "credit_card": "Credit Card",
-  "debit_card": "Debit Card",
-  "bank_transfer": "Bank Transfer",
-  "digital_wallet": "Digital Wallet",
-  "other": "Other",
-};
 
 export function ExpenseCard({ expense, onEdit, onDelete }: ExpenseCardProps) {
   const handleEdit = () => {
@@ -55,7 +35,7 @@ export function ExpenseCard({ expense, onEdit, onDelete }: ExpenseCardProps) {
                 AED {parseFloat(expense.amount).toFixed(2)}
               </span>
               <Badge 
-                className={cn("px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium rounded-full shadow-sm border-0", categoryColors[expense.category] || categoryColors["Other"])}
+                className={cn("px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium rounded-full shadow-sm border-0", CATEGORY_GRADIENT_COLORS[expense.category] || CATEGORY_GRADIENT_COLORS["Other"])}
                 data-testid={`expense-category-${expense.id}`}
               >
                 {expense.category}
@@ -74,7 +54,7 @@ export function ExpenseCard({ expense, onEdit, onDelete }: ExpenseCardProps) {
                   className="text-xs px-2 py-0.5"
                   data-testid={`expense-payment-method-${expense.id}`}
                 >
-                  {paymentMethodLabels[expense.paymentMethod] || expense.paymentMethod}
+                  {PAYMENT_METHOD_LABELS[expense.paymentMethod] || expense.paymentMethod}
                 </Badge>
               )}
             </div>

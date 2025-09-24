@@ -10,15 +10,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { insertPaymentMethodSchema, type InsertPaymentMethod, type PaymentMethodType, PAYMENT_METHOD_TYPES } from "@shared/schema";
+import { PAYMENT_METHOD_LABELS, PAYMENT_METHOD_COLOR_OPTIONS } from "@shared/constants";
 
 const paymentMethodOptions = PAYMENT_METHOD_TYPES.map(type => ({
   value: type,
-  label: type === "cash" ? "Cash" :
-         type === "credit_card" ? "Credit Card" :
-         type === "debit_card" ? "Debit Card" :
-         type === "bank_transfer" ? "Bank Transfer" :
-         type === "digital_wallet" ? "Digital Wallet" :
-         "Other",
+  label: PAYMENT_METHOD_LABELS[type] || "Other",
   icon: type === "cash" ? DollarSign :
         type === "credit_card" ? CreditCard :
         type === "debit_card" ? CreditCard :
@@ -26,18 +22,6 @@ const paymentMethodOptions = PAYMENT_METHOD_TYPES.map(type => ({
         type === "digital_wallet" ? Smartphone :
         Wallet
 }));
-
-const colorOptions = [
-  { value: "bg-blue-100", label: "Blue", color: "bg-blue-500" },
-  { value: "bg-green-100", label: "Green", color: "bg-green-500" },
-  { value: "bg-purple-100", label: "Purple", color: "bg-purple-500" },
-  { value: "bg-orange-100", label: "Orange", color: "bg-orange-500" },
-  { value: "bg-pink-100", label: "Pink", color: "bg-pink-500" },
-  { value: "bg-cyan-100", label: "Cyan", color: "bg-cyan-500" },
-  { value: "bg-yellow-100", label: "Yellow", color: "bg-yellow-500" },
-  { value: "bg-red-100", label: "Red", color: "bg-red-500" },
-  { value: "bg-gray-100", label: "Gray", color: "bg-gray-500" },
-];
 
 interface PaymentMethodFormProps {
   onSubmit: (paymentMethod: InsertPaymentMethod) => void;
@@ -57,7 +41,7 @@ export function PaymentMethodForm({ onSubmit, initialData, isEditing, isSubmitti
       balance: initialData?.balance || 0,
       creditLimit: initialData?.creditLimit,
       isActive: initialData?.isActive ?? true,
-      color: initialData?.color || "bg-blue-100",
+      color: initialData?.color || PAYMENT_METHOD_COLOR_OPTIONS[0].value,
     },
   });
 
@@ -192,7 +176,7 @@ export function PaymentMethodForm({ onSubmit, initialData, isEditing, isSubmitti
                   <FormLabel>Color Theme</FormLabel>
                   <FormControl>
                     <div className="grid grid-cols-3 gap-2">
-                      {colorOptions.map((color) => (
+                      {PAYMENT_METHOD_COLOR_OPTIONS.map((color) => (
                         <button
                           key={color.value}
                           type="button"

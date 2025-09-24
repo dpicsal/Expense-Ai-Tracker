@@ -8,24 +8,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { useCreateCategory, useUpdateCategory } from "@/hooks/use-categories";
 import { insertCategorySchema, type InsertCategory, type Category } from "@shared/schema";
+import { COLOR_OPTIONS } from "@shared/constants";
 
 interface CategoryFormProps {
   onClose: () => void;
   initialData?: Category;
   isEditing?: boolean;
 }
-
-const colorOptions = [
-  { value: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200", label: "Orange" },
-  { value: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200", label: "Blue" },
-  { value: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200", label: "Purple" },
-  { value: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200", label: "Pink" },
-  { value: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200", label: "Red" },
-  { value: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200", label: "Green" },
-  { value: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200", label: "Cyan" },
-  { value: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200", label: "Indigo" },
-  { value: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200", label: "Gray" },
-];
 
 export function CategoryForm({ onClose, initialData, isEditing }: CategoryFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,7 +27,7 @@ export function CategoryForm({ onClose, initialData, isEditing }: CategoryFormPr
     resolver: zodResolver(insertCategorySchema),
     defaultValues: {
       name: initialData?.name || "",
-      color: initialData?.color || colorOptions[0].value,
+      color: initialData?.color || COLOR_OPTIONS[0].value,
       budget: initialData?.budget ? parseFloat(initialData.budget) : undefined,
       allocatedFunds: initialData?.allocatedFunds ? parseFloat(initialData.allocatedFunds) : undefined,
       icon: initialData?.icon || "Tag",
@@ -118,7 +107,7 @@ export function CategoryForm({ onClose, initialData, isEditing }: CategoryFormPr
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {colorOptions.map((option) => (
+                  {COLOR_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       <div className="flex items-center gap-2">
                         <div className={`w-4 h-4 rounded ${option.value.split(' ')[0]} border border-border/20`} />
