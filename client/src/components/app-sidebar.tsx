@@ -39,6 +39,12 @@ const mainMenuItems = [
     description: "Manage spending categories",
   },
   {
+    title: "Payment Methods",
+    url: "/payment-methods",
+    icon: Wallet,
+    description: "Manage payment methods & balances",
+  },
+  {
     title: "Settings",
     url: "/settings",
     icon: Settings,
