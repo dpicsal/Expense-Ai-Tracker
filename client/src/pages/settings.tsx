@@ -130,45 +130,32 @@ export default function Settings() {
 
       {/* Category Management */}
       {settings.allowCategoryManagement && (
-        <Card className="border-0 shadow-md">
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <SettingsIcon className="h-5 w-5 text-primary" />
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) setEditingCategory(null);
+        }}>
+          <Card className="border-0 shadow-md">
+            <CardHeader className="pb-4">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <SettingsIcon className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-lg md:text-xl font-semibold">Category Management</CardTitle>
+                    <p className="text-sm text-muted-foreground mt-1">Add, edit, or remove expense categories</p>
+                  </div>
+                </div>
+                {categories.length > 0 && (
+                  <DialogTrigger asChild>
+                    <Button onClick={handleAddCategory} data-testid="button-add-category">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Category
+                    </Button>
+                  </DialogTrigger>
+                )}
               </div>
-              <div>
-                <CardTitle className="text-lg md:text-xl font-semibold">Category Management</CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">Add, edit, or remove expense categories</p>
-              </div>
-            </div>
-            <Dialog open={isDialogOpen} onOpenChange={(open) => {
-              setIsDialogOpen(open);
-              if (!open) setEditingCategory(null);
-            }}>
-              {categories.length > 0 && (
-                <DialogTrigger asChild>
-                  <Button onClick={handleAddCategory} data-testid="button-add-category">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Category
-                  </Button>
-                </DialogTrigger>
-              )}
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>
-                    {editingCategory ? 'Edit Category' : 'Add New Category'}
-                  </DialogTitle>
-                </DialogHeader>
-                <CategoryForm 
-                  onClose={() => setIsDialogOpen(false)}
-                  initialData={editingCategory || undefined}
-                  isEditing={!!editingCategory}
-                />
-              </DialogContent>
-            </Dialog>
-          </div>
-        </CardHeader>
+            </CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="text-center py-8 text-muted-foreground">
@@ -267,7 +254,20 @@ export default function Settings() {
             </div>
           )}
         </CardContent>
-      </Card>
+          </Card>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                {editingCategory ? 'Edit Category' : 'Add New Category'}
+              </DialogTitle>
+            </DialogHeader>
+            <CategoryForm 
+              onClose={() => setIsDialogOpen(false)}
+              initialData={editingCategory || undefined}
+              isEditing={!!editingCategory}
+            />
+          </DialogContent>
+        </Dialog>
       )}
 
       <Separator />
