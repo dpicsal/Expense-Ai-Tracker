@@ -29,10 +29,10 @@ function Router() {
 function App() {
   const isMobile = useIsMobile();
   
-  // Responsive sidebar configuration
+  // Responsive sidebar configuration for iOS-style layout
   const style = {
-    "--sidebar-width": isMobile ? "16rem" : "18rem",
-    "--sidebar-width-icon": isMobile ? "0rem" : "3.5rem",
+    "--sidebar-width": isMobile ? "18rem" : "20rem",
+    "--sidebar-width-icon": isMobile ? "0rem" : "4rem",
   };
 
   return (
@@ -43,33 +43,33 @@ function App() {
             style={style as React.CSSProperties}
             defaultOpen={!isMobile}
           >
-            <div className="flex h-screen w-full bg-background">
+            <div className="flex h-screen w-full bg-background overflow-hidden">
               <AppSidebar />
               <div className="flex flex-col flex-1 min-w-0">
-                <header className={`flex items-center justify-between gap-2 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 ${isMobile ? 'px-3 py-2' : 'p-4'}`}>
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                <header className={`flex items-center justify-between gap-3 border-b border-border/20 bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 transition-all duration-200 ${isMobile ? 'px-4 py-3 min-h-[3.5rem]' : 'px-6 py-4 min-h-16'}`}>
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
                     <SidebarTrigger 
                       data-testid="button-sidebar-toggle" 
-                      className={`hover:bg-accent/50 ${isMobile ? 'h-11 w-11' : ''}`} 
+                      className="hover:bg-accent/50 transition-colors duration-200" 
                     />
                     {!isMobile && (
-                      <div>
-                        <h2 className="font-semibold text-lg">Welcome back</h2>
-                        <p className="text-sm text-muted-foreground">Manage your expenses effectively</p>
+                      <div className="flex flex-col">
+                        <h1 className="font-semibold text-xl text-foreground leading-tight">Welcome back</h1>
+                        <p className="text-sm text-muted-foreground leading-tight">Manage your expenses effectively</p>
                       </div>
                     )}
                     {isMobile && (
-                      <div className="min-w-0">
-                        <h2 className="font-semibold text-base truncate">ExpenseTracker</h2>
+                      <div className="min-w-0 flex items-center">
+                        <h1 className="font-semibold text-lg text-foreground truncate">ExpenseTracker</h1>
                       </div>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <ThemeToggle />
                   </div>
                 </header>
-                <main className="flex-1 overflow-auto bg-muted/30">
-                  <div className={`container mx-auto max-w-7xl ${isMobile ? 'p-3' : 'p-6'}`}>
+                <main className="flex-1 overflow-auto bg-muted/20 ios-transition">
+                  <div className={`container mx-auto max-w-7xl ${isMobile ? 'px-4 py-6' : 'px-8 py-8'}`}>
                     <Router />
                   </div>
                 </main>
