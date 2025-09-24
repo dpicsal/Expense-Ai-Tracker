@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { AppSidebar } from "@/components/app-sidebar";
+import { BottomNavigation } from "@/components/bottom-navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Dashboard from "@/pages/dashboard";
@@ -35,6 +36,34 @@ function App() {
     "--sidebar-width-icon": isMobile ? "0rem" : "4rem",
   };
 
+  if (isMobile) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <ThemeProvider>
+            <div className="flex flex-col h-screen w-full bg-background overflow-hidden">
+              <header className="flex items-center justify-between gap-3 border-b border-border/20 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 sticky top-0 z-40 px-4 py-3 min-h-[3.5rem]">
+                <div className="min-w-0 flex items-center">
+                  <h1 className="font-semibold text-lg text-foreground truncate">ExpenseTracker</h1>
+                </div>
+                <div className="flex items-center gap-3">
+                  <ThemeToggle />
+                </div>
+              </header>
+              <main className="flex-1 overflow-auto bg-muted/20">
+                <div className="container mx-auto max-w-7xl px-4 py-6 pb-24">
+                  <Router />
+                </div>
+              </main>
+              <BottomNavigation />
+            </div>
+            <Toaster />
+          </ThemeProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -46,30 +75,23 @@ function App() {
             <div className="flex h-screen w-full bg-background overflow-hidden">
               <AppSidebar />
               <div className="flex flex-col flex-1 min-w-0">
-                <header className={`flex items-center justify-between gap-3 border-b border-border/20 bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 transition-all duration-200 ${isMobile ? 'px-4 py-3 min-h-[3.5rem]' : 'px-6 py-4 min-h-16'}`}>
+                <header className="flex items-center justify-between gap-3 border-b border-border/20 bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 transition-all duration-200 px-6 py-4 min-h-16">
                   <div className="flex items-center gap-4 flex-1 min-w-0">
                     <SidebarTrigger 
                       data-testid="button-sidebar-toggle" 
                       className="hover:bg-accent/50 transition-colors duration-200" 
                     />
-                    {!isMobile && (
-                      <div className="flex flex-col">
-                        <h1 className="font-semibold text-xl text-foreground leading-tight">Welcome back</h1>
-                        <p className="text-sm text-muted-foreground leading-tight">Manage your expenses effectively</p>
-                      </div>
-                    )}
-                    {isMobile && (
-                      <div className="min-w-0 flex items-center">
-                        <h1 className="font-semibold text-lg text-foreground truncate">ExpenseTracker</h1>
-                      </div>
-                    )}
+                    <div className="flex flex-col">
+                      <h1 className="font-semibold text-xl text-foreground leading-tight">Welcome back</h1>
+                      <p className="text-sm text-muted-foreground leading-tight">Manage your expenses effectively</p>
+                    </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <ThemeToggle />
                   </div>
                 </header>
                 <main className="flex-1 overflow-auto bg-muted/20 ios-transition">
-                  <div className={`container mx-auto max-w-7xl ${isMobile ? 'px-4 py-6' : 'px-8 py-8'}`}>
+                  <div className="container mx-auto max-w-7xl px-8 py-8">
                     <Router />
                   </div>
                 </main>
