@@ -10,7 +10,7 @@ export interface IStorage {
   // Legacy expense management (keeping for backward compatibility)
   getAllExpenses(): Promise<Expense[]>;
   getExpense(id: string): Promise<Expense | undefined>;
-  createExpense(expense: InsertExpense): Promise<Expense>;
+  createExpense(expense: InsertExpense, paymentMethodId?: string): Promise<Expense>;
   updateExpense(id: string, expense: Partial<InsertExpense>): Promise<Expense | undefined>;
   deleteExpense(id: string): Promise<boolean>;
   
@@ -28,6 +28,7 @@ export interface IStorage {
   updatePaymentMethod(id: string, paymentMethod: Partial<InsertPaymentMethod>): Promise<PaymentMethod | undefined>;
   deletePaymentMethod(id: string): Promise<boolean>;
   updatePaymentMethodBalance(id: string, amount: number, isIncome: boolean): Promise<PaymentMethod | undefined>;
+  getPaymentMethodByType(type: string): Promise<PaymentMethod | undefined>;
 
   // Transaction management (unified income/expense)
   getAllTransactions(): Promise<Transaction[]>;
@@ -47,34 +48,115 @@ export class DatabaseStorage implements IStorage {
     return expense || undefined;
   }
 
-  async createExpense(insertExpense: InsertExpense): Promise<Expense> {
-    const [expense] = await db
-      .insert(expenses)
-      .values({
-        ...insertExpense,
-        amount: insertExpense.amount.toString(),
-      })
-      .returning();
-    return expense;
+  async createExpense(insertExpense: InsertExpense, paymentMethodId?: string): Promise<Expense> {
+    return await db.transaction(async (tx) => {
+      // Create the expense
+      const [expense] = await tx
+        .insert(expenses)
+        .values({
+          ...insertExpense,
+          amount: insertExpense.amount.toString(),
+        })
+        .returning();
+
+      // Update the payment method balance using either the provided ID or find by type
+      if (paymentMethodId) {
+        // Use the specific payment method ID provided
+        await this.updatePaymentMethodBalance(
+          paymentMethodId,
+          insertExpense.amount,
+          false, // expense reduces balance
+          tx
+        );
+      } else {
+        // Fallback: find payment method by type (for backward compatibility)
+        const paymentMethod = await this.getPaymentMethodByType(insertExpense.paymentMethod);
+        if (paymentMethod) {
+          await this.updatePaymentMethodBalance(
+            paymentMethod.id,
+            insertExpense.amount,
+            false, // expense reduces balance
+            tx
+          );
+        }
+      }
+
+      return expense;
+    });
   }
 
   async updateExpense(id: string, updateData: Partial<InsertExpense>): Promise<Expense | undefined> {
-    const updateValues: any = { ...updateData };
-    if (updateData.amount !== undefined) {
-      updateValues.amount = updateData.amount.toString();
-    }
-    
-    const [expense] = await db
-      .update(expenses)
-      .set(updateValues)
-      .where(eq(expenses.id, id))
-      .returning();
-    return expense || undefined;
+    return await db.transaction(async (tx) => {
+      // Get the old expense to revert balance changes
+      const [oldExpense] = await tx.select().from(expenses).where(eq(expenses.id, id));
+      if (!oldExpense) return undefined;
+
+      const updateValues: any = { ...updateData };
+      if (updateData.amount !== undefined) {
+        updateValues.amount = updateData.amount.toString();
+      }
+      
+      const [expense] = await tx
+        .update(expenses)
+        .set(updateValues)
+        .where(eq(expenses.id, id))
+        .returning();
+
+      if (!expense) return undefined;
+
+      // Revert old balance change
+      const oldPaymentMethod = await this.getPaymentMethodByType(oldExpense.paymentMethod);
+      if (oldPaymentMethod) {
+        await this.updatePaymentMethodBalance(
+          oldPaymentMethod.id,
+          oldExpense.amount,
+          true, // reverse the expense (add back to balance)
+          tx
+        );
+      }
+
+      // Apply new balance change
+      const newPaymentMethodType = updateData.paymentMethod ?? oldExpense.paymentMethod;
+      const newAmount = updateData.amount ?? parseFloat(oldExpense.amount);
+      
+      const newPaymentMethod = await this.getPaymentMethodByType(newPaymentMethodType);
+      if (newPaymentMethod) {
+        await this.updatePaymentMethodBalance(
+          newPaymentMethod.id,
+          newAmount,
+          false, // expense reduces balance
+          tx
+        );
+      }
+
+      return expense;
+    });
   }
 
   async deleteExpense(id: string): Promise<boolean> {
-    const result = await db.delete(expenses).where(eq(expenses.id, id));
-    return (result.rowCount || 0) > 0;
+    return await db.transaction(async (tx) => {
+      // Get the expense to revert balance changes
+      const [expense] = await tx.select().from(expenses).where(eq(expenses.id, id));
+      if (!expense) return false;
+
+      const result = await tx.delete(expenses).where(eq(expenses.id, id));
+      const deleted = (result.rowCount || 0) > 0;
+
+      if (deleted) {
+        // Revert the balance change
+        const paymentMethod = await this.getPaymentMethodByType(expense.paymentMethod);
+        if (paymentMethod) {
+          await this.updatePaymentMethodBalance(
+            paymentMethod.id,
+            expense.amount,
+            true, // reverse the expense (add back to balance)
+            tx
+          );
+        }
+      }
+
+      return deleted;
+    });
   }
 
   // Category management methods
@@ -183,6 +265,11 @@ export class DatabaseStorage implements IStorage {
     // Note: This will be restricted by the database due to foreign key constraint
     const result = await db.delete(paymentMethods).where(eq(paymentMethods.id, id));
     return (result.rowCount || 0) > 0;
+  }
+
+  async getPaymentMethodByType(type: string): Promise<PaymentMethod | undefined> {
+    const [paymentMethod] = await db.select().from(paymentMethods).where(eq(paymentMethods.type, type));
+    return paymentMethod || undefined;
   }
 
   async updatePaymentMethodBalance(id: string, amount: string | number, isIncome: boolean, tx?: any): Promise<PaymentMethod | undefined> {
