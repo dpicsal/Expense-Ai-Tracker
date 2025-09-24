@@ -37,43 +37,43 @@ export function ExpenseCard({ expense, onEdit, onDelete }: ExpenseCardProps) {
   };
 
   return (
-    <Card className="hover-elevate ios-scale-press border-0 shadow-lg bg-card transition-all duration-300" data-testid={`expense-card-${expense.id}`}>
-      <CardContent className="p-6">
+    <Card className="border-0 shadow-ios-sm bg-card/95 backdrop-blur-md transition-all duration-300 ios-transition" data-testid={`expense-card-${expense.id}`}>
+      <CardContent className="p-4 sm:p-6">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="text-3xl font-bold tabular-nums text-foreground" data-testid={`expense-amount-${expense.id}`}>
+            <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+              <span className="text-xl sm:text-2xl lg:text-3xl font-bold tabular-nums text-foreground" data-testid={`expense-amount-${expense.id}`}>
                 ${parseFloat(expense.amount).toFixed(2)}
               </span>
               <Badge 
-                className={cn("px-3 py-1 text-xs font-medium rounded-full shadow-sm", categoryColors[expense.category] || categoryColors["Other"])}
+                className={cn("px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium rounded-full shadow-sm border-0", categoryColors[expense.category] || categoryColors["Other"])}
                 data-testid={`expense-category-${expense.id}`}
               >
                 {expense.category}
               </Badge>
             </div>
-            <p className="text-base text-foreground/80 mb-2 truncate font-medium" data-testid={`expense-description-${expense.id}`}>
+            <p className="text-sm sm:text-base text-foreground/80 mb-1.5 sm:mb-2 truncate font-medium" data-testid={`expense-description-${expense.id}`}>
               {expense.description}
             </p>
-            <p className="text-sm text-muted-foreground font-medium" data-testid={`expense-date-${expense.id}`}>
+            <p className="text-xs sm:text-sm text-muted-foreground font-medium" data-testid={`expense-date-${expense.id}`}>
               {format(new Date(expense.date), "MMM dd, yyyy")}
             </p>
           </div>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="icon" variant="ghost" className="ios-transition" data-testid={`button-expense-menu-${expense.id}`}>
+              <Button size="icon" variant="ghost" className="ios-transition shrink-0 h-9 w-9 sm:h-10 sm:w-10" data-testid={`button-expense-menu-${expense.id}`}>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleEdit} data-testid={`button-edit-${expense.id}`}>
+            <DropdownMenuContent align="end" className="rounded-xl shadow-ios-md border-0 bg-card/95 backdrop-blur-md">
+              <DropdownMenuItem onClick={handleEdit} className="rounded-lg" data-testid={`button-edit-${expense.id}`}>
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={handleDelete} 
-                className="text-destructive focus:text-destructive"
+                className="text-destructive focus:text-destructive rounded-lg"
                 data-testid={`button-delete-${expense.id}`}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
