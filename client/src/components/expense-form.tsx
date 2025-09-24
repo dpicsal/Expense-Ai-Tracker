@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { insertExpenseSchema, type InsertExpense, PAYMENT_METHODS } from "@shared/schema";
+import { insertExpenseSchema, type InsertExpense, PAYMENT_METHOD_TYPES } from "@shared/schema";
 
 const categories = [
   "Food & Dining",
@@ -27,7 +27,7 @@ const categories = [
   "Other"
 ];
 
-const paymentMethods = PAYMENT_METHODS.map(method => ({
+const paymentMethods = PAYMENT_METHOD_TYPES.map((method: string) => ({
   value: method,
   label: method === "cash" ? "Cash" :
          method === "credit_card" ? "Credit Card" :
