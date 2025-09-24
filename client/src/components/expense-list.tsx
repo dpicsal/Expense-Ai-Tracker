@@ -86,7 +86,7 @@ export function ExpenseList({ expenses, onEdit, onDelete }: ExpenseListProps) {
           </span>
         </div>
         <span className="text-xl font-bold tabular-nums text-primary" data-testid="text-total-amount">
-          ${totalAmount.toFixed(2)}
+          AED {totalAmount.toFixed(2)}
         </span>
       </div>
 
