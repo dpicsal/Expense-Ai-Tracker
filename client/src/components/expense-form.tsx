@@ -81,17 +81,17 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
               name="amount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Amount</FormLabel>
+                  <FormLabel className={`text-base font-medium ${isMobile ? 'mb-2' : ''}`}>Amount</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">$</span>
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground font-medium">$</span>
                       <Input
                         {...field}
                         type="number"
                         step="0.01"
                         min="0"
                         placeholder="0.00"
-                        className={`pl-8 ${isMobile ? 'h-11' : ''}`}
+                        className="pl-8"
                         inputMode="decimal"
                         data-testid="input-amount"
                       />
@@ -107,12 +107,12 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel className={`text-base font-medium ${isMobile ? 'mb-2' : ''}`}>Description</FormLabel>
                   <FormControl>
                     <Textarea
                       {...field}
                       placeholder="What did you spend on?"
-                      className={isMobile ? 'h-20 resize-none' : ''}
+                      className={isMobile ? 'min-h-[88px] resize-none' : ''}
                       data-testid="input-description"
                     />
                   </FormControl>
@@ -126,10 +126,10 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
               name="category"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Category</FormLabel>
+                  <FormLabel className={`text-base font-medium ${isMobile ? 'mb-2' : ''}`}>Category</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <SelectTrigger className={isMobile ? 'h-11' : ''} data-testid="select-category">
+                      <SelectTrigger data-testid="select-category">
                         <SelectValue placeholder="Select a category" />
                       </SelectTrigger>
                     </FormControl>
@@ -151,7 +151,7 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
               name="date"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Date</FormLabel>
+                  <FormLabel className={`text-base font-medium ${isMobile ? 'mb-2' : ''}`}>Date</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -159,7 +159,7 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
                           variant="outline"
                           size={isMobile ? "lg" : "default"}
                           className={cn(
-                            "w-full pl-3 text-left font-normal",
+                            "w-full pl-3 text-left font-normal justify-start",
                             !field.value && "text-muted-foreground"
                           )}
                           data-testid="button-date-picker"
