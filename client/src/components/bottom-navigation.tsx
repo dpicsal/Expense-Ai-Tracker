@@ -1,4 +1,4 @@
-import { Home, PlusCircle, PieChart, Tag } from "lucide-react";
+import { Home, PlusCircle, PieChart, Tag, Settings } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +26,12 @@ const navigationItems = [
     icon: Tag,
     href: "/categories",
     testId: "tab-categories"
+  },
+  {
+    title: "Settings",
+    icon: Settings,
+    href: "/settings",
+    testId: "tab-settings"
   }
 ];
 

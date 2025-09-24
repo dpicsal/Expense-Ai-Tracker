@@ -1,4 +1,4 @@
-import { Home, PlusCircle, PieChart, Tag, TrendingUp, Wallet, User, LogOut, Calendar } from "lucide-react";
+import { Home, PlusCircle, PieChart, Tag, TrendingUp, Wallet, User, LogOut, Calendar, Settings } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
   Sidebar,
@@ -37,6 +37,12 @@ const mainMenuItems = [
     url: "/categories", 
     icon: Tag,
     description: "Manage spending categories",
+  },
+  {
+    title: "Settings",
+    url: "/settings",
+    icon: Settings,
+    description: "App preferences & category management",
   },
 ];
 
