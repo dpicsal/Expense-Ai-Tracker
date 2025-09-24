@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { insertExpenseSchema, type InsertExpense } from "@shared/schema";
+import { insertExpenseSchema, type InsertExpense, PAYMENT_METHODS } from "@shared/schema";
 
 const categories = [
   "Food & Dining",
@@ -26,6 +26,16 @@ const categories = [
   "Education",
   "Other"
 ];
+
+const paymentMethods = PAYMENT_METHODS.map(method => ({
+  value: method,
+  label: method === "cash" ? "Cash" :
+         method === "credit_card" ? "Credit Card" :
+         method === "debit_card" ? "Debit Card" :
+         method === "bank_transfer" ? "Bank Transfer" :
+         method === "digital_wallet" ? "Digital Wallet" :
+         "Other"
+}));
 
 interface ExpenseFormProps {
   onSubmit: (expense: InsertExpense) => void;
@@ -43,6 +53,7 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
       amount: initialData?.amount,
       description: initialData?.description || "",
       category: initialData?.category || "",
+      paymentMethod: initialData?.paymentMethod || "cash",
       date: initialData?.date || new Date(),
     },
   });
@@ -137,6 +148,31 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
                       {categories.map((category) => (
                         <SelectItem key={category} value={category}>
                           {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="paymentMethod"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className={`text-base font-medium ${isMobile ? 'mb-2' : ''}`}>Payment Method</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger data-testid="select-payment-method">
+                        <SelectValue placeholder="Select payment method" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {paymentMethods.map((method) => (
+                        <SelectItem key={method.value} value={method.value}>
+                          {method.label}
                         </SelectItem>
                       ))}
                     </SelectContent>

@@ -40,6 +40,7 @@ export function CategoryForm({ onClose, initialData, isEditing }: CategoryFormPr
       name: initialData?.name || "",
       color: initialData?.color || colorOptions[0].value,
       budget: initialData?.budget ? parseFloat(initialData.budget) : undefined,
+      allocatedFunds: initialData?.allocatedFunds ? parseFloat(initialData.allocatedFunds) : undefined,
       icon: initialData?.icon || "Tag",
     },
   });
@@ -149,6 +150,31 @@ export function CategoryForm({ onClose, initialData, isEditing }: CategoryFormPr
                     placeholder="0.00"
                     className="pl-12"
                     data-testid="input-category-budget"
+                  />
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="allocatedFunds"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base font-medium">Allocated Funds (Optional)</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground font-medium">AED</span>
+                  <Input
+                    {...field}
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0.00"
+                    className="pl-12"
+                    data-testid="input-category-allocated-funds"
                   />
                 </div>
               </FormControl>

@@ -25,6 +25,15 @@ const categoryColors: Record<string, string> = {
   "Other": "bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-gray-200 dark:shadow-gray-900",
 };
 
+const paymentMethodLabels: Record<string, string> = {
+  "cash": "Cash",
+  "credit_card": "Credit Card",
+  "debit_card": "Debit Card",
+  "bank_transfer": "Bank Transfer",
+  "digital_wallet": "Digital Wallet",
+  "other": "Other",
+};
+
 export function ExpenseCard({ expense, onEdit, onDelete }: ExpenseCardProps) {
   const handleEdit = () => {
     console.log('Edit expense:', expense.id);
@@ -55,9 +64,20 @@ export function ExpenseCard({ expense, onEdit, onDelete }: ExpenseCardProps) {
             <p className="text-sm sm:text-base text-foreground/80 mb-1.5 sm:mb-2 truncate font-medium" data-testid={`expense-description-${expense.id}`}>
               {expense.description}
             </p>
-            <p className="text-xs sm:text-sm text-muted-foreground font-medium" data-testid={`expense-date-${expense.id}`}>
-              {format(new Date(expense.date), "MMM dd, yyyy")}
-            </p>
+            <div className="flex items-center gap-3">
+              <p className="text-xs sm:text-sm text-muted-foreground font-medium" data-testid={`expense-date-${expense.id}`}>
+                {format(new Date(expense.date), "MMM dd, yyyy")}
+              </p>
+              {expense.paymentMethod && (
+                <Badge 
+                  variant="outline" 
+                  className="text-xs px-2 py-0.5"
+                  data-testid={`expense-payment-method-${expense.id}`}
+                >
+                  {paymentMethodLabels[expense.paymentMethod] || expense.paymentMethod}
+                </Badge>
+              )}
+            </div>
           </div>
           
           <DropdownMenu>
