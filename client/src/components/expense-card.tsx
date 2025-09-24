@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import { type Expense } from "@shared/schema";
 import { CATEGORY_GRADIENT_COLORS, PAYMENT_METHOD_LABELS } from "@shared/constants";
 
@@ -32,7 +32,7 @@ export function ExpenseCard({ expense, onEdit, onDelete }: ExpenseCardProps) {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
               <span className="text-xl sm:text-2xl lg:text-3xl font-bold tabular-nums text-foreground" data-testid={`expense-amount-${expense.id}`}>
-                AED {parseFloat(expense.amount).toFixed(2)}
+                {formatCurrency(parseFloat(expense.amount))}
               </span>
               <Badge 
                 className={cn("px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium rounded-full shadow-sm border-0", CATEGORY_GRADIENT_COLORS[expense.category] || CATEGORY_GRADIENT_COLORS["Other"])}

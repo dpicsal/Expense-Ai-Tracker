@@ -8,6 +8,7 @@ import { PaymentMethodForm } from "@/components/payment-method-form";
 import { PaymentMethodCard } from "@/components/payment-method-card";
 import { usePaymentMethods, useCreatePaymentMethod, useUpdatePaymentMethod, useDeletePaymentMethod } from "@/hooks/use-payment-methods";
 import { type PaymentMethod, type InsertPaymentMethod, type PaymentMethodType } from "@shared/schema";
+import { formatCurrency } from "@/lib/utils";
 
 export default function PaymentMethods() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -186,7 +187,7 @@ export default function PaymentMethods() {
             }`}
             data-testid="stat-total-balance"
           >
-            ${totalBalance.toFixed(2)}
+            {formatCurrency(totalBalance)}
           </div>
           <div className="text-xs text-muted-foreground">
             Across all methods

@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useExpenses, useUpdateExpense, useDeleteExpense } from "@/hooks/use-expenses";
 import { type Expense, type InsertExpense } from "@shared/schema";
+import { formatCurrency } from "@/lib/utils";
 
 export default function Dashboard() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -108,7 +109,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className={isMobile ? 'px-4 pb-4' : ''}>
             <div className={`${isMobile ? 'text-xl' : 'text-2xl md:text-3xl'} font-bold tabular-nums tracking-tight`} data-testid="total-expenses">
-              AED {totalExpenses.toFixed(2)}
+              {formatCurrency(totalExpenses)}
             </div>
             <p className={`${isMobile ? 'text-xs mt-1' : 'text-sm mt-2'} text-muted-foreground flex items-center gap-1`}>
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary"></span>
@@ -126,7 +127,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className={isMobile ? 'px-4 pb-4' : ''}>
             <div className={`${isMobile ? 'text-xl' : 'text-2xl md:text-3xl'} font-bold tabular-nums tracking-tight text-blue-900 dark:text-blue-100`} data-testid="month-expenses">
-              AED {thisMonthTotal.toFixed(2)}
+              {formatCurrency(thisMonthTotal)}
             </div>
             <p className={`${isMobile ? 'text-xs mt-1' : 'text-sm mt-2'} text-blue-600 dark:text-blue-400 flex items-center gap-1`}>
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-500"></span>

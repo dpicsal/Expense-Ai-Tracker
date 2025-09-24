@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import { type PaymentMethod } from "@shared/schema";
 
 interface PaymentMethodCardProps {
@@ -64,13 +64,13 @@ const getBalanceDisplay = (balance: number, creditLimit?: number | null, type?: 
   if (type === 'credit_card' && creditLimit) {
     const available = Math.max(0, creditLimit + balance);
     return {
-      main: `$${available.toFixed(2)}`,
+      main: formatCurrency(available),
       secondary: `Available`,
-      details: `Used: $${Math.max(0, -balance).toFixed(2)} / $${creditLimit.toFixed(2)}`
+      details: `Used: ${formatCurrency(Math.max(0, -balance))} / ${formatCurrency(creditLimit)}`
     };
   } else {
     return {
-      main: `$${balance.toFixed(2)}`,
+      main: formatCurrency(balance),
       secondary: balance >= 0 ? 'Balance' : 'Overdraft',
       details: null
     };
