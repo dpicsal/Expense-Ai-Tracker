@@ -36,8 +36,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create new expense
   app.post("/api/expenses", async (req, res) => {
     try {
+      // Capture the original payment method ID before validation converts it to type
+      const originalPaymentMethodId = req.body.paymentMethod;
+      
       const validatedData = insertExpenseSchema.parse(req.body);
-      const expense = await storage.createExpense(validatedData);
+      
+      // Pass both the validated data and the original payment method ID
+      const expense = await storage.createExpense(validatedData, originalPaymentMethodId);
       res.status(201).json(expense);
     } catch (error) {
       if (error instanceof z.ZodError) {
