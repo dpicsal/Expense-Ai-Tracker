@@ -75,6 +75,9 @@ export class DatabaseStorage implements IStorage {
     if (insertCategory.budget !== undefined) {
       categoryValues.budget = insertCategory.budget.toString();
     }
+    if (insertCategory.allocatedFunds !== undefined) {
+      categoryValues.allocatedFunds = insertCategory.allocatedFunds.toString();
+    }
     
     const [category] = await db
       .insert(categories)
@@ -90,6 +93,9 @@ export class DatabaseStorage implements IStorage {
     };
     if (updateData.budget !== undefined) {
       updateValues.budget = updateData.budget.toString();
+    }
+    if (updateData.allocatedFunds !== undefined) {
+      updateValues.allocatedFunds = updateData.allocatedFunds.toString();
     }
     
     const [category] = await db

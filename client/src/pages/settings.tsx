@@ -1,13 +1,15 @@
 import { useState } from "react";
-import { Plus, Edit, Trash2, Settings as SettingsIcon, Download, FileSpreadsheet } from "lucide-react";
+import { Plus, Edit, Trash2, Settings as SettingsIcon, Download, FileSpreadsheet, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useCategories, useDeleteCategory } from "@/hooks/use-categories";
+import { useAppSettings } from "@/hooks/use-app-settings";
 import { CategoryForm } from "@/components/category-form";
 import { cn } from "@/lib/utils";
 import { type Category } from "@shared/schema";
@@ -21,6 +23,7 @@ export default function Settings() {
   
   const { data: categories = [], isLoading } = useCategories();
   const deleteCategory = useDeleteCategory();
+  const { settings, updateSettings } = useAppSettings();
 
   const handleAddCategory = () => {
     setEditingCategory(null);
@@ -83,8 +86,51 @@ export default function Settings() {
         </p>
       </div>
 
-      {/* Category Management */}
+      {/* App Preferences */}
       <Card className="border-0 shadow-md">
+        <CardHeader className="pb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900">
+              <Shield className="h-5 w-5 text-green-600 dark:text-green-400" />
+            </div>
+            <div>
+              <CardTitle className="text-lg md:text-xl font-semibold">App Preferences</CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">Control app features and permissions</p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 border border-border/50 rounded-lg bg-card/50">
+              <div className="space-y-1">
+                <div className="font-medium text-foreground">Category Management</div>
+                <p className="text-sm text-muted-foreground">
+                  Allow adding, editing, and deleting expense categories
+                </p>
+              </div>
+              <Switch
+                checked={settings.allowCategoryManagement}
+                onCheckedChange={(checked) => {
+                  updateSettings({ allowCategoryManagement: checked });
+                  toast({
+                    title: checked ? "Category Management Enabled" : "Category Management Disabled",
+                    description: checked 
+                      ? "You can now add, edit, and delete categories" 
+                      : "Category management has been disabled",
+                  });
+                }}
+                data-testid="switch-category-management"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      {/* Category Management */}
+      {settings.allowCategoryManagement && (
+        <Card className="border-0 shadow-md">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-3">
@@ -153,11 +199,18 @@ export default function Settings() {
                     <Badge className={cn(category.color)} data-testid={`category-badge-${category.id}`}>
                       {category.name}
                     </Badge>
-                    {category.budget && parseFloat(category.budget) > 0 && (
-                      <span className="text-sm text-muted-foreground">
-                        Budget: AED {parseFloat(category.budget).toFixed(2)}
-                      </span>
-                    )}
+                    <div className="flex flex-col gap-1">
+                      {category.budget && parseFloat(category.budget) > 0 && (
+                        <span className="text-sm text-muted-foreground">
+                          Budget: AED {parseFloat(category.budget).toFixed(2)}
+                        </span>
+                      )}
+                      {category.allocatedFunds && parseFloat(category.allocatedFunds) > 0 && (
+                        <span className="text-sm text-green-600 dark:text-green-400 font-medium">
+                          Allocated: AED {parseFloat(category.allocatedFunds).toFixed(2)}
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Button
@@ -211,6 +264,7 @@ export default function Settings() {
           )}
         </CardContent>
       </Card>
+      )}
 
       <Separator />
 
