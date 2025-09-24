@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarIcon, Plus } from "lucide-react";
@@ -13,13 +13,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { insertExpenseSchema, type InsertExpense, PAYMENT_METHOD_TYPES } from "@shared/schema";
-import { DEFAULT_CATEGORIES, PAYMENT_METHOD_LABELS } from "@shared/constants";
+import { insertExpenseSchema, type InsertExpense, type PaymentMethodType } from "@shared/schema";
+import { DEFAULT_CATEGORIES } from "@shared/constants";
+import { usePaymentMethods } from "@/hooks/use-payment-methods";
+import { z } from "zod";
 
-const paymentMethods = PAYMENT_METHOD_TYPES.map((method: string) => ({
-  value: method,
-  label: PAYMENT_METHOD_LABELS[method] || "Other"
-}));
+// Custom form type that allows paymentMethod to be a payment method ID (string)
+type ExpenseFormData = Omit<InsertExpense, 'paymentMethod'> & {
+  paymentMethod: string; // This will be the payment method ID
+};
 
 interface ExpenseFormProps {
   onSubmit: (expense: InsertExpense) => void;
@@ -30,23 +32,53 @@ interface ExpenseFormProps {
 export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isMobile = useIsMobile();
+  const { data: paymentMethods = [], isLoading: isLoadingPaymentMethods } = usePaymentMethods();
 
-  const form = useForm<InsertExpense>({
-    resolver: zodResolver(insertExpenseSchema),
+  // Helper function to find payment method ID from type (for editing existing expenses)
+  const getPaymentMethodIdFromType = (type: PaymentMethodType) => {
+    const method = paymentMethods.find(pm => pm.type === type);
+    return method?.id || (paymentMethods.length > 0 ? paymentMethods[0].id : "");
+  };
+
+  const form = useForm<ExpenseFormData>({
+    resolver: zodResolver(insertExpenseSchema.omit({ paymentMethod: true }).extend({ paymentMethod: z.string() })),
     defaultValues: {
       amount: initialData?.amount,
       description: initialData?.description || "",
       category: initialData?.category || "",
-      paymentMethod: initialData?.paymentMethod || "cash",
+      paymentMethod: "", // Will be set by useEffect when payment methods load
       date: initialData?.date || new Date(),
     },
   });
 
-  const handleSubmit = async (data: InsertExpense) => {
+  // Update payment method when payment methods load or when editing existing expense
+  useEffect(() => {
+    if (paymentMethods.length > 0) {
+      if (isEditing && initialData?.paymentMethod) {
+        // When editing, map the legacy payment method type to the corresponding payment method ID
+        const paymentMethodId = getPaymentMethodIdFromType(initialData.paymentMethod as PaymentMethodType);
+        form.setValue("paymentMethod", paymentMethodId);
+      } else if (!form.getValues("paymentMethod")) {
+        // When adding new expense, default to first active payment method
+        const firstActiveMethod = paymentMethods.find(pm => pm.isActive);
+        if (firstActiveMethod) {
+          form.setValue("paymentMethod", firstActiveMethod.id);
+        }
+      }
+    }
+  }, [paymentMethods, initialData, isEditing, form]);
+
+  const handleSubmit = async (data: ExpenseFormData) => {
     console.log('Form submitted:', data);
     setIsSubmitting(true);
     try {
-      await onSubmit(data);
+      // Find the selected payment method and map ID to type for legacy expense system
+      const selectedPaymentMethod = paymentMethods.find(pm => pm.id === data.paymentMethod);
+      const mappedData: InsertExpense = {
+        ...data,
+        paymentMethod: (selectedPaymentMethod?.type || "cash") as InsertExpense['paymentMethod']
+      };
+      await onSubmit(mappedData);
       if (!isEditing) {
         form.reset();
       }
@@ -154,11 +186,23 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {paymentMethods.map((method) => (
-                        <SelectItem key={method.value} value={method.value}>
-                          {method.label}
+                      {isLoadingPaymentMethods ? (
+                        <SelectItem value="loading" disabled>
+                          Loading payment methods...
                         </SelectItem>
-                      ))}
+                      ) : paymentMethods.length === 0 ? (
+                        <SelectItem value="no-methods" disabled>
+                          No payment methods available
+                        </SelectItem>
+                      ) : (
+                        paymentMethods
+                          .filter(method => method.isActive)
+                          .map((method) => (
+                            <SelectItem key={method.id} value={method.id}>
+                              {method.name}
+                            </SelectItem>
+                          ))
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
