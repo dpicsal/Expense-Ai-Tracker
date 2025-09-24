@@ -29,17 +29,17 @@
   --elevate-2: rgba(0,0,0, .08);
 
   /* iOS-style light mode colors */
-  --background: 240 12% 95%; /* iOS characteristic light gray background */
+  --background: 240 10% 97%; /* iOS characteristic light gray background */
 
-  --foreground: 210 11% 15%; /* iOS dark text */
+  --foreground: 214 13% 12%; /* iOS dark text - slightly more contrast */
 
-  --border: 220 13% 87%; /* Subtle iOS borders */
+  --border: 220 13% 88%; /* Subtle iOS borders */
 
   --card: 0 0% 100%; /* Pure white cards like iOS */
 
-  --card-foreground: 210 11% 15%;
+  --card-foreground: 214 13% 12%;
 
-  --card-border: 220 13% 91%; /* Soft card borders */
+  --card-border: 220 13% 92%; /* Soft card borders */
 
   --sidebar: 0 0% 98%; /* Clean sidebar background */
 

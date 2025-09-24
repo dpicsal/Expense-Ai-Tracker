@@ -106,10 +106,10 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-2xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+          <h1 className="text-2xl md:text-4xl font-semibold tracking-tight text-foreground">
             Dashboard
           </h1>
-          <p className="text-base md:text-lg text-muted-foreground">
+          <p className="text-base md:text-lg font-normal text-muted-foreground">
             Track your expenses and visualize your spending patterns
           </p>
         </div>

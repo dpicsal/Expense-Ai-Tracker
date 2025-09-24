@@ -26,10 +26,10 @@ export default function AddExpense() {
   return (
     <div className="space-y-8">
       <div className="space-y-2">
-        <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-foreground">
           Add Expense
         </h1>
-        <p className="text-lg text-muted-foreground">
+        <p className="text-base sm:text-lg font-normal text-muted-foreground">
           Record a new expense to track your spending effectively
         </p>
       </div>
