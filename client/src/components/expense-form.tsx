@@ -14,27 +14,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { insertExpenseSchema, type InsertExpense, PAYMENT_METHOD_TYPES } from "@shared/schema";
-
-const categories = [
-  "Food & Dining",
-  "Transportation",
-  "Shopping",
-  "Entertainment",
-  "Bills & Utilities",
-  "Healthcare",
-  "Travel",
-  "Education",
-  "Other"
-];
+import { DEFAULT_CATEGORIES, PAYMENT_METHOD_LABELS } from "@shared/constants";
 
 const paymentMethods = PAYMENT_METHOD_TYPES.map((method: string) => ({
   value: method,
-  label: method === "cash" ? "Cash" :
-         method === "credit_card" ? "Credit Card" :
-         method === "debit_card" ? "Debit Card" :
-         method === "bank_transfer" ? "Bank Transfer" :
-         method === "digital_wallet" ? "Digital Wallet" :
-         "Other"
+  label: PAYMENT_METHOD_LABELS[method] || "Other"
 }));
 
 interface ExpenseFormProps {
@@ -145,7 +129,7 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {categories.map((category) => (
+                      {DEFAULT_CATEGORIES.map((category) => (
                         <SelectItem key={category} value={category}>
                           {category}
                         </SelectItem>

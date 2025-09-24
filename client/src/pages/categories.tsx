@@ -2,35 +2,12 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useExpenses } from "@/hooks/use-expenses";
-
-const categories = [
-  "Food & Dining",
-  "Transportation",
-  "Shopping", 
-  "Entertainment",
-  "Bills & Utilities",
-  "Healthcare",
-  "Travel",
-  "Education",
-  "Other"
-];
-
-const categoryColors: Record<string, string> = {
-  "Food & Dining": "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
-  "Transportation": "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  "Shopping": "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
-  "Entertainment": "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
-  "Bills & Utilities": "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-  "Healthcare": "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  "Travel": "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200",
-  "Education": "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
-  "Other": "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
-};
+import { DEFAULT_CATEGORIES, CATEGORY_COLORS } from "@shared/constants";
 
 export default function Categories() {
   const { data: expenses = [], isLoading } = useExpenses();
 
-  const categoryStats = categories.map(category => {
+  const categoryStats = DEFAULT_CATEGORIES.map(category => {
     const categoryExpenses = expenses.filter(e => e.category === category);
     const total = categoryExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
     const count = categoryExpenses.length;
@@ -65,7 +42,7 @@ export default function Categories() {
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <Badge 
-                        className={categoryColors[category]}
+                        className={CATEGORY_COLORS[category]}
                         data-testid={`category-badge-${category}`}
                       >
                         {category}
@@ -110,7 +87,7 @@ export default function Categories() {
                   <Badge 
                     key={category} 
                     variant="outline"
-                    className={categoryColors[category]}
+                    className={CATEGORY_COLORS[category]}
                   >
                     {category}
                   </Badge>
