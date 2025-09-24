@@ -7,12 +7,12 @@ export default {
     extend: {
       borderRadius: {
         'none': '0px',
-        'sm': '0.25rem',   /* 4px */
-        'md': '0.5rem',    /* 8px */
-        'lg': '0.75rem',   /* 12px */
-        'xl': '1rem',      /* 16px */
-        '2xl': '1.25rem',  /* 20px */
-        '3xl': '1.5rem',   /* 24px */
+        'sm': '0.5rem',    /* 8px - iOS small elements */
+        'md': '0.75rem',   /* 12px - iOS standard */
+        'lg': '1rem',      /* 16px - iOS cards */
+        'xl': '1.25rem',   /* 20px - iOS large panels */
+        '2xl': '1.5rem',   /* 24px - iOS extra large */
+        '3xl': '2rem',     /* 32px - iOS hero elements */
         'full': '9999px',
       },
       fontSize: {
@@ -107,6 +107,20 @@ export default {
           offline: "rgb(156 163 175)",
         },
       },
+      spacing: {
+        '0.5': '0.125rem', /* 2px */
+        '1.5': '0.375rem', /* 6px */
+        '2.5': '0.625rem', /* 10px */
+        '3.5': '0.875rem', /* 14px */
+        '4.5': '1.125rem', /* 18px */
+        '5.5': '1.375rem', /* 22px */
+        '6.5': '1.625rem', /* 26px */
+        '7.5': '1.875rem', /* 30px */
+        '11': '2.75rem',   /* 44px - iOS minimum touch target */
+        '13': '3.25rem',   /* 52px - iOS comfortable touch target */
+        '15': '3.75rem',   /* 60px - iOS large touch target */
+        '17': '4.25rem',   /* 68px - iOS extra large touch target */
+      },
       fontFamily: {
         sans: ["-apple-system", "BlinkMacSystemFont", "SF Pro Display", "Inter", "system-ui", "sans-serif"],
         serif: ["SF Pro Display", "Georgia", "serif"],
@@ -125,6 +139,17 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "ios-bounce": "bounce 0.3s ease-out",
+        "ios-fade-in": "fadeIn 0.3s ease-out",
+      },
+      backdropBlur: {
+        'ios': '20px',
+      },
+      boxShadow: {
+        'ios-sm': '0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08)',
+        'ios': '0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1)',
+        'ios-lg': '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
+        'ios-xl': '0 20px 40px rgba(0, 0, 0, 0.15), 0 8px 16px rgba(0, 0, 0, 0.1)',
       },
     },
   },
