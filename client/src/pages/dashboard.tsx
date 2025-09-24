@@ -1,15 +1,15 @@
 import { useState } from "react";
-import { PlusCircle, TrendingDown, TrendingUp, DollarSign } from "lucide-react";
+import { TrendingDown, TrendingUp, DollarSign } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExpenseCharts } from "@/components/expense-charts";
 import { ExpenseForm } from "@/components/expense-form";
 import { ExpenseList } from "@/components/expense-list";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense } from "@/hooks/use-expenses";
+import { useExpenses, useUpdateExpense, useDeleteExpense } from "@/hooks/use-expenses";
 import { type Expense, type InsertExpense } from "@shared/schema";
 
 export default function Dashboard() {
@@ -19,26 +19,8 @@ export default function Dashboard() {
   const isMobile = useIsMobile();
   
   const { data: expenses = [], isLoading } = useExpenses();
-  const createExpense = useCreateExpense();
   const updateExpense = useUpdateExpense();
   const deleteExpense = useDeleteExpense();
-
-  const handleAddExpense = async (newExpense: InsertExpense) => {
-    try {
-      await createExpense.mutateAsync(newExpense);
-      setIsDialogOpen(false);
-      toast({
-        title: "Success",
-        description: "Expense added successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to add expense",
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleEditExpense = (expense: Expense) => {
     setEditingExpense(expense);
@@ -113,38 +95,6 @@ export default function Dashboard() {
             Track your expenses and visualize your spending patterns
           </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={(open) => {
-          setIsDialogOpen(open);
-          if (!open) setEditingExpense(null);
-        }}>
-          <DialogTrigger asChild>
-            <Button 
-              data-testid="button-add-expense"
-              size="lg"
-              className={isMobile ? 'w-full sm:w-auto' : ''}
-            >
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Add Expense
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>
-                {editingExpense ? 'Edit Expense' : 'Add New Expense'}
-              </DialogTitle>
-            </DialogHeader>
-            <ExpenseForm 
-              onSubmit={editingExpense ? handleUpdateExpense : handleAddExpense}
-              initialData={editingExpense ? {
-                amount: parseFloat(editingExpense.amount),
-                description: editingExpense.description,
-                category: editingExpense.category,
-                date: new Date(editingExpense.date),
-              } : undefined}
-              isEditing={!!editingExpense}
-            />
-          </DialogContent>
-        </Dialog>
       </div>
 
       {/* Summary Cards */}
