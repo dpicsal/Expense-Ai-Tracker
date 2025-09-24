@@ -13,6 +13,7 @@ import Dashboard from "@/pages/dashboard";
 import AddExpense from "@/pages/add-expense";
 import Analytics from "@/pages/analytics";
 import Categories from "@/pages/categories";
+import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -22,6 +23,7 @@ function Router() {
       <Route path="/add" component={AddExpense} />
       <Route path="/analytics" component={Analytics} />
       <Route path="/categories" component={Categories} />
+      <Route path="/settings" component={Settings} />
       <Route component={NotFound} />
     </Switch>
   );
