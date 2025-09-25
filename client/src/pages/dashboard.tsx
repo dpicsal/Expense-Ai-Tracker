@@ -3,7 +3,6 @@ import { TrendingDown, TrendingUp, DollarSign } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ExpenseCharts } from "@/components/expense-charts";
 import { ExpenseForm } from "@/components/expense-form";
 import { ExpenseList } from "@/components/expense-list";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -175,8 +174,6 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Charts */}
-      <ExpenseCharts expenses={expenses} />
 
       {/* Recent Expenses */}
       <Card className="border-0 shadow-md">
