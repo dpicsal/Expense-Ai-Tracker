@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ExpenseCard } from "./expense-card";
 import { type Expense } from "@shared/schema";
+import { useCategories } from "@/hooks/use-categories";
 
 interface ExpenseListProps {
   expenses: Expense[];
@@ -12,22 +13,14 @@ interface ExpenseListProps {
   onDelete?: (id: string) => void;
 }
 
-const categories = [
-  "All Categories",
-  "Food & Dining",
-  "Transportation", 
-  "Shopping",
-  "Entertainment",
-  "Bills & Utilities",
-  "Healthcare",
-  "Travel",
-  "Education",
-  "Other"
-];
 
 export function ExpenseList({ expenses, onEdit, onDelete }: ExpenseListProps) {
+  const { data: categories = [] } = useCategories();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
+
+  // Create filter options with "All Categories" plus dynamic categories
+  const categoryOptions = ["All Categories", ...categories.map(cat => cat.name)];
 
   const filteredExpenses = expenses.filter(expense => {
     const matchesSearch = expense.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -68,7 +61,7 @@ export function ExpenseList({ expenses, onEdit, onDelete }: ExpenseListProps) {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {categories.map((category) => (
+            {categoryOptions.map((category) => (
               <SelectItem key={category} value={category}>
                 {category}
               </SelectItem>

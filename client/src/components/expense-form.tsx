@@ -14,8 +14,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { insertExpenseSchema, type InsertExpense, type PaymentMethodType } from "@shared/schema";
-import { DEFAULT_CATEGORIES } from "@shared/constants";
 import { usePaymentMethods } from "@/hooks/use-payment-methods";
+import { useCategories } from "@/hooks/use-categories";
 import { z } from "zod";
 
 // Custom form type that allows paymentMethod to be a payment method ID (string)
@@ -33,6 +33,7 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isMobile = useIsMobile();
   const { data: paymentMethods = [], isLoading: isLoadingPaymentMethods } = usePaymentMethods();
+  const { data: categories = [], isLoading: isLoadingCategories } = useCategories();
 
   // Helper function to find payment method ID from type (for editing existing expenses)
   const getPaymentMethodIdFromType = (type: PaymentMethodType) => {
@@ -162,9 +163,9 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {DEFAULT_CATEGORIES.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.name}>
+                          {category.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
