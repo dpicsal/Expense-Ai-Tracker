@@ -11,6 +11,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useExpenses, useUpdateExpense, useDeleteExpense } from "@/hooks/use-expenses";
 import { type Expense, type InsertExpense } from "@shared/schema";
 import { formatCurrency } from "@/lib/utils";
+import { FlipClock } from "@/components/flip-clock";
 
 export default function Dashboard() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -95,6 +96,15 @@ export default function Dashboard() {
             Track your expenses and visualize your spending patterns
           </p>
         </div>
+      </div>
+
+      {/* FlipClock - UAE Time */}
+      <div className="flex justify-center">
+        <Card className="border-0 shadow-ios-sm bg-gradient-to-br from-card/95 to-card/80 backdrop-blur-md" data-testid="card-flip-clock">
+          <CardContent className={`p-6 ${isMobile ? 'p-4' : ''}`}>
+            <FlipClock showDate={true} />
+          </CardContent>
+        </Card>
       </div>
 
       {/* Summary Cards */}

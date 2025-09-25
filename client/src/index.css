@@ -384,6 +384,33 @@
     animation: iosSpinner 1s linear infinite;
   }
 
+  /* FlipClock animations */
+  @keyframes flipDown {
+    from {
+      transform: rotateX(0deg);
+    }
+    to {
+      transform: rotateX(-90deg);
+    }
+  }
+
+  @keyframes flipUp {
+    from {
+      transform: rotateX(90deg);
+    }
+    to {
+      transform: rotateX(0deg);
+    }
+  }
+
+  .animate-flip {
+    animation: flipDown 0.15s ease-in-out;
+  }
+
+  .animate-flip-up {
+    animation: flipUp 0.15s ease-in-out;
+  }
+
   /* iOS-style staggered animations */
   .stagger-fade-in {
     opacity: 0;
