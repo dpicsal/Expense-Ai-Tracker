@@ -26,17 +26,17 @@ function FlipPanel({ value, showAMPM = false, isAM = true }: FlipPanelProps) {
 
   return (
     <div className="relative">
-      <div className="relative w-24 h-32 md:w-32 md:h-40 bg-gray-900 border border-gray-700 rounded-xl overflow-hidden shadow-2xl">
+      <div className="relative w-20 h-26 md:w-24 md:h-32 bg-gray-900 border border-gray-700 rounded-lg overflow-hidden shadow-2xl">
         {/* Top half - shows current value */}
         <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-gray-900 to-gray-800 border-b border-gray-700/50 overflow-hidden">
-          <div className="absolute inset-0 flex items-center justify-center text-4xl md:text-5xl font-mono font-bold text-gray-100" style={{ top: '0px', height: '200%' }}>
+          <div className="absolute inset-0 flex items-center justify-center text-2xl md:text-3xl font-mono font-bold text-gray-100" style={{ top: '0px', height: '200%' }}>
             {currentValue}
           </div>
         </div>
         
         {/* Bottom half - shows next value during flip, current value when not flipping */}
         <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-gray-800 to-gray-900 overflow-hidden">
-          <div className="absolute inset-0 flex items-center justify-center text-4xl md:text-5xl font-mono font-bold text-gray-100" style={{ top: '-100%', height: '200%' }}>
+          <div className="absolute inset-0 flex items-center justify-center text-2xl md:text-3xl font-mono font-bold text-gray-100" style={{ top: '-100%', height: '200%' }}>
             {isFlipping ? nextValue : currentValue}
           </div>
         </div>
@@ -85,6 +85,7 @@ export function FlipClock({ showDate = true, className }: FlipClockProps) {
   
   const hours = formatTwoDigits(hour12);
   const minutes = formatTwoDigits(time.getMinutes());
+  const seconds = formatTwoDigits(time.getSeconds());
   
   const formatDate = (date: Date) => {
     // Format the passed-in UAE date consistently
@@ -100,17 +101,26 @@ export function FlipClock({ showDate = true, className }: FlipClockProps) {
   return (
     <div className={cn("flex flex-col items-center space-y-4", className)}>
       {showDate && (
-        <div className="text-center">
-          <h2 className="text-base md:text-lg font-semibold text-foreground mb-1">UAE Time</h2>
-          <p className="text-xs md:text-sm text-muted-foreground">
+        <div className="text-center p-3 bg-primary/10 rounded-lg border border-primary/20">
+          <h2 className="text-base md:text-lg font-semibold text-primary mb-2">UAE Time</h2>
+          <p className="text-sm md:text-base font-medium text-primary bg-primary/5 px-3 py-1.5 rounded-md border border-primary/15">
             {formatDate(time)}
           </p>
         </div>
       )}
       
-      <div className="flex items-center space-x-3 md:space-x-4">
+      <div className="flex items-center space-x-2 md:space-x-3">
         <FlipPanel value={hours} showAMPM={true} isAM={isAM} />
+        <div className="flex flex-col items-center justify-center h-26 md:h-32 space-y-1">
+          <div className="w-1 h-1 bg-foreground rounded-full"></div>
+          <div className="w-1 h-1 bg-foreground rounded-full"></div>
+        </div>
         <FlipPanel value={minutes} />
+        <div className="flex flex-col items-center justify-center h-26 md:h-32 space-y-1">
+          <div className="w-1 h-1 bg-foreground rounded-full"></div>
+          <div className="w-1 h-1 bg-foreground rounded-full"></div>
+        </div>
+        <FlipPanel value={seconds} />
       </div>
     </div>
   );
