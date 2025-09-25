@@ -26,17 +26,17 @@ function FlipPanel({ value, showAMPM = false, isAM = true }: FlipPanelProps) {
 
   return (
     <div className="relative">
-      <div className="relative w-20 h-28 md:w-24 md:h-32 bg-gray-900 border border-gray-700 rounded-lg overflow-hidden shadow-xl">
+      <div className="relative w-20 h-28 md:w-24 md:h-32 bg-card border border-card-border rounded-md overflow-hidden shadow-md hover-elevate">
         {/* Top half - shows current value */}
-        <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-gray-900 to-gray-800 border-b border-gray-700/50 overflow-hidden">
-          <div className="absolute inset-0 flex items-center justify-center text-xl md:text-2xl font-mono font-bold text-gray-100" style={{ top: '0px', height: '200%' }}>
+        <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-card to-muted border-b border-card-border/50 overflow-hidden">
+          <div className="absolute inset-0 flex items-center justify-center text-xl md:text-2xl font-mono font-bold text-card-foreground" style={{ top: '0px', height: '200%' }}>
             {currentValue}
           </div>
         </div>
         
         {/* Bottom half - shows next value during flip, current value when not flipping */}
-        <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-gray-800 to-gray-900 overflow-hidden">
-          <div className="absolute inset-0 flex items-center justify-center text-xl md:text-2xl font-mono font-bold text-gray-100" style={{ top: '-100%', height: '200%' }}>
+        <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-muted to-card overflow-hidden">
+          <div className="absolute inset-0 flex items-center justify-center text-xl md:text-2xl font-mono font-bold text-card-foreground" style={{ top: '-100%', height: '200%' }}>
             {isFlipping ? nextValue : currentValue}
           </div>
         </div>
@@ -44,7 +44,7 @@ function FlipPanel({ value, showAMPM = false, isAM = true }: FlipPanelProps) {
         {/* AM/PM indicator in bottom left corner */}
         {showAMPM && (
           <div className="absolute bottom-1.5 left-1.5">
-            <span className="text-xs font-bold text-gray-300 bg-gray-800/90 px-1.5 py-0.5 rounded-sm">
+            <span className="text-xs font-bold text-primary-foreground bg-primary px-1.5 py-0.5 rounded-sm shadow-sm">
               {isAM ? 'AM' : 'PM'}
             </span>
           </div>
@@ -110,14 +110,14 @@ export function FlipClock({ showDate = true, className }: FlipClockProps) {
       
       <div className="flex items-center space-x-2 md:space-x-3">
         <FlipPanel value={hours} showAMPM={true} isAM={isAM} />
-        <div className="flex flex-col items-center justify-center h-28 md:h-32 space-y-1">
-          <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-          <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+        <div className="flex flex-col items-center justify-center h-28 md:h-32 space-y-2">
+          <div className="w-2 h-2 bg-primary rounded-full shadow-sm animate-pulse-glow"></div>
+          <div className="w-2 h-2 bg-primary rounded-full shadow-sm animate-pulse-glow" style={{ animationDelay: '0.5s' }}></div>
         </div>
         <FlipPanel value={minutes} />
-        <div className="flex flex-col items-center justify-center h-28 md:h-32 space-y-1">
-          <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-          <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
+        <div className="flex flex-col items-center justify-center h-28 md:h-32 space-y-2">
+          <div className="w-2 h-2 bg-primary rounded-full shadow-sm animate-pulse-glow"></div>
+          <div className="w-2 h-2 bg-primary rounded-full shadow-sm animate-pulse-glow" style={{ animationDelay: '0.5s' }}></div>
         </div>
         <FlipPanel value={seconds} />
       </div>
