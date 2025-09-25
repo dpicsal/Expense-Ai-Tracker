@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn, formatCurrency } from "@/lib/utils";
 import { type Expense } from "@shared/schema";
-import { CATEGORY_GRADIENT_COLORS, PAYMENT_METHOD_LABELS, CATEGORY_ICONS } from "@shared/constants";
+import { PAYMENT_METHOD_LABELS } from "@shared/constants";
+import { useCategories } from "@/hooks/use-categories";
 
 interface ExpenseCardProps {
   expense: Expense;
@@ -16,6 +17,13 @@ interface ExpenseCardProps {
 }
 
 export function ExpenseCard({ expense, onEdit, onDelete }: ExpenseCardProps) {
+  const { data: categories = [] } = useCategories();
+  
+  // Find the category data for this expense
+  const categoryData = categories.find(cat => cat.name === expense.category);
+  const categoryColor = categoryData?.color || "bg-slate-50 text-slate-700 border border-slate-200 dark:bg-slate-950 dark:text-slate-300 dark:border-slate-800";
+  const categoryIcon = categoryData?.icon || "Tag";
+
   const handleEdit = () => {
     console.log('Edit expense:', expense.id);
     onEdit?.(expense);
@@ -37,8 +45,7 @@ export function ExpenseCard({ expense, onEdit, onDelete }: ExpenseCardProps) {
               </span>
               <div className="flex items-center gap-1.5">
                 {(() => {
-                  const iconName = CATEGORY_ICONS[expense.category] || "Tag";
-                  const IconComponent = Icons[iconName as keyof typeof Icons] as React.ComponentType<any>;
+                  const IconComponent = Icons[categoryIcon as keyof typeof Icons] as React.ComponentType<any>;
                   return IconComponent ? (
                     <div className="p-1 rounded-md bg-background/80">
                       <IconComponent className="h-3 w-3 text-muted-foreground" />
@@ -46,7 +53,7 @@ export function ExpenseCard({ expense, onEdit, onDelete }: ExpenseCardProps) {
                   ) : null;
                 })()}
                 <Badge 
-                  className={cn("px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium rounded-full shadow-sm border-0", CATEGORY_GRADIENT_COLORS[expense.category] || CATEGORY_GRADIENT_COLORS["Other"])}
+                  className={cn("px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium rounded-full shadow-sm border-0", categoryColor)}
                   data-testid={`expense-category-${expense.id}`}
                 >
                   {expense.category}
