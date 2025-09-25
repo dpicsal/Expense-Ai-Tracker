@@ -23,11 +23,11 @@ function FlipDigit({ digit, label }: FlipDigitProps) {
 
   return (
     <div className="relative flex flex-col items-center">
-      <div className="relative w-16 h-20 md:w-20 md:h-24 bg-card border border-border/20 rounded-lg overflow-hidden shadow-lg">
+      <div className="relative w-12 h-16 md:w-14 md:h-18 bg-card border border-border/20 rounded-md overflow-hidden shadow-lg">
         {/* Top half */}
         <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-card to-card/80 border-b border-border/10">
           <div
-            className="absolute inset-0 flex items-center justify-center text-2xl md:text-3xl font-mono font-bold text-foreground transition-transform duration-150"
+            className="absolute inset-0 flex items-center justify-center text-lg md:text-xl font-mono font-bold text-foreground transition-transform duration-150"
             style={{ 
               transformOrigin: "bottom",
               transform: isFlipping ? "rotateX(-90deg)" : "rotateX(0deg)"
@@ -39,7 +39,7 @@ function FlipDigit({ digit, label }: FlipDigitProps) {
         
         {/* Bottom half */}
         <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-card/60 to-card">
-          <div className="absolute inset-0 flex items-center justify-center text-2xl md:text-3xl font-mono font-bold text-foreground">
+          <div className="absolute inset-0 flex items-center justify-center text-lg md:text-xl font-mono font-bold text-foreground">
             {currentDigit}
           </div>
         </div>
@@ -55,7 +55,7 @@ function FlipDigit({ digit, label }: FlipDigitProps) {
             }}
           >
             <div 
-              className="absolute inset-0 flex items-center justify-center text-2xl md:text-3xl font-mono font-bold text-foreground"
+              className="absolute inset-0 flex items-center justify-center text-lg md:text-xl font-mono font-bold text-foreground"
               style={{ transform: "rotateX(180deg)" }}
             >
               {digit}
@@ -65,7 +65,7 @@ function FlipDigit({ digit, label }: FlipDigitProps) {
       </div>
       
       {label && (
-        <span className="mt-2 text-xs md:text-sm text-muted-foreground font-medium uppercase tracking-wide">
+        <span className="mt-1 text-xs text-muted-foreground font-medium uppercase tracking-wide">
           {label}
         </span>
       )}
@@ -115,38 +115,38 @@ export function FlipClock({ showDate = true, className }: FlipClockProps) {
   const isAM = time.getHours() < 12;
 
   return (
-    <div className={cn("flex flex-col items-center space-y-4", className)}>
+    <div className={cn("flex flex-col items-center space-y-3", className)}>
       {showDate && (
         <div className="text-center">
-          <h2 className="text-lg md:text-xl font-semibold text-foreground mb-1">UAE Time</h2>
-          <p className="text-sm md:text-base text-muted-foreground">
+          <h2 className="text-base md:text-lg font-semibold text-foreground mb-1">UAE Time</h2>
+          <p className="text-xs md:text-sm text-muted-foreground">
             {formatDate(time)}
           </p>
         </div>
       )}
       
-      <div className="flex items-center space-x-2 md:space-x-4">
+      <div className="flex items-center space-x-1 md:space-x-2">
         <FlipDigit digit={hours[0]} />
         <FlipDigit digit={hours[1]} label="hours" />
         
-        <div className="flex flex-col items-center justify-center h-20 md:h-24 space-y-2">
-          <div className="w-1.5 h-1.5 bg-foreground rounded-full"></div>
-          <div className="w-1.5 h-1.5 bg-foreground rounded-full"></div>
+        <div className="flex flex-col items-center justify-center h-16 md:h-18 space-y-1">
+          <div className="w-1 h-1 bg-foreground rounded-full"></div>
+          <div className="w-1 h-1 bg-foreground rounded-full"></div>
         </div>
         
         <FlipDigit digit={minutes[0]} />
         <FlipDigit digit={minutes[1]} label="minutes" />
         
-        <div className="flex flex-col items-center justify-center h-20 md:h-24 space-y-2">
-          <div className="w-1.5 h-1.5 bg-foreground rounded-full"></div>
-          <div className="w-1.5 h-1.5 bg-foreground rounded-full"></div>
+        <div className="flex flex-col items-center justify-center h-16 md:h-18 space-y-1">
+          <div className="w-1 h-1 bg-foreground rounded-full"></div>
+          <div className="w-1 h-1 bg-foreground rounded-full"></div>
         </div>
         
         <FlipDigit digit={seconds[0]} />
         <FlipDigit digit={seconds[1]} label="seconds" />
         
-        <div className="flex flex-col items-center justify-center ml-2 md:ml-4">
-          <div className="text-xs md:text-sm font-bold text-foreground bg-muted px-2 py-1 rounded">
+        <div className="flex flex-col items-center justify-center ml-1 md:ml-2">
+          <div className="text-sm md:text-base font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-md border border-primary/20">
             {isAM ? 'AM' : 'PM'}
           </div>
         </div>
