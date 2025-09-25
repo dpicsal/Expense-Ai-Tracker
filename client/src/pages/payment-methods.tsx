@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { PlusCircle, Wallet, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { PaymentMethodForm } from "@/components/payment-method-form";
@@ -140,6 +140,11 @@ export default function PaymentMethods() {
               <DialogTitle>
                 {editingPaymentMethod ? "Edit Payment Method" : "Add New Payment Method"}
               </DialogTitle>
+              <DialogDescription>
+                {editingPaymentMethod 
+                  ? "Update the details of your payment method below." 
+                  : "Create a new payment method to track your expenses and balances."}
+              </DialogDescription>
             </DialogHeader>
             <PaymentMethodForm
               onSubmit={editingPaymentMethod ? handleUpdatePaymentMethod : handleAddPaymentMethod}
@@ -231,6 +236,9 @@ export default function PaymentMethods() {
             <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Add New Payment Method</DialogTitle>
+                <DialogDescription>
+                  Create your first payment method to start tracking your finances and expenses.
+                </DialogDescription>
               </DialogHeader>
               <PaymentMethodForm
                 onSubmit={handleAddPaymentMethod}

@@ -37,12 +37,12 @@ export function PaymentMethodForm({ onSubmit, initialData, isEditing, isSubmitti
   const form = useForm<InsertPaymentMethod>({
     resolver: zodResolver(insertPaymentMethodSchema),
     defaultValues: {
-      name: initialData?.name || "",
-      type: initialData?.type || "cash",
-      balance: initialData?.balance || 0,
-      creditLimit: initialData?.creditLimit,
+      name: initialData?.name ?? "",
+      type: initialData?.type ?? "cash",
+      balance: initialData?.balance ?? 0,
+      creditLimit: initialData?.creditLimit ?? undefined,
       isActive: initialData?.isActive ?? true,
-      color: initialData?.color || PAYMENT_METHOD_COLOR_OPTIONS[0].value,
+      color: initialData?.color ?? PAYMENT_METHOD_COLOR_OPTIONS[0].value,
     },
   });
 

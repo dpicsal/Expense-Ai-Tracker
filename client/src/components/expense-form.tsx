@@ -43,11 +43,11 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
   const form = useForm<ExpenseFormData>({
     resolver: zodResolver(insertExpenseSchema.omit({ paymentMethod: true }).extend({ paymentMethod: z.string() })),
     defaultValues: {
-      amount: initialData?.amount,
-      description: initialData?.description || "",
-      category: initialData?.category || "",
+      amount: initialData?.amount ?? 0,
+      description: initialData?.description ?? "",
+      category: initialData?.category ?? "",
       paymentMethod: "", // Will be set by useEffect when payment methods load
-      date: initialData?.date || new Date(),
+      date: initialData?.date ?? new Date(),
     },
   });
 
