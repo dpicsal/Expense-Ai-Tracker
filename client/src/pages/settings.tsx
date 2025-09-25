@@ -35,6 +35,36 @@ export default function Settings() {
     setIsDialogOpen(true);
   };
 
+  const handleLoadDefaultCategories = async () => {
+    try {
+      const response = await fetch('/api/categories/seed', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to load default categories');
+      }
+
+      const result = await response.json();
+      
+      toast({
+        title: "Success",
+        description: `Loaded ${result.seeded} default categories. You can now edit them!`,
+      });
+
+      // The categories list will automatically refresh due to React Query
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load default categories",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleDeleteCategory = async (categoryToDelete: Category) => {
     try {
       await deleteCategory.mutateAsync(categoryToDelete.id);
@@ -170,13 +200,18 @@ export default function Settings() {
                 <SettingsIcon className="h-8 w-8 text-muted-foreground" />
               </div>
               <h3 className="text-lg font-medium mb-2">No categories found</h3>
-              <p className="text-muted-foreground mb-4">Add your first category to get started</p>
-              <DialogTrigger asChild>
-                <Button onClick={handleAddCategory} data-testid="button-add-category-empty">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Category
+              <p className="text-muted-foreground mb-4">Load the default categories to get started editing them</p>
+              <div className="space-y-3">
+                <Button onClick={handleLoadDefaultCategories} data-testid="button-load-default-categories" className="mr-3">
+                  Load Default Categories
                 </Button>
-              </DialogTrigger>
+                <DialogTrigger asChild>
+                  <Button variant="outline" onClick={handleAddCategory} data-testid="button-add-category-empty">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Custom Category
+                  </Button>
+                </DialogTrigger>
+              </div>
             </div>
           ) : (
             <div className="grid gap-3" data-testid="category-list">
