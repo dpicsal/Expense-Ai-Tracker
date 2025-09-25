@@ -86,6 +86,19 @@ export default function Dashboard() {
 
   const monthlyChange = lastMonthTotal > 0 ? ((thisMonthTotal - lastMonthTotal) / lastMonthTotal) * 100 : 0;
 
+  // Calculate spending statistics per category
+  const categoryStats = categories.map(category => {
+    const categoryExpenses = expenses.filter(expense => expense.category === category.name);
+    const totalSpent = categoryExpenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
+    const transactionCount = categoryExpenses.length;
+    
+    return {
+      ...category,
+      totalSpent,
+      transactionCount
+    };
+  });
+
   return (
     <div className={`${isMobile ? 'space-y-6' : 'space-y-8'} animate-fade-in-up`}>
       {/* Header */}
@@ -220,7 +233,7 @@ export default function Dashboard() {
             </div>
           ) : (
             <div className={`grid grid-cols-1 min-[380px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${isMobile ? 'gap-3' : 'gap-4'}`}>
-              {categories.map((category: Category) => {
+              {categoryStats.map((category) => {
                 const IconComponent = Icons[category.icon as keyof typeof Icons] as React.ComponentType<any>;
                 
                 return (
@@ -246,8 +259,24 @@ export default function Dashboard() {
                         </div>
                       </div>
                       
+                      {/* Spending Statistics */}
+                      <div className={`space-y-1 ${isMobile ? 'text-xs' : 'text-sm'} opacity-90`}>
+                        <div className="flex justify-between">
+                          <span>Total Spent:</span>
+                          <span className="font-medium" data-testid={`text-category-spent-${category.id}`}>
+                            {formatCurrency(category.totalSpent)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Transactions:</span>
+                          <span className="font-medium" data-testid={`text-category-transactions-${category.id}`}>
+                            {category.transactionCount}
+                          </span>
+                        </div>
+                      </div>
+
                       {((category.budget && parseFloat(category.budget) > 0) || (category.allocatedFunds && parseFloat(category.allocatedFunds) > 0)) && (
-                        <div className={`space-y-1 ${isMobile ? 'text-xs' : 'text-sm'} opacity-90`}>
+                        <div className={`space-y-1 ${isMobile ? 'text-xs' : 'text-sm'} opacity-90 border-t border-black/10 dark:border-white/10 pt-2 mt-2`}>
                           {category.budget && parseFloat(category.budget) > 0 && (
                             <div className="flex justify-between">
                               <span>Budget:</span>
