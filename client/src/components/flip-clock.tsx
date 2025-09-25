@@ -6,23 +6,11 @@ interface DigitDisplayProps {
   label?: string;
 }
 
-function DigitDisplay({ value, label }: DigitDisplayProps) {
+function DigitDisplay({ value }: DigitDisplayProps) {
   return (
-    <div className="flex flex-col items-center space-y-0.5">
-      {label && (
-        <span className="text-[8px] font-medium text-muted-foreground uppercase tracking-wide">
-          {label}
-        </span>
-      )}
-      <div className="relative">
-        <div className="bg-background/50 backdrop-blur-sm border border-border/50 rounded-md px-2 py-1 shadow-sm">
-          <span className="text-xl md:text-2xl font-light tabular-nums tracking-tight text-foreground">
-            {value}
-          </span>
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10 rounded-md pointer-events-none"></div>
-      </div>
-    </div>
+    <span className="text-lg font-medium tabular-nums text-foreground">
+      {value}
+    </span>
   );
 }
 
@@ -70,41 +58,24 @@ export function FlipClock({ showDate = true, className }: FlipClockProps) {
   };
 
   return (
-    <div className={cn("flex flex-col items-center space-y-2", className)}>
+    <div className={cn("", className)}>
       {showDate && (
-        <div className="text-center">
-          <div className="inline-flex items-center px-3 py-1.5 bg-card/80 backdrop-blur-sm border border-border/50 rounded-lg shadow-sm">
-            <p className="text-xs md:text-sm font-medium text-card-foreground">
-              {formatDate(time)}
-            </p>
-          </div>
+        <div className="text-center mb-2">
+          <p className="text-xs text-muted-foreground">
+            {formatDate(time)}
+          </p>
         </div>
       )}
       
-      <div className="flex items-end justify-center gap-2 md:gap-3">
-        <DigitDisplay value={hours} label="HH" />
-        
-        <div className="flex flex-col items-center justify-center pb-3 space-y-1">
-          <div className="w-1 h-1 bg-primary rounded-full animate-pulse"></div>
-          <div className="w-1 h-1 bg-primary rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
-        </div>
-        
-        <DigitDisplay value={minutes} label="MM" />
-        
-        <div className="flex flex-col items-center justify-center pb-3 space-y-1">
-          <div className="w-1 h-1 bg-primary rounded-full animate-pulse"></div>
-          <div className="w-1 h-1 bg-primary rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
-        </div>
-        
-        <DigitDisplay value={seconds} label="SS" />
-      </div>
-      
-      <div className="flex items-center justify-center">
-        <div className="px-2 py-1 bg-primary/10 rounded-md border border-primary/20">
-          <span className="text-[10px] font-semibold text-primary tracking-wide">
-            {period}
-          </span>
-        </div>
+      <div className="flex items-center justify-center gap-1">
+        <DigitDisplay value={hours} />
+        <span className="text-sm text-muted-foreground">:</span>
+        <DigitDisplay value={minutes} />
+        <span className="text-sm text-muted-foreground">:</span>
+        <DigitDisplay value={seconds} />
+        <span className="text-xs text-primary ml-1 font-medium">
+          {period}
+        </span>
       </div>
     </div>
   );
