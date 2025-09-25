@@ -13,39 +13,39 @@ export const DEFAULT_CATEGORIES = [
 ] as const;
 
 export const CATEGORY_COLORS: Record<string, string> = {
-  "Food & Dining": "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
-  "Transportation": "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200", 
-  "Shopping": "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
-  "Entertainment": "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
-  "Bills & Utilities": "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-  "Healthcare": "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  "Travel": "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200",
-  "Education": "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
-  "Other": "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
+  "Food & Dining": "bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800",
+  "Transportation": "bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800",
+  "Shopping": "bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800",
+  "Entertainment": "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800",
+  "Bills & Utilities": "bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950 dark:text-rose-300 dark:border-rose-800",
+  "Healthcare": "bg-teal-50 text-teal-700 border border-teal-200 dark:bg-teal-950 dark:text-teal-300 dark:border-teal-800",
+  "Travel": "bg-sky-50 text-sky-700 border border-sky-200 dark:bg-sky-950 dark:text-sky-300 dark:border-sky-800",
+  "Education": "bg-violet-50 text-violet-700 border border-violet-200 dark:bg-violet-950 dark:text-violet-300 dark:border-violet-800",
+  "Other": "bg-slate-50 text-slate-700 border border-slate-200 dark:bg-slate-950 dark:text-slate-300 dark:border-slate-800",
 };
 
 export const CATEGORY_GRADIENT_COLORS: Record<string, string> = {
-  "Food & Dining": "bg-gradient-to-r from-orange-600 to-orange-700 text-white shadow-orange-200 dark:shadow-orange-900",
-  "Transportation": "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-blue-200 dark:shadow-blue-900",
-  "Shopping": "bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-purple-200 dark:shadow-purple-900",
-  "Entertainment": "bg-gradient-to-r from-pink-600 to-pink-700 text-white shadow-pink-200 dark:shadow-pink-900",
-  "Bills & Utilities": "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-red-200 dark:shadow-red-900",
-  "Healthcare": "bg-gradient-to-r from-green-600 to-green-700 text-white shadow-green-200 dark:shadow-green-900",
-  "Travel": "bg-gradient-to-r from-cyan-600 to-cyan-700 text-white shadow-cyan-200 dark:shadow-cyan-900",
-  "Education": "bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-indigo-200 dark:shadow-indigo-900",
-  "Other": "bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-gray-200 dark:shadow-gray-900",
+  "Food & Dining": "bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800",
+  "Transportation": "bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800",
+  "Shopping": "bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800",
+  "Entertainment": "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800",
+  "Bills & Utilities": "bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950 dark:text-rose-300 dark:border-rose-800",
+  "Healthcare": "bg-teal-50 text-teal-700 border border-teal-200 dark:bg-teal-950 dark:text-teal-300 dark:border-teal-800",
+  "Travel": "bg-sky-50 text-sky-700 border border-sky-200 dark:bg-sky-950 dark:text-sky-300 dark:border-sky-800",
+  "Education": "bg-violet-50 text-violet-700 border border-violet-200 dark:bg-violet-950 dark:text-violet-300 dark:border-violet-800",
+  "Other": "bg-slate-50 text-slate-700 border border-slate-200 dark:bg-slate-950 dark:text-slate-300 dark:border-slate-800",
 };
 
 export const COLOR_OPTIONS = [
-  { value: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200", label: "Orange" },
-  { value: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200", label: "Blue" },
-  { value: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200", label: "Purple" },
-  { value: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200", label: "Pink" },
-  { value: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200", label: "Red" },
-  { value: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200", label: "Green" },
-  { value: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200", label: "Cyan" },
-  { value: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200", label: "Indigo" },
-  { value: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200", label: "Gray" },
+  { value: "bg-orange-50 text-orange-700 border border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800", label: "Orange" },
+  { value: "bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800", label: "Blue" },
+  { value: "bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800", label: "Purple" },
+  { value: "bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800", label: "Emerald" },
+  { value: "bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950 dark:text-rose-300 dark:border-rose-800", label: "Rose" },
+  { value: "bg-teal-50 text-teal-700 border border-teal-200 dark:bg-teal-950 dark:text-teal-300 dark:border-teal-800", label: "Teal" },
+  { value: "bg-sky-50 text-sky-700 border border-sky-200 dark:bg-sky-950 dark:text-sky-300 dark:border-sky-800", label: "Sky" },
+  { value: "bg-violet-50 text-violet-700 border border-violet-200 dark:bg-violet-950 dark:text-violet-300 dark:border-violet-800", label: "Violet" },
+  { value: "bg-slate-50 text-slate-700 border border-slate-200 dark:bg-slate-950 dark:text-slate-300 dark:border-slate-800", label: "Slate" },
 ];
 
 export const PAYMENT_METHOD_COLOR_OPTIONS = [
