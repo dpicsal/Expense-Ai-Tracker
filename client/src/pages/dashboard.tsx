@@ -98,14 +98,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* FlipClock - UAE Time */}
-      <div className="flex justify-center">
-        <Card className="border-0 shadow-ios-sm bg-gradient-to-br from-card/95 to-card/80 backdrop-blur-md" data-testid="card-flip-clock">
-          <CardContent className={`p-6 ${isMobile ? 'p-4' : ''}`}>
-            <FlipClock showDate={true} />
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Summary Cards */}
       <div className={`grid grid-cols-1 min-[380px]:grid-cols-2 md:grid-cols-3 ${isMobile ? 'gap-3' : 'gap-4 sm:gap-5 lg:gap-6'}`}>
@@ -129,7 +121,9 @@ export default function Dashboard() {
 
         <Card className={`border-0 shadow-ios-sm bg-gradient-to-br from-blue-50/95 to-blue-100/90 dark:from-blue-950/95 dark:to-blue-900/90 backdrop-blur-md stagger-fade-in ${isMobile ? 'min-h-[7rem]' : ''}`}>
           <CardHeader className={`flex flex-row items-center justify-between space-y-0 ${isMobile ? 'pb-2 px-4 pt-4' : 'pb-3'}`}>
-            <CardTitle className={`text-sm font-medium text-blue-700 dark:text-blue-300 ${isMobile ? 'text-xs' : ''}`}>This Month</CardTitle>
+            <div className="flex items-center">
+              <FlipClock showDate={false} />
+            </div>
             <div className={`${isMobile ? 'p-1.5' : 'p-2'} rounded-xl bg-blue-500/10 shadow-sm`}>
               <TrendingUp className={`${isMobile ? 'h-3.5 w-3.5' : 'h-4 w-4'} text-blue-600 dark:text-blue-400`} />
             </div>
