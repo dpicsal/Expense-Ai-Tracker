@@ -8,7 +8,7 @@ interface DigitDisplayProps {
 
 function DigitDisplay({ value }: DigitDisplayProps) {
   return (
-    <span className="text-lg font-medium tabular-nums text-foreground">
+    <span className="text-sm font-medium tabular-nums text-blue-700 dark:text-blue-300">
       {value}
     </span>
   );
@@ -67,13 +67,11 @@ export function FlipClock({ showDate = true, className }: FlipClockProps) {
         </div>
       )}
       
-      <div className="flex items-center justify-center gap-1">
+      <div className="flex items-center gap-1">
         <DigitDisplay value={hours} />
-        <span className="text-sm text-muted-foreground">:</span>
+        <span className="text-sm text-blue-600 dark:text-blue-400">:</span>
         <DigitDisplay value={minutes} />
-        <span className="text-sm text-muted-foreground">:</span>
-        <DigitDisplay value={seconds} />
-        <span className="text-xs text-primary ml-1 font-medium">
+        <span className="text-xs text-blue-600 dark:text-blue-400 ml-1 font-medium">
           {period}
         </span>
       </div>
