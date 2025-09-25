@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TrendingDown, TrendingUp, DollarSign } from "lucide-react";
+import { TrendingDown, TrendingUp, DollarSign, Plus } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,8 +9,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useExpenses, useUpdateExpense, useDeleteExpense } from "@/hooks/use-expenses";
-import { type Expense, type InsertExpense } from "@shared/schema";
+import { useCategories } from "@/hooks/use-categories";
+import { type Expense, type InsertExpense, type Category } from "@shared/schema";
 import { formatCurrency } from "@/lib/utils";
+import * as Icons from "lucide-react";
 
 export default function Dashboard() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -19,6 +21,7 @@ export default function Dashboard() {
   const isMobile = useIsMobile();
   
   const { data: expenses = [], isLoading } = useExpenses();
+  const { data: categories = [], isLoading: categoriesLoading } = useCategories();
   const updateExpense = useUpdateExpense();
   const deleteExpense = useDeleteExpense();
 
@@ -176,6 +179,102 @@ export default function Dashboard() {
       </div>
 
 
+      {/* Categories Section */}
+      <Card className="border-0 shadow-md">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle className="text-lg md:text-xl font-semibold">Categories</CardTitle>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              asChild
+              data-testid="button-add-category"
+            >
+              <Link href="/categories">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Category
+              </Link>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {categoriesLoading ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-ios-spinner"></div>
+                <div className="animate-pulse-glow">Loading categories...</div>
+              </div>
+            </div>
+          ) : categories.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <div className="flex flex-col items-center gap-3">
+                <Plus className="w-12 h-12 opacity-50" />
+                <div>
+                  <p className="text-lg font-medium">No categories yet</p>
+                  <p className="text-sm">Create your first category to get started</p>
+                </div>
+                <Button variant="outline" asChild data-testid="button-add-category-empty">
+                  <Link href="/categories">Add Category</Link>
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className={`grid grid-cols-1 min-[380px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 ${isMobile ? 'gap-3' : 'gap-4'}`}>
+              {categories.map((category: Category) => {
+                const IconComponent = Icons[category.icon as keyof typeof Icons] as React.ComponentType<any>;
+                
+                return (
+                  <Card 
+                    key={category.id} 
+                    className={`${category.color} border-0 shadow-ios-sm backdrop-blur-md hover-elevate transition-all duration-200`}
+                    data-testid={`card-category-${category.id}`}
+                  >
+                    <CardContent className={`${isMobile ? 'p-4' : 'p-5'}`}>
+                      <div className="flex items-start justify-between gap-2 mb-3">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          {IconComponent && (
+                            <div className="flex-shrink-0">
+                              <IconComponent className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
+                            </div>
+                          )}
+                          <h3 
+                            className={`${isMobile ? 'text-sm' : 'text-base'} font-semibold truncate`}
+                            data-testid={`text-category-name-${category.id}`}
+                          >
+                            {category.name}
+                          </h3>
+                        </div>
+                      </div>
+                      
+                      {((category.budget && parseFloat(category.budget) > 0) || (category.allocatedFunds && parseFloat(category.allocatedFunds) > 0)) && (
+                        <div className={`space-y-1 ${isMobile ? 'text-xs' : 'text-sm'} opacity-90`}>
+                          {category.budget && parseFloat(category.budget) > 0 && (
+                            <div className="flex justify-between">
+                              <span>Budget:</span>
+                              <span className="font-medium" data-testid={`text-category-budget-${category.id}`}>
+                                {formatCurrency(parseFloat(category.budget))}
+                              </span>
+                            </div>
+                          )}
+                          {category.allocatedFunds && parseFloat(category.allocatedFunds) > 0 && (
+                            <div className="flex justify-between">
+                              <span>Allocated:</span>
+                              <span className="font-medium" data-testid={`text-category-allocated-${category.id}`}>
+                                {formatCurrency(parseFloat(category.allocatedFunds))}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Recent Expenses */}
       <Card className="border-0 shadow-md">
         <CardHeader className="pb-4">
@@ -185,6 +284,7 @@ export default function Dashboard() {
               variant="outline" 
               size="sm" 
               asChild
+              data-testid="button-view-all-expenses"
             >
               <Link href="/analytics">View All</Link>
             </Button>
