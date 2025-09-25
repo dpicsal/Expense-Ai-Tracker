@@ -1,53 +1,54 @@
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
-interface FlipDigitProps {
-  digit: string;
-  label?: string;
+interface FlipPanelProps {
+  value: string;
+  showAMPM?: boolean;
+  isAM?: boolean;
 }
 
-function FlipDigit({ digit, label }: FlipDigitProps) {
-  const [currentDigit, setCurrentDigit] = useState(digit);
+function FlipPanel({ value, showAMPM = false, isAM = true }: FlipPanelProps) {
+  const [currentValue, setCurrentValue] = useState(value);
   const [isFlipping, setIsFlipping] = useState(false);
 
   useEffect(() => {
-    if (digit !== currentDigit) {
+    if (value !== currentValue) {
       setIsFlipping(true);
       const timer = setTimeout(() => {
-        setCurrentDigit(digit);
+        setCurrentValue(value);
         setIsFlipping(false);
       }, 150);
       return () => clearTimeout(timer);
     }
-  }, [digit, currentDigit]);
+  }, [value, currentValue]);
 
   return (
-    <div className="relative flex flex-col items-center">
-      <div className="relative w-12 h-16 md:w-14 md:h-18 bg-card border border-border/20 rounded-md overflow-hidden shadow-lg">
+    <div className="relative">
+      <div className="relative w-24 h-32 md:w-32 md:h-40 bg-gray-900 border border-gray-700 rounded-xl overflow-hidden shadow-2xl">
         {/* Top half */}
-        <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-card to-card/80 border-b border-border/10">
+        <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-gray-900 to-gray-800 border-b border-gray-700/50">
           <div
-            className="absolute inset-0 flex items-center justify-center text-lg md:text-xl font-mono font-bold text-foreground transition-transform duration-150"
+            className="absolute inset-0 flex items-center justify-center text-4xl md:text-5xl font-mono font-bold text-gray-100 transition-transform duration-150"
             style={{ 
               transformOrigin: "bottom",
               transform: isFlipping ? "rotateX(-90deg)" : "rotateX(0deg)"
             }}
           >
-            {currentDigit}
+            {currentValue}
           </div>
         </div>
         
         {/* Bottom half */}
-        <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-card/60 to-card">
-          <div className="absolute inset-0 flex items-center justify-center text-lg md:text-xl font-mono font-bold text-foreground">
-            {currentDigit}
+        <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-gray-800 to-gray-900">
+          <div className="absolute inset-0 flex items-center justify-center text-4xl md:text-5xl font-mono font-bold text-gray-100">
+            {currentValue}
           </div>
         </div>
 
         {/* Flip animation overlay */}
         {isFlipping && (
           <div 
-            className="absolute top-1/2 left-0 w-full h-1/2 bg-gradient-to-t from-card/80 to-card animate-flip z-10"
+            className="absolute top-1/2 left-0 w-full h-1/2 bg-gradient-to-t from-gray-800 to-gray-900 animate-flip z-10"
             style={{
               transformOrigin: "top",
               transform: "rotateX(90deg)",
@@ -55,20 +56,23 @@ function FlipDigit({ digit, label }: FlipDigitProps) {
             }}
           >
             <div 
-              className="absolute inset-0 flex items-center justify-center text-lg md:text-xl font-mono font-bold text-foreground"
+              className="absolute inset-0 flex items-center justify-center text-4xl md:text-5xl font-mono font-bold text-gray-100"
               style={{ transform: "rotateX(180deg)" }}
             >
-              {digit}
+              {value}
             </div>
           </div>
         )}
+
+        {/* AM/PM indicator in bottom left corner */}
+        {showAMPM && (
+          <div className="absolute bottom-2 left-2">
+            <span className="text-xs md:text-sm font-bold text-gray-300 bg-gray-800/80 px-1.5 py-0.5 rounded">
+              {isAM ? 'AM' : 'PM'}
+            </span>
+          </div>
+        )}
       </div>
-      
-      {label && (
-        <span className="mt-1 text-xs text-muted-foreground font-medium uppercase tracking-wide">
-          {label}
-        </span>
-      )}
     </div>
   );
 }
@@ -104,7 +108,6 @@ export function FlipClock({ showDate = true, className }: FlipClockProps) {
   
   const hours = formatTwoDigits(hour12);
   const minutes = formatTwoDigits(time.getMinutes());
-  const seconds = formatTwoDigits(time.getSeconds());
   
   const formatDate = (date: Date) => {
     // Format the passed-in UAE date consistently
@@ -118,7 +121,7 @@ export function FlipClock({ showDate = true, className }: FlipClockProps) {
   };
 
   return (
-    <div className={cn("flex flex-col items-center space-y-3", className)}>
+    <div className={cn("flex flex-col items-center space-y-4", className)}>
       {showDate && (
         <div className="text-center">
           <h2 className="text-base md:text-lg font-semibold text-foreground mb-1">UAE Time</h2>
@@ -128,31 +131,9 @@ export function FlipClock({ showDate = true, className }: FlipClockProps) {
         </div>
       )}
       
-      <div className="flex items-center space-x-1 md:space-x-2">
-        <FlipDigit digit={hours[0]} />
-        <FlipDigit digit={hours[1]} label="hours" />
-        
-        <div className="flex flex-col items-center justify-center h-16 md:h-18 space-y-1">
-          <div className="w-1 h-1 bg-foreground rounded-full"></div>
-          <div className="w-1 h-1 bg-foreground rounded-full"></div>
-        </div>
-        
-        <FlipDigit digit={minutes[0]} />
-        <FlipDigit digit={minutes[1]} label="minutes" />
-        
-        <div className="flex flex-col items-center justify-center h-16 md:h-18 space-y-1">
-          <div className="w-1 h-1 bg-foreground rounded-full"></div>
-          <div className="w-1 h-1 bg-foreground rounded-full"></div>
-        </div>
-        
-        <FlipDigit digit={seconds[0]} />
-        <FlipDigit digit={seconds[1]} label="seconds" />
-        
-        <div className="flex flex-col items-center justify-center ml-1 md:ml-2">
-          <div className="text-sm md:text-base font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-md border border-primary/20">
-            {isAM ? 'AM' : 'PM'}
-          </div>
-        </div>
+      <div className="flex items-center space-x-3 md:space-x-4">
+        <FlipPanel value={hours} showAMPM={true} isAM={isAM} />
+        <FlipPanel value={minutes} />
       </div>
     </div>
   );
