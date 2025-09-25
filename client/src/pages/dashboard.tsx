@@ -8,7 +8,7 @@ import { ExpenseList } from "@/components/expense-list";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useExpenses, useUpdateExpense, useDeleteExpense } from "@/hooks/use-expenses";
+import { useExpenses, useUpdateExpense, useDeleteExpense, useCreateExpense } from "@/hooks/use-expenses";
 import { useCategories } from "@/hooks/use-categories";
 import { type Expense, type InsertExpense, type Category } from "@shared/schema";
 import { formatCurrency } from "@/lib/utils";
@@ -17,6 +17,8 @@ import * as Icons from "lucide-react";
 export default function Dashboard() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [isAddExpenseDialogOpen, setIsAddExpenseDialogOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
@@ -24,6 +26,7 @@ export default function Dashboard() {
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
   const updateExpense = useUpdateExpense();
   const deleteExpense = useDeleteExpense();
+  const createExpense = useCreateExpense();
 
   const handleEditExpense = (expense: Expense) => {
     setEditingExpense(expense);
@@ -64,6 +67,29 @@ export default function Dashboard() {
       toast({
         title: "Error",
         description: "Failed to delete expense",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCategoryClick = (categoryName: string) => {
+    setSelectedCategory(categoryName);
+    setIsAddExpenseDialogOpen(true);
+  };
+
+  const handleCreateExpense = async (expense: InsertExpense) => {
+    try {
+      await createExpense.mutateAsync(expense);
+      setIsAddExpenseDialogOpen(false);
+      setSelectedCategory("");
+      toast({
+        title: "Success",
+        description: "Expense added successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add expense",
         variant: "destructive",
       });
     }
@@ -239,7 +265,8 @@ export default function Dashboard() {
                 return (
                   <Card 
                     key={category.id} 
-                    className={`${category.color} border-0 shadow-ios-sm backdrop-blur-md hover-elevate transition-all duration-200`}
+                    className={`${category.color} border-0 shadow-ios-sm backdrop-blur-md hover-elevate transition-all duration-200 cursor-pointer`}
+                    onClick={() => handleCategoryClick(category.name)}
                     data-testid={`card-category-${category.id}`}
                   >
                     <CardContent className={`${isMobile ? 'p-4' : 'p-5'}`}>
@@ -336,6 +363,39 @@ export default function Dashboard() {
           )}
         </CardContent>
       </Card>
+
+      {/* Add Expense Dialog */}
+      <Dialog open={isAddExpenseDialogOpen} onOpenChange={setIsAddExpenseDialogOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add Expense to {selectedCategory}</DialogTitle>
+          </DialogHeader>
+          <ExpenseForm
+            onSubmit={handleCreateExpense}
+            initialData={{ category: selectedCategory }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Expense Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Expense</DialogTitle>
+          </DialogHeader>
+          {editingExpense && (
+            <ExpenseForm
+              onSubmit={handleUpdateExpense}
+              initialData={{
+                ...editingExpense,
+                amount: parseFloat(editingExpense.amount),
+                paymentMethod: editingExpense.paymentMethod as any
+              }}
+              isEditing
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
