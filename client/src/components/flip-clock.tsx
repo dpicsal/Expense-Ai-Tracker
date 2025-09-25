@@ -9,15 +9,17 @@ interface FlipPanelProps {
 
 function FlipPanel({ value, showAMPM = false, isAM = true }: FlipPanelProps) {
   const [currentValue, setCurrentValue] = useState(value);
+  const [nextValue, setNextValue] = useState(value);
   const [isFlipping, setIsFlipping] = useState(false);
 
   useEffect(() => {
     if (value !== currentValue) {
+      setNextValue(value);
       setIsFlipping(true);
       const timer = setTimeout(() => {
         setCurrentValue(value);
         setIsFlipping(false);
-      }, 150);
+      }, 300);
       return () => clearTimeout(timer);
     }
   }, [value, currentValue]);
@@ -25,44 +27,23 @@ function FlipPanel({ value, showAMPM = false, isAM = true }: FlipPanelProps) {
   return (
     <div className="relative">
       <div className="relative w-24 h-32 md:w-32 md:h-40 bg-gray-900 border border-gray-700 rounded-xl overflow-hidden shadow-2xl">
-        {/* Top half */}
-        <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-gray-900 to-gray-800 border-b border-gray-700/50">
-          <div
-            className="absolute inset-0 flex items-center justify-center text-4xl md:text-5xl font-mono font-bold text-gray-100 transition-transform duration-150"
-            style={{ 
-              transformOrigin: "bottom",
-              transform: isFlipping ? "rotateX(-90deg)" : "rotateX(0deg)"
-            }}
-          >
-            {currentValue}
+        {/* Top half - shows current value */}
+        <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-gray-900 to-gray-800 border-b border-gray-700/50 overflow-hidden">
+          <div className="absolute inset-0 flex items-end justify-center pb-1 text-4xl md:text-5xl font-mono font-bold text-gray-100">
+            <div style={{ clipPath: 'inset(0 0 50% 0)' }}>
+              {currentValue}
+            </div>
           </div>
         </div>
         
-        {/* Bottom half */}
-        <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-gray-800 to-gray-900">
-          <div className="absolute inset-0 flex items-center justify-center text-4xl md:text-5xl font-mono font-bold text-gray-100">
-            {currentValue}
-          </div>
-        </div>
-
-        {/* Flip animation overlay */}
-        {isFlipping && (
-          <div 
-            className="absolute top-1/2 left-0 w-full h-1/2 bg-gradient-to-t from-gray-800 to-gray-900 animate-flip z-10"
-            style={{
-              transformOrigin: "top",
-              transform: "rotateX(90deg)",
-              animation: "flipUp 0.15s ease-in-out"
-            }}
-          >
-            <div 
-              className="absolute inset-0 flex items-center justify-center text-4xl md:text-5xl font-mono font-bold text-gray-100"
-              style={{ transform: "rotateX(180deg)" }}
-            >
-              {value}
+        {/* Bottom half - shows next value during flip, current value when not flipping */}
+        <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-gray-800 to-gray-900 overflow-hidden">
+          <div className="absolute inset-0 flex items-start justify-center pt-1 text-4xl md:text-5xl font-mono font-bold text-gray-100">
+            <div style={{ clipPath: 'inset(50% 0 0 0)' }}>
+              {isFlipping ? nextValue : currentValue}
             </div>
           </div>
-        )}
+        </div>
 
         {/* AM/PM indicator in bottom left corner */}
         {showAMPM && (
