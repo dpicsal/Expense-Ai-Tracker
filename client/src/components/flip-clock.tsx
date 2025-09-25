@@ -97,7 +97,12 @@ export function FlipClock({ showDate = true, className }: FlipClockProps) {
 
   const formatTwoDigits = (num: number) => num.toString().padStart(2, '0');
   
-  const hours = formatTwoDigits(time.getHours());
+  // Convert to 12-hour format
+  const hour24 = time.getHours();
+  const isAM = hour24 < 12;
+  const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
+  
+  const hours = formatTwoDigits(hour12);
   const minutes = formatTwoDigits(time.getMinutes());
   const seconds = formatTwoDigits(time.getSeconds());
   
@@ -111,8 +116,6 @@ export function FlipClock({ showDate = true, className }: FlipClockProps) {
       day: 'numeric'
     });
   };
-
-  const isAM = time.getHours() < 12;
 
   return (
     <div className={cn("flex flex-col items-center space-y-3", className)}>
