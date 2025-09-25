@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Plus, Edit, Trash2, Settings as SettingsIcon, Download, FileSpreadsheet, Shield } from "lucide-react";
+import * as Icons from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -222,9 +223,19 @@ export default function Settings() {
                   data-testid={`category-item-${category.id}`}
                 >
                   <div className="flex items-center gap-3">
-                    <Badge className={cn(category.color)} data-testid={`category-badge-${category.id}`}>
-                      {category.name}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      {(() => {
+                        const IconComponent = Icons[category.icon as keyof typeof Icons] as React.ComponentType<any>;
+                        return IconComponent ? (
+                          <div className="p-1.5 rounded-md bg-muted/50">
+                            <IconComponent className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                        ) : null;
+                      })()}
+                      <Badge className={cn(category.color)} data-testid={`category-badge-${category.id}`}>
+                        {category.name}
+                      </Badge>
+                    </div>
                     <div className="flex flex-col gap-1">
                       {category.budget && parseFloat(category.budget) > 0 && (
                         <span className="text-sm text-muted-foreground">
