@@ -8,7 +8,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useToast } from "@/hooks/use-toast";
 import { useCreateCategory, useUpdateCategory } from "@/hooks/use-categories";
 import { insertCategorySchema, type InsertCategory, type Category } from "@shared/schema";
-import { COLOR_OPTIONS } from "@shared/constants";
+import { COLOR_OPTIONS, ICON_OPTIONS } from "@shared/constants";
+import * as Icons from "lucide-react";
 
 interface CategoryFormProps {
   onClose: () => void;
@@ -106,6 +107,37 @@ export function CategoryForm({ onClose, initialData, isEditing }: CategoryFormPr
                   data-testid="input-category-name"
                 />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="icon"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-base font-medium">Icon</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value || "Tag"}>
+                <FormControl>
+                  <SelectTrigger data-testid="select-category-icon">
+                    <SelectValue placeholder="Select an icon" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {ICON_OPTIONS.map((option) => {
+                    const IconComponent = Icons[option.value as keyof typeof Icons] as React.ComponentType<any>;
+                    return (
+                      <SelectItem key={option.value} value={option.value}>
+                        <div className="flex items-center gap-2">
+                          {IconComponent && <IconComponent className="w-4 h-4" />}
+                          {option.label}
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}

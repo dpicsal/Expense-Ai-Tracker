@@ -1,12 +1,13 @@
 import { format } from "date-fns";
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
+import * as Icons from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn, formatCurrency } from "@/lib/utils";
 import { type Expense } from "@shared/schema";
-import { CATEGORY_GRADIENT_COLORS, PAYMENT_METHOD_LABELS } from "@shared/constants";
+import { CATEGORY_GRADIENT_COLORS, PAYMENT_METHOD_LABELS, CATEGORY_ICONS } from "@shared/constants";
 
 interface ExpenseCardProps {
   expense: Expense;
@@ -34,12 +35,23 @@ export function ExpenseCard({ expense, onEdit, onDelete }: ExpenseCardProps) {
               <span className="text-xl sm:text-2xl lg:text-3xl font-bold tabular-nums text-foreground" data-testid={`expense-amount-${expense.id}`}>
                 {formatCurrency(parseFloat(expense.amount))}
               </span>
-              <Badge 
-                className={cn("px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium rounded-full shadow-sm border-0", CATEGORY_GRADIENT_COLORS[expense.category] || CATEGORY_GRADIENT_COLORS["Other"])}
-                data-testid={`expense-category-${expense.id}`}
-              >
-                {expense.category}
-              </Badge>
+              <div className="flex items-center gap-1.5">
+                {(() => {
+                  const iconName = CATEGORY_ICONS[expense.category] || "Tag";
+                  const IconComponent = Icons[iconName as keyof typeof Icons] as React.ComponentType<any>;
+                  return IconComponent ? (
+                    <div className="p-1 rounded-md bg-background/80">
+                      <IconComponent className="h-3 w-3 text-muted-foreground" />
+                    </div>
+                  ) : null;
+                })()}
+                <Badge 
+                  className={cn("px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium rounded-full shadow-sm border-0", CATEGORY_GRADIENT_COLORS[expense.category] || CATEGORY_GRADIENT_COLORS["Other"])}
+                  data-testid={`expense-category-${expense.id}`}
+                >
+                  {expense.category}
+                </Badge>
+              </div>
             </div>
             <p className="text-sm sm:text-base text-foreground/80 mb-1.5 sm:mb-2 truncate font-medium" data-testid={`expense-description-${expense.id}`}>
               {expense.description}

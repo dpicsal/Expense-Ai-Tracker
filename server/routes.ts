@@ -105,6 +105,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { DEFAULT_CATEGORIES, CATEGORY_COLORS } = await import("@shared/constants");
       const seededCategories = [];
       
+      // Map categories to their appropriate icons
+      const categoryIcons = {
+        "Food & Dining": "Utensils",
+        "Transportation": "Car", 
+        "Shopping": "ShoppingBag",
+        "Entertainment": "Gamepad2",
+        "Bills & Utilities": "Zap",
+        "Healthcare": "Heart",
+        "Travel": "Plane",
+        "Education": "GraduationCap",
+        "Other": "Tag"
+      };
+      
       for (const categoryName of DEFAULT_CATEGORIES) {
         try {
           // Check if category already exists
@@ -115,7 +128,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const categoryData = {
               name: categoryName,
               color: CATEGORY_COLORS[categoryName] || CATEGORY_COLORS["Other"],
-              icon: "Tag"
+              icon: categoryIcons[categoryName] || "Tag"
             };
             
             const category = await storage.createCategory(categoryData);

@@ -48,6 +48,39 @@ export const COLOR_OPTIONS = [
   { value: "bg-slate-50 text-slate-700 border border-slate-200 dark:bg-slate-950 dark:text-slate-300 dark:border-slate-800", label: "Slate" },
 ];
 
+export const ICON_OPTIONS = [
+  { value: "Utensils", label: "Food & Dining" },
+  { value: "Car", label: "Transportation" },
+  { value: "ShoppingBag", label: "Shopping" },
+  { value: "Gamepad2", label: "Entertainment" },
+  { value: "Zap", label: "Bills & Utilities" },
+  { value: "Heart", label: "Healthcare" },
+  { value: "Plane", label: "Travel" },
+  { value: "GraduationCap", label: "Education" },
+  { value: "Tag", label: "Other" },
+  { value: "Home", label: "Home" },
+  { value: "Coffee", label: "Coffee" },
+  { value: "Fuel", label: "Fuel" },
+  { value: "Dumbbell", label: "Fitness" },
+  { value: "Music", label: "Music" },
+  { value: "Camera", label: "Photography" },
+  { value: "Book", label: "Books" },
+  { value: "Gift", label: "Gifts" },
+  { value: "Smartphone", label: "Technology" },
+];
+
+export const CATEGORY_ICONS: Record<string, string> = {
+  "Food & Dining": "Utensils",
+  "Transportation": "Car",
+  "Shopping": "ShoppingBag",
+  "Entertainment": "Gamepad2",
+  "Bills & Utilities": "Zap",
+  "Healthcare": "Heart",
+  "Travel": "Plane",
+  "Education": "GraduationCap",
+  "Other": "Tag",
+};
+
 export const PAYMENT_METHOD_COLOR_OPTIONS = [
   { value: "bg-blue-100", label: "Blue", color: "bg-blue-500" },
   { value: "bg-green-100", label: "Green", color: "bg-green-500" },
