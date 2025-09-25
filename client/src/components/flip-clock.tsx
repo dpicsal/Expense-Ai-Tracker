@@ -1,78 +1,26 @@
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 
-interface FlipPanelProps {
+interface DigitDisplayProps {
   value: string;
+  label?: string;
 }
 
-function FlipPanel({ value }: FlipPanelProps) {
-  const [currentValue, setCurrentValue] = useState(value);
-  const [nextValue, setNextValue] = useState(value);
-  const [isFlipping, setIsFlipping] = useState(false);
-
-  useEffect(() => {
-    if (value !== currentValue) {
-      setNextValue(value);
-      setIsFlipping(true);
-      const timer = setTimeout(() => {
-        setCurrentValue(value);
-        setIsFlipping(false);
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [value, currentValue]);
-
+function DigitDisplay({ value, label }: DigitDisplayProps) {
   return (
-    <div className="relative perspective-1000 preserve-3d">
-      <div className="relative aspect-[3/4] w-16 md:w-20 bg-gradient-to-b from-card to-muted/70 border border-card-border rounded-lg shadow-sm">
-        {/* Top half - static background */}
-        <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-card to-muted/70 rounded-t-lg overflow-hidden">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-4xl md:text-5xl font-mono font-semibold tabular-nums leading-none text-card-foreground">
-              {currentValue}
-            </span>
-          </div>
+    <div className="flex flex-col items-center space-y-2">
+      {label && (
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+          {label}
+        </span>
+      )}
+      <div className="relative">
+        <div className="bg-background/50 backdrop-blur-sm border border-border/50 rounded-xl px-4 py-3 md:px-6 md:py-4 shadow-lg">
+          <span className="text-6xl md:text-7xl font-light tabular-nums tracking-tight text-foreground">
+            {value}
+          </span>
         </div>
-        
-        {/* Bottom half - static background */}
-        <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-muted/70 to-card rounded-b-lg overflow-hidden">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-4xl md:text-5xl font-mono font-semibold tabular-nums leading-none text-card-foreground" style={{ marginTop: '-100%' }}>
-              {currentValue}
-            </span>
-          </div>
-        </div>
-
-        {/* Hinge line */}
-        <div className="absolute top-1/2 left-0 w-full h-px bg-card-border/60 shadow-inner"></div>
-
-        {/* Top flap - animates down on flip */}
-        {isFlipping && (
-          <div 
-            className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-card to-muted/70 rounded-t-lg overflow-hidden will-change-transform animate-flip"
-            style={{ transformOrigin: 'bottom' }}
-          >
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-4xl md:text-5xl font-mono font-semibold tabular-nums leading-none text-card-foreground">
-                {currentValue}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Bottom flap - animates up on flip */}
-        {isFlipping && (
-          <div 
-            className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-muted/70 to-card rounded-b-lg overflow-hidden will-change-transform animate-flip-up"
-            style={{ transformOrigin: 'top' }}
-          >
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-4xl md:text-5xl font-mono font-semibold tabular-nums leading-none text-card-foreground" style={{ marginTop: '-100%' }}>
-                {nextValue}
-              </span>
-            </div>
-          </div>
-        )}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/10 rounded-xl pointer-events-none"></div>
       </div>
     </div>
   );
@@ -87,31 +35,13 @@ export function FlipClock({ showDate = true, className }: FlipClockProps) {
   const [time, setTime] = useState(new Date());
 
   useEffect(() => {
-    const updateTimeToNextSecond = () => {
-      const now = new Date();
-      
-      // Use robust timezone formatting
-      const formatter = new Intl.DateTimeFormat('en-AE', {
-        hour: '2-digit',
-        minute: '2-digit', 
-        second: '2-digit',
-        hour12: true,
-        timeZone: 'Asia/Dubai'
-      });
-      
-      setTime(now);
-      
-      // Schedule next update at the start of the next second
-      const msUntilNextSecond = 1000 - now.getMilliseconds();
-      setTimeout(() => {
-        updateTimeToNextSecond();
-        // Then use interval for subsequent updates
-        const interval = setInterval(updateTimeToNextSecond, 1000);
-        return () => clearInterval(interval);
-      }, msUntilNextSecond);
+    const updateTime = () => {
+      setTime(new Date());
     };
     
-    updateTimeToNextSecond();
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
   }, []);
 
   // Use Intl.DateTimeFormat for robust time formatting
@@ -140,36 +70,41 @@ export function FlipClock({ showDate = true, className }: FlipClockProps) {
   };
 
   return (
-    <div className={cn("flex flex-col items-center space-y-6", className)}>
+    <div className={cn("flex flex-col items-center space-y-8", className)}>
       {showDate && (
-        <div className="text-center p-3 bg-primary/10 rounded-lg border border-primary/20">
-          <p className="text-sm md:text-base font-medium text-primary bg-primary/5 px-3 py-1.5 rounded-md border border-primary/15">
-            {formatDate(time)}
-          </p>
+        <div className="text-center">
+          <div className="inline-flex items-center px-6 py-3 bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl shadow-lg">
+            <p className="text-lg md:text-xl font-medium text-card-foreground">
+              {formatDate(time)}
+            </p>
+          </div>
         </div>
       )}
       
-      <div className="flex items-center gap-3 md:gap-4">
-        <div className="relative">
-          <FlipPanel value={hours} />
-          <div className="absolute -top-6 -right-2">
-            <span className="text-[10px] md:text-xs text-muted-foreground/70 font-medium">
-              {period}
-            </span>
-          </div>
+      <div className="flex items-end justify-center gap-6 md:gap-8">
+        <DigitDisplay value={hours} label="Hours" />
+        
+        <div className="flex flex-col items-center justify-center pb-8 space-y-3">
+          <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+          <div className="w-2 h-2 bg-primary rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
         </div>
         
-        <span className="-mt-1 px-1 text-4xl md:text-5xl tabular-nums text-muted-foreground/70 font-mono">
-          :
-        </span>
+        <DigitDisplay value={minutes} label="Minutes" />
         
-        <FlipPanel value={minutes} />
+        <div className="flex flex-col items-center justify-center pb-8 space-y-3">
+          <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+          <div className="w-2 h-2 bg-primary rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+        </div>
         
-        <span className="-mt-1 px-1 text-4xl md:text-5xl tabular-nums text-muted-foreground/70 font-mono">
-          :
-        </span>
-        
-        <FlipPanel value={seconds} />
+        <DigitDisplay value={seconds} label="Seconds" />
+      </div>
+      
+      <div className="flex items-center justify-center">
+        <div className="px-4 py-2 bg-primary/10 rounded-full border border-primary/20">
+          <span className="text-sm font-semibold text-primary tracking-wider">
+            {period}
+          </span>
+        </div>
       </div>
     </div>
   );
