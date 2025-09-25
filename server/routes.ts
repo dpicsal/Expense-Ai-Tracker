@@ -99,6 +99,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // =============== CATEGORY ROUTES ===============
   
+  // Seed default categories
+  app.post("/api/categories/seed", async (req, res) => {
+    try {
+      const { DEFAULT_CATEGORIES, CATEGORY_COLORS } = await import("@shared/constants");
+      const seededCategories = [];
+      
+      for (const categoryName of DEFAULT_CATEGORIES) {
+        try {
+          // Check if category already exists
+          const existingCategories = await storage.getAllCategories();
+          const exists = existingCategories.some(cat => cat.name === categoryName);
+          
+          if (!exists) {
+            const categoryData = {
+              name: categoryName,
+              color: CATEGORY_COLORS[categoryName] || CATEGORY_COLORS["Other"],
+              icon: "Tag"
+            };
+            
+            const category = await storage.createCategory(categoryData);
+            seededCategories.push(category);
+          }
+        } catch (error) {
+          console.warn(`Failed to create category ${categoryName}:`, error);
+        }
+      }
+      
+      res.json({ 
+        message: "Default categories seeded successfully", 
+        seeded: seededCategories.length,
+        categories: seededCategories 
+      });
+    } catch (error) {
+      console.error("Error seeding categories:", error);
+      res.status(500).json({ error: "Failed to seed categories" });
+    }
+  });
+  
   // Get all categories
   app.get("/api/categories", async (req, res) => {
     try {
