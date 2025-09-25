@@ -26,21 +26,38 @@ export function CategoryForm({ onClose, initialData, isEditing }: CategoryFormPr
   const form = useForm<InsertCategory>({
     resolver: zodResolver(insertCategorySchema),
     defaultValues: {
-      name: initialData?.name || "",
-      color: initialData?.color || COLOR_OPTIONS[0].value,
+      name: initialData?.name ?? "",
+      color: initialData?.color ?? COLOR_OPTIONS[0].value,
       budget: initialData?.budget ? parseFloat(initialData.budget) : undefined,
       allocatedFunds: initialData?.allocatedFunds ? parseFloat(initialData.allocatedFunds) : undefined,
-      icon: initialData?.icon || "Tag",
+      icon: initialData?.icon ?? "Tag",
     },
   });
 
   const handleSubmit = async (data: InsertCategory) => {
     setIsSubmitting(true);
     try {
+      // Convert string values back to numbers/undefined for submission
+      const convertToNumber = (value: any): number | undefined => {
+        if (value === undefined || value === null || value === "") return undefined;
+        if (typeof value === "number") return value;
+        if (typeof value === "string") {
+          const parsed = parseFloat(value);
+          return isNaN(parsed) ? undefined : parsed;
+        }
+        return undefined;
+      };
+
+      const processedData = {
+        ...data,
+        budget: convertToNumber(data.budget),
+        allocatedFunds: convertToNumber(data.allocatedFunds),
+      };
+
       if (isEditing && initialData) {
         await updateCategory.mutateAsync({
           id: initialData.id,
-          category: data,
+          category: processedData,
         });
         toast({
           title: "Success",
@@ -48,7 +65,7 @@ export function CategoryForm({ onClose, initialData, isEditing }: CategoryFormPr
         });
         onClose();
       } else {
-        await createCategory.mutateAsync(data);
+        await createCategory.mutateAsync(processedData);
         toast({
           title: "Success",
           description: "Category created successfully",
@@ -132,7 +149,13 @@ export function CategoryForm({ onClose, initialData, isEditing }: CategoryFormPr
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground font-medium">AED</span>
                   <Input
-                    {...field}
+                    value={field.value === undefined ? "" : field.value.toString()}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Pass undefined for empty strings, otherwise pass the string value
+                      // The zod schema will coerce the string to number  
+                      field.onChange(value === "" ? undefined : value);
+                    }}
                     type="number"
                     step="0.01"
                     min="0"
@@ -157,7 +180,13 @@ export function CategoryForm({ onClose, initialData, isEditing }: CategoryFormPr
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground font-medium">AED</span>
                   <Input
-                    {...field}
+                    value={field.value === undefined ? "" : field.value.toString()}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      // Pass undefined for empty strings, otherwise pass the string value
+                      // The zod schema will coerce the string to number  
+                      field.onChange(value === "" ? undefined : value);
+                    }}
                     type="number"
                     step="0.01"
                     min="0"
