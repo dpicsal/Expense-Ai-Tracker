@@ -1,4 +1,4 @@
-import { Home, PlusCircle, PieChart, Tag, TrendingUp, Wallet, User, LogOut, Calendar, Settings } from "lucide-react";
+import { Home, Tag, TrendingUp, Wallet, LogOut, Calendar, Settings } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
   Sidebar,
@@ -53,14 +53,6 @@ const mainMenuItems = [
   },
 ];
 
-const quickActions = [
-  {
-    title: "Add Expense",
-    url: "/add",
-    icon: PlusCircle,
-    primary: true,
-  },
-];
 
 export function AppSidebar() {
   const [location] = useLocation();
@@ -104,29 +96,6 @@ export function AppSidebar() {
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-2">
-            Quick Actions
-          </SidebarGroupLabel>
-          <SidebarGroupContent className="mt-4">
-            <div className="space-y-3">
-              {quickActions.map((item) => (
-                <Button
-                  key={item.title}
-                  asChild
-                  className="w-full justify-start min-h-11 rounded-lg shadow-sm hover:shadow-md transition-all duration-200"
-                  data-testid={`quick-${item.title.toLowerCase().replace(' ', '-')}`}
-                >
-                  <Link href={item.url}>
-                    <item.icon className="h-5 w-5 mr-3" />
-                    {item.title}
-                  </Link>
-                </Button>
-              ))}
-            </div>
-          </SidebarGroupContent>
-        </SidebarGroup>
 
         <Separator />
 

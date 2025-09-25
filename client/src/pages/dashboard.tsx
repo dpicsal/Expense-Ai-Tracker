@@ -221,20 +221,7 @@ export default function Dashboard() {
       {/* Categories Section */}
       <Card className="border-0 shadow-md">
         <CardHeader className="pb-4">
-          <div className="flex items-center justify-between gap-2">
-            <CardTitle className="text-lg md:text-xl font-semibold">Categories</CardTitle>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              asChild
-              data-testid="button-add-category"
-            >
-              <Link href="/categories">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Category
-              </Link>
-            </Button>
-          </div>
+          <CardTitle className="text-lg md:text-xl font-semibold">Categories</CardTitle>
         </CardHeader>
         <CardContent>
           {categoriesLoading ? (
@@ -250,11 +237,8 @@ export default function Dashboard() {
                 <Plus className="w-12 h-12 opacity-50" />
                 <div>
                   <p className="text-lg font-medium">No categories yet</p>
-                  <p className="text-sm">Create your first category to get started</p>
+                  <p className="text-sm">Categories will appear here once created</p>
                 </div>
-                <Button variant="outline" asChild data-testid="button-add-category-empty">
-                  <Link href="/categories">Add Category</Link>
-                </Button>
               </div>
             </div>
           ) : (
