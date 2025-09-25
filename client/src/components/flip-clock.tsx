@@ -29,19 +29,15 @@ function FlipPanel({ value, showAMPM = false, isAM = true }: FlipPanelProps) {
       <div className="relative w-24 h-32 md:w-32 md:h-40 bg-gray-900 border border-gray-700 rounded-xl overflow-hidden shadow-2xl">
         {/* Top half - shows current value */}
         <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-gray-900 to-gray-800 border-b border-gray-700/50 overflow-hidden">
-          <div className="absolute inset-0 flex items-end justify-center pb-1 text-4xl md:text-5xl font-mono font-bold text-gray-100">
-            <div style={{ clipPath: 'inset(0 0 50% 0)' }}>
-              {currentValue}
-            </div>
+          <div className="absolute inset-0 flex items-center justify-center text-4xl md:text-5xl font-mono font-bold text-gray-100" style={{ top: '0px', height: '200%' }}>
+            {currentValue}
           </div>
         </div>
         
         {/* Bottom half - shows next value during flip, current value when not flipping */}
         <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-gray-800 to-gray-900 overflow-hidden">
-          <div className="absolute inset-0 flex items-start justify-center pt-1 text-4xl md:text-5xl font-mono font-bold text-gray-100">
-            <div style={{ clipPath: 'inset(50% 0 0 0)' }}>
-              {isFlipping ? nextValue : currentValue}
-            </div>
+          <div className="absolute inset-0 flex items-center justify-center text-4xl md:text-5xl font-mono font-bold text-gray-100" style={{ top: '-100%', height: '200%' }}>
+            {isFlipping ? nextValue : currentValue}
           </div>
         </div>
 
