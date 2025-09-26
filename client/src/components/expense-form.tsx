@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CalendarIcon, Plus } from "lucide-react";
 import { format } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -230,7 +231,7 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
                           data-testid="button-date-picker"
                         >
                           {field.value ? (
-                            format(field.value, "PPP")
+                            format(toZonedTime(field.value, "Asia/Dubai"), "dd/MM/yyyy")
                           ) : (
                             <span>Pick a date</span>
                           )}

@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
 import * as Icons from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -63,7 +64,7 @@ export function ExpenseCard({ expense, onEdit, onDelete }: ExpenseCardProps) {
             </p>
             <div className="flex items-center gap-3">
               <p className="text-xs sm:text-sm text-muted-foreground font-medium" data-testid={`expense-date-${expense.id}`}>
-                {format(new Date(expense.date), "MMM dd, yyyy")}
+                {format(toZonedTime(new Date(expense.date), "Asia/Dubai"), "dd/MM/yyyy")}
               </p>
               {expense.paymentMethod && (
                 <Badge 

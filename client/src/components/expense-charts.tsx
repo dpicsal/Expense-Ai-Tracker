@@ -2,6 +2,8 @@ import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { type Expense } from "@shared/schema";
 import { formatCurrency } from "@/lib/utils";
+import { format } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
 
 interface ExpenseChartsProps {
   expenses: Expense[];
@@ -35,7 +37,7 @@ export function ExpenseCharts({ expenses }: ExpenseChartsProps) {
   const barData = Object.entries(monthlyData)
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([month, amount]) => ({
-      month: new Date(month + '-01').toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
+      month: format(toZonedTime(new Date(month + '-01'), "Asia/Dubai"), "MMM yy"),
       amount,
     }));
 

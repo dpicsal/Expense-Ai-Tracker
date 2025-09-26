@@ -1,5 +1,7 @@
 import { MoreHorizontal, Edit, Trash2, CreditCard, Wallet, Building2, Smartphone, DollarSign, AlertTriangle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { format } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -172,7 +174,7 @@ export function PaymentMethodCard({ paymentMethod, onEdit, onDelete }: PaymentMe
               )}
               
               <Badge variant="outline" className="text-xs">
-                Updated {new Date(paymentMethod.updatedAt).toLocaleDateString()}
+                Updated {format(toZonedTime(new Date(paymentMethod.updatedAt), "Asia/Dubai"), "dd/MM/yyyy")}
               </Badge>
             </div>
           </div>
