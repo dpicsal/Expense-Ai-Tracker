@@ -11,6 +11,8 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useCategories, useDeleteCategory } from "@/hooks/use-categories";
 import { useAppSettings } from "@/hooks/use-app-settings";
+import { useExpenses } from "@/hooks/use-expenses";
+import ExcelJS from "exceljs";
 import { CategoryForm } from "@/components/category-form";
 import { cn } from "@/lib/utils";
 import { type Category } from "@shared/schema";
@@ -25,6 +27,7 @@ export default function Settings() {
   const { data: categories = [], isLoading } = useCategories();
   const deleteCategory = useDeleteCategory();
   const { settings, updateSettings } = useAppSettings();
+  const { data: expenses = [] } = useExpenses();
 
   const handleAddCategory = () => {
     setEditingCategory(null);
@@ -97,12 +100,103 @@ export default function Settings() {
     }
   };
 
-  const handleExportExpenses = () => {
-    // TODO: Implement Excel export functionality
-    toast({
-      title: "Export Feature",
-      description: "Excel export functionality coming soon!",
-    });
+  const handleExportExpenses = async () => {
+    try {
+      if (expenses.length === 0) {
+        toast({
+          title: "No Data",
+          description: "No expenses found to export.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Create a new workbook and worksheet
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Expenses');
+
+      // Define columns
+      worksheet.columns = [
+        { header: 'Date', key: 'date', width: 15 },
+        { header: 'Description', key: 'description', width: 30 },
+        { header: 'Category', key: 'category', width: 20 },
+        { header: 'Amount (AED)', key: 'amount', width: 15 },
+        { header: 'Payment Method', key: 'paymentMethod', width: 20 },
+      ];
+
+      // Style the header row
+      worksheet.getRow(1).font = { bold: true };
+      worksheet.getRow(1).fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFE0E0E0' }
+      };
+
+      // Add data rows
+      expenses.forEach((expense) => {
+        worksheet.addRow({
+          date: new Date(expense.date).toLocaleDateString(),
+          description: expense.description,
+          category: expense.category,
+          amount: parseFloat(expense.amount),
+          paymentMethod: expense.paymentMethod,
+        });
+      });
+
+      // Format amount column as currency
+      const amountColumn = worksheet.getColumn('amount');
+      amountColumn.numFmt = '#,##0.00';
+
+      // Auto-fit columns
+      worksheet.columns.forEach(column => {
+        if (column.header !== 'Description') {
+          column.width = Math.max(column.width || 10, 12);
+        }
+      });
+
+      // Add summary at the bottom
+      const totalAmount = expenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
+      worksheet.addRow({});
+      worksheet.addRow({
+        description: 'TOTAL',
+        amount: totalAmount
+      });
+
+      // Style the total row
+      const totalRow = worksheet.lastRow;
+      if (totalRow) {
+        totalRow.font = { bold: true };
+        totalRow.getCell('amount').numFmt = '#,##0.00';
+      }
+
+      // Generate Excel file
+      const buffer = await workbook.xlsx.writeBuffer();
+      
+      // Create and trigger download
+      const blob = new Blob([buffer], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `expenses-${new Date().toISOString().split('T')[0]}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: "Export Successful",
+        description: `Exported ${expenses.length} expenses to Excel file.`,
+      });
+    } catch (error) {
+      console.error('Export error:', error);
+      toast({
+        title: "Export Failed",
+        description: "Failed to export expenses. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -344,10 +438,9 @@ export default function Settings() {
                 onClick={handleExportExpenses}
                 data-testid="button-export-expenses"
                 className="shrink-0"
-                disabled
               >
                 <Download className="h-4 w-4 mr-2" />
-                Export Excel (Coming Soon)
+                Export Excel
               </Button>
             </div>
             
