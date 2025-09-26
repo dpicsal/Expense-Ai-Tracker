@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { PlusCircle, Wallet, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { PaymentMethodForm } from "@/components/payment-method-form";
@@ -80,11 +80,6 @@ export default function PaymentMethods() {
         variant: "destructive",
       });
     }
-  };
-
-  const closeDialog = () => {
-    setIsDialogOpen(false);
-    setEditingPaymentMethod(null);
   };
 
   const handleDialogChange = (open: boolean) => {
@@ -205,6 +200,7 @@ export default function PaymentMethods() {
             Add your first payment method to start tracking your finances
           </p>
           <Button
+            data-testid="button-add-first-payment-method"
             onClick={() => {
               setEditingPaymentMethod(null);
               handleDialogChange(true);
