@@ -67,47 +67,29 @@ export function AppSidebar() {
     .reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
 
   return (
-    <Sidebar className="border-r border-border/20 bg-sidebar">
-      {/* Enhanced Header with Better Spacing */}
-      <SidebarHeader className="p-6 border-b border-border/20">
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md">
-            <Wallet className="h-5 w-5" />
+    <Sidebar className="bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800">
+      {/* Minimal Header */}
+      <SidebarHeader className="px-6 py-5">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-slate-900 dark:bg-white rounded-lg flex items-center justify-center">
+            <Wallet className="w-4 h-4 text-white dark:text-slate-900" />
           </div>
-          <div>
-            <h1 className="font-semibold text-lg tracking-tight text-foreground">ExpenseTracker</h1>
-            <p className="text-xs text-muted-foreground leading-tight">Personal Finance Manager</p>
-          </div>
+          <h1 className="text-lg font-bold text-slate-900 dark:text-white">Expense</h1>
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-5 py-6 space-y-8">
-        {/* Refined Stats Card */}
-        <Card className="bg-primary/5 border-primary/20 shadow-sm hover:shadow-md transition-all duration-200">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between gap-2 mb-3">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-primary/10">
-                  <Calendar className="h-4 w-4 text-primary" />
-                </div>
-                <span className="text-sm font-medium text-primary">This Month</span>
-              </div>
-              <div className="w-2 h-2 bg-emerald-500 rounded-full" />
-            </div>
-            <div className="text-2xl font-semibold tabular-nums text-foreground">{formatCurrency(totalThisMonth)}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {expenses.filter(e => new Date(e.date).getMonth() === new Date().getMonth()).length} transactions recorded
-            </p>
-          </CardContent>
-        </Card>
+      <SidebarContent className="px-4 py-2">
+        {/* Compact Stats */}
+        <div className="mb-6 bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-4" data-testid="text-monthly-total">
+          <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">THIS MONTH</div>
+          <div className="text-xl font-bold text-slate-900 dark:text-white">{formatCurrency(totalThisMonth)}</div>
+          <div className="text-xs text-slate-500 dark:text-slate-400">
+            {expenses.filter(e => new Date(e.date).getMonth() === new Date().getMonth()).length} expenses
+          </div>
+        </div>
 
-        <Separator />
-
-        {/* Improved Main Navigation */}
+        {/* Clean Navigation */}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-semibold uppercase tracking-wider text-muted-foreground px-2 mb-3">
-            Navigation
-          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
               {mainMenuItems.map((item) => {
@@ -117,44 +99,16 @@ export function AppSidebar() {
                     <SidebarMenuButton 
                       asChild 
                       isActive={isActive}
-                      className={`min-h-[3.5rem] px-3 py-3 rounded-xl transition-all duration-200 group ${
+                      className={`h-12 px-3 rounded-xl font-medium transition-all duration-150 ${
                         isActive 
-                          ? 'bg-primary/10 border border-primary/20 shadow-sm' 
-                          : 'hover-elevate active-elevate-2'
+                          ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' 
+                          : 'text-slate-600 dark:text-slate-400 hover-elevate'
                       }`}
                       data-testid={`nav-${item.title.toLowerCase().replace(' ', '-')}`}
                     >
                       <Link href={item.url} className="flex items-center gap-3 w-full">
-                        <div className={`p-2 rounded-lg transition-all duration-200 ${
-                          isActive 
-                            ? 'bg-primary/15' 
-                            : 'bg-muted/50 group-hover:bg-primary/10'
-                        }`}>
-                          <item.icon className={`h-5 w-5 transition-colors duration-200 ${
-                            isActive 
-                              ? 'text-primary' 
-                              : 'text-muted-foreground group-hover:text-primary'
-                          }`} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className={`font-medium transition-colors duration-200 ${
-                            isActive 
-                              ? 'text-primary' 
-                              : 'text-foreground group-hover:text-primary'
-                          }`}>
-                            {item.title}
-                          </div>
-                          <div className={`text-xs leading-tight transition-colors duration-200 ${
-                            isActive 
-                              ? 'text-primary/70' 
-                              : 'text-muted-foreground group-hover:text-muted-foreground/90'
-                          }`}>
-                            {item.description}
-                          </div>
-                        </div>
-                        {isActive && (
-                          <div className="w-1 h-6 bg-primary rounded-full" />
-                        )}
+                        <item.icon className="w-5 h-5 flex-shrink-0" />
+                        <span className="truncate">{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -163,36 +117,30 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
-        {/* Refined Status Badge */}
-        <div className="flex items-center justify-center">
-          <Badge variant="secondary" className="text-xs bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800">
-            <div className="w-2 h-2 bg-emerald-500 rounded-full mr-2" />
-            All synced
-          </Badge>
-        </div>
       </SidebarContent>
 
-      {/* Cleaner Footer */}
-      <SidebarFooter className="p-5 border-t border-border/20">
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border/30 shadow-sm hover-elevate transition-all duration-200 cursor-pointer group" data-testid="card-account-summary">
-          <div className="relative">
-            <Avatar className="h-9 w-9">
-              <AvatarFallback className="bg-primary text-primary-foreground text-sm font-semibold">
-                U
-              </AvatarFallback>
-            </Avatar>
-            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-background rounded-full" />
-          </div>
+      {/* Simple Footer */}
+      <SidebarFooter className="px-4 pb-4">
+        <div className="flex items-center gap-3 p-2 rounded-xl hover-elevate transition-colors cursor-pointer" data-testid="card-account-summary">
+          <Avatar className="h-8 w-8">
+            <AvatarFallback className="bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white text-sm font-medium">
+              U
+            </AvatarFallback>
+          </Avatar>
           <div className="flex-1 min-w-0">
-            <div className="font-medium text-sm text-foreground group-hover:text-primary transition-colors">
-              Personal Account
-            </div>
-            <div className="text-xs text-muted-foreground">Free Plan</div>
+            <div className="text-sm font-medium text-slate-900 dark:text-white truncate">Personal</div>
+            <div className="text-xs text-slate-500 dark:text-slate-400">Free</div>
           </div>
-          <Button size="icon" variant="ghost" className="rounded-lg" data-testid="button-logout">
+          <Button size="icon" variant="ghost" className="rounded-lg text-slate-500 dark:text-slate-400" data-testid="button-logout">
             <LogOut className="h-4 w-4" />
           </Button>
+        </div>
+        
+        <div className="flex items-center justify-center mt-4">
+          <div className="flex items-center gap-1.5 text-xs text-slate-400 dark:text-slate-500">
+            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+            Synced
+          </div>
         </div>
       </SidebarFooter>
     </Sidebar>
