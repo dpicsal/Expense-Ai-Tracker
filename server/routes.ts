@@ -68,8 +68,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update expense
   app.put("/api/expenses/:id", async (req, res) => {
     try {
-      const validatedData = insertExpenseSchema.partial().parse(req.body);
-      const expense = await storage.updateExpense(req.params.id, validatedData);
+      let expenseData = { ...req.body };
+      let paymentMethodId: string | undefined;
+      
+      // Handle payment method ID conversion like in the POST route
+      if (req.body.paymentMethod) {
+        paymentMethodId = req.body.paymentMethod;
+        
+        // Get the payment method to determine its type for legacy storage
+        const paymentMethod = await storage.getPaymentMethod(paymentMethodId!);
+        if (!paymentMethod) {
+          return res.status(400).json({ error: "Invalid payment method" });
+        }
+        
+        // Update the expense data with the payment method type for legacy storage
+        expenseData.paymentMethod = paymentMethod.type;
+      }
+      
+      const validatedData = insertExpenseSchema.partial().parse(expenseData);
+      const expense = await storage.updateExpense(req.params.id, validatedData, paymentMethodId);
       if (!expense) {
         return res.status(404).json({ error: "Expense not found" });
       }
