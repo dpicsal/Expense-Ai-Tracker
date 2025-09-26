@@ -256,22 +256,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Reset all application data
-  app.post("/api/reset", async (req, res) => {
-    try {
-      const includeCategories = req.body?.includeCategories === true;
-      const result = await storage.resetAllData(includeCategories);
-      res.json({ 
-        message: includeCategories 
-          ? "All data including categories reset successfully" 
-          : "All data reset successfully (categories preserved)", 
-        ...result 
-      });
-    } catch (error) {
-      console.error("Error resetting all data:", error);
-      res.status(500).json({ error: "Failed to reset all data" });
-    }
-  });
 
   // =============== PAYMENT METHOD ROUTES ===============
 
