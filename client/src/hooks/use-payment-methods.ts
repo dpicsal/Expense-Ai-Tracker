@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, parseErrorMessage } from "@/lib/queryClient";
 import { type PaymentMethod, type InsertPaymentMethod } from "@shared/schema";
 
 export function usePaymentMethods() {
@@ -21,7 +21,8 @@ export function useCreatePaymentMethod() {
         body: JSON.stringify(paymentMethod),
       });
       if (!response.ok) {
-        throw new Error("Failed to create payment method");
+        const errorMessage = await parseErrorMessage(response, "Failed to create payment method");
+        throw new Error(errorMessage);
       }
       return response.json();
     },
@@ -44,7 +45,8 @@ export function useUpdatePaymentMethod() {
         body: JSON.stringify(paymentMethod),
       });
       if (!response.ok) {
-        throw new Error("Failed to update payment method");
+        const errorMessage = await parseErrorMessage(response, "Failed to update payment method");
+        throw new Error(errorMessage);
       }
       return response.json();
     },
