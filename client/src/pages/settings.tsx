@@ -244,7 +244,7 @@ export default function Settings() {
                       )}
                       {category.allocatedFunds && parseFloat(category.allocatedFunds) > 0 && (
                         <span className="text-sm text-green-600 dark:text-green-400 font-medium">
-                          Allocated: AED {parseFloat(category.allocatedFunds).toFixed(2)}
+                          Available Fund: AED {parseFloat(category.allocatedFunds).toFixed(2)}
                         </span>
                       )}
                     </div>
