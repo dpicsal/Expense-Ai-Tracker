@@ -87,6 +87,13 @@ export default function PaymentMethods() {
     setEditingPaymentMethod(null);
   };
 
+  const handleDialogChange = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      setEditingPaymentMethod(null);
+    }
+  };
+
   // Calculate summary statistics
   const activePaymentMethods = paymentMethods.filter(pm => pm.isActive);
   const totalBalance = paymentMethods.reduce((sum, pm) => sum + parseFloat(pm.balance), 0);
@@ -124,51 +131,18 @@ export default function PaymentMethods() {
             Manage your payment methods and track balances
           </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={closeDialog}>
-          <DialogTrigger asChild>
-            <Button
-              size={isMobile ? "default" : "lg"}
-              className="w-full sm:w-auto"
-              data-testid="button-add-payment-method"
-              onClick={() => {
-                console.log("Add Payment Method button clicked, current state:", isDialogOpen);
-                setIsDialogOpen(true);
-              }}
-            >
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add Payment Method
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {editingPaymentMethod ? "Edit Payment Method" : "Add New Payment Method"}
-              </DialogTitle>
-              <DialogDescription>
-                {editingPaymentMethod 
-                  ? "Update the details of your payment method below." 
-                  : "Create a new payment method to track your expenses and balances."}
-              </DialogDescription>
-            </DialogHeader>
-            <PaymentMethodForm
-              onSubmit={editingPaymentMethod ? handleUpdatePaymentMethod : handleAddPaymentMethod}
-              initialData={editingPaymentMethod ? {
-                name: editingPaymentMethod.name,
-                type: editingPaymentMethod.type as PaymentMethodType,
-                balance: parseFloat(editingPaymentMethod.balance),
-                creditLimit: editingPaymentMethod.creditLimit ? parseFloat(editingPaymentMethod.creditLimit) : undefined,
-                isActive: editingPaymentMethod.isActive,
-                color: editingPaymentMethod.color,
-              } : undefined}
-              isEditing={!!editingPaymentMethod}
-              isSubmitting={
-                editingPaymentMethod
-                  ? updatePaymentMethod.isPending
-                  : createPaymentMethod.isPending
-              }
-            />
-          </DialogContent>
-        </Dialog>
+        <Button
+          size={isMobile ? "default" : "lg"}
+          className="w-full sm:w-auto"
+          data-testid="button-add-payment-method"
+          onClick={() => {
+            setEditingPaymentMethod(null);
+            handleDialogChange(true);
+          }}
+        >
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Add Payment Method
+        </Button>
       </div>
 
       {/* Summary Stats */}
@@ -230,26 +204,15 @@ export default function PaymentMethods() {
           <p className="text-muted-foreground mb-4">
             Add your first payment method to start tracking your finances
           </p>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add Your First Payment Method
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Add New Payment Method</DialogTitle>
-                <DialogDescription>
-                  Create your first payment method to start tracking your finances and expenses.
-                </DialogDescription>
-              </DialogHeader>
-              <PaymentMethodForm
-                onSubmit={handleAddPaymentMethod}
-                isSubmitting={createPaymentMethod.isPending}
-              />
-            </DialogContent>
-          </Dialog>
+          <Button
+            onClick={() => {
+              setEditingPaymentMethod(null);
+              handleDialogChange(true);
+            }}
+          >
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Your First Payment Method
+          </Button>
         </div>
       ) : (
         <div className="space-y-4">
@@ -272,6 +235,39 @@ export default function PaymentMethods() {
           </div>
         </div>
       )}
+
+      {/* Single Dialog for Add/Edit Payment Method */}
+      <Dialog open={isDialogOpen} onOpenChange={handleDialogChange}>
+        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {editingPaymentMethod ? "Edit Payment Method" : "Add New Payment Method"}
+            </DialogTitle>
+            <DialogDescription>
+              {editingPaymentMethod 
+                ? "Update the details of your payment method below." 
+                : "Create a new payment method to track your expenses and balances."}
+            </DialogDescription>
+          </DialogHeader>
+          <PaymentMethodForm
+            onSubmit={editingPaymentMethod ? handleUpdatePaymentMethod : handleAddPaymentMethod}
+            initialData={editingPaymentMethod ? {
+              name: editingPaymentMethod.name,
+              type: editingPaymentMethod.type as PaymentMethodType,
+              balance: parseFloat(editingPaymentMethod.balance),
+              creditLimit: editingPaymentMethod.creditLimit ? parseFloat(editingPaymentMethod.creditLimit) : undefined,
+              isActive: editingPaymentMethod.isActive,
+              color: editingPaymentMethod.color,
+            } : undefined}
+            isEditing={!!editingPaymentMethod}
+            isSubmitting={
+              editingPaymentMethod
+                ? updatePaymentMethod.isPending
+                : createPaymentMethod.isPending
+            }
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
