@@ -1,7 +1,8 @@
 import { 
-  expenses, categories, paymentMethods, transactions,
+  expenses, categories, paymentMethods, transactions, fundHistory,
   type Expense, type InsertExpense, type Category, type InsertCategory,
-  type PaymentMethod, type InsertPaymentMethod, type Transaction, type InsertTransaction
+  type PaymentMethod, type InsertPaymentMethod, type Transaction, type InsertTransaction,
+  type FundHistory, type InsertFundHistory
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql } from "drizzle-orm";
@@ -20,6 +21,15 @@ export interface IStorage {
   createCategory(category: InsertCategory): Promise<Category>;
   updateCategory(id: string, category: Partial<InsertCategory>): Promise<Category | undefined>;
   deleteCategory(id: string): Promise<boolean>;
+
+  // Fund History management
+  getAllFundHistory(): Promise<FundHistory[]>;
+  getFundHistory(id: string): Promise<FundHistory | undefined>;
+  getFundHistoryByCategory(categoryId: string): Promise<FundHistory[]>;
+  createFundHistory(fundHistory: InsertFundHistory): Promise<FundHistory>;
+  updateFundHistory(id: string, fundHistory: Partial<InsertFundHistory>): Promise<FundHistory | undefined>;
+  deleteFundHistory(id: string): Promise<boolean>;
+  addFundsToCategory(categoryId: string, amount: number, description?: string): Promise<{fundHistory: FundHistory, updatedCategory: Category}>;
 
   // Payment Method management
   getAllPaymentMethods(): Promise<PaymentMethod[]>;
@@ -222,6 +232,148 @@ export class DatabaseStorage implements IStorage {
   async deleteCategory(id: string): Promise<boolean> {
     const result = await db.delete(categories).where(eq(categories.id, id));
     return (result.rowCount || 0) > 0;
+  }
+
+  // =============== FUND HISTORY METHODS ===============
+
+  async getAllFundHistory(): Promise<FundHistory[]> {
+    return await db.select().from(fundHistory).orderBy(desc(fundHistory.addedAt));
+  }
+
+  async getFundHistory(id: string): Promise<FundHistory | undefined> {
+    const [history] = await db.select().from(fundHistory).where(eq(fundHistory.id, id));
+    return history || undefined;
+  }
+
+  async getFundHistoryByCategory(categoryId: string): Promise<FundHistory[]> {
+    return await db.select().from(fundHistory)
+      .where(eq(fundHistory.categoryId, categoryId))
+      .orderBy(desc(fundHistory.addedAt));
+  }
+
+  async createFundHistory(insertFundHistory: InsertFundHistory): Promise<FundHistory> {
+    const historyValues: any = {
+      ...insertFundHistory,
+      amount: insertFundHistory.amount.toString(),
+    };
+    
+    const [history] = await db
+      .insert(fundHistory)
+      .values(historyValues)
+      .returning();
+    return history;
+  }
+
+  async updateFundHistory(id: string, updateData: Partial<InsertFundHistory>): Promise<FundHistory | undefined> {
+    return await db.transaction(async (tx) => {
+      // Get the old fund history to calculate balance adjustment
+      const [oldHistory] = await tx.select().from(fundHistory).where(eq(fundHistory.id, id));
+      if (!oldHistory) return undefined;
+
+      const updateValues: any = { ...updateData };
+      if (updateData.amount !== undefined) {
+        updateValues.amount = updateData.amount.toString();
+      }
+      
+      const [updatedHistory] = await tx
+        .update(fundHistory)
+        .set(updateValues)
+        .where(eq(fundHistory.id, id))
+        .returning();
+
+      if (!updatedHistory) return undefined;
+
+      const oldCategoryId = oldHistory.categoryId;
+      const newCategoryId = updateData.categoryId ?? oldHistory.categoryId;
+      const oldAmount = oldHistory.amount; // String from database (DECIMAL)
+      const newAmount = updateData.amount?.toString() ?? oldHistory.amount; // Convert to string
+
+      // Handle category change or amount change
+      if (oldCategoryId !== newCategoryId) {
+        // Category changed: subtract old amount from old category, add new amount to new category
+        await tx
+          .update(categories)
+          .set({
+            allocatedFunds: sql`allocated_funds - ${oldAmount}`,
+            updatedAt: sql`NOW()`
+          })
+          .where(eq(categories.id, oldCategoryId));
+
+        await tx
+          .update(categories)
+          .set({
+            allocatedFunds: sql`allocated_funds + ${newAmount}`,
+            updatedAt: sql`NOW()`
+          })
+          .where(eq(categories.id, newCategoryId));
+      } else if (updateData.amount !== undefined) {
+        // Same category, but amount changed - use SQL arithmetic to avoid precision issues
+        await tx
+          .update(categories)
+          .set({
+            allocatedFunds: sql`allocated_funds + (${newAmount} - ${oldAmount})`,
+            updatedAt: sql`NOW()`
+          })
+          .where(eq(categories.id, oldCategoryId));
+      }
+
+      return updatedHistory;
+    });
+  }
+
+  async deleteFundHistory(id: string): Promise<boolean> {
+    return await db.transaction(async (tx) => {
+      // Get the fund history to adjust category balance
+      const [history] = await tx.select().from(fundHistory).where(eq(fundHistory.id, id));
+      if (!history) return false;
+
+      const result = await tx.delete(fundHistory).where(eq(fundHistory.id, id));
+      const deleted = (result.rowCount || 0) > 0;
+
+      if (deleted) {
+        // Subtract the amount from category allocated funds
+        await tx
+          .update(categories)
+          .set({
+            allocatedFunds: sql`allocated_funds - ${history.amount}`,
+            updatedAt: sql`NOW()`
+          })
+          .where(eq(categories.id, history.categoryId));
+      }
+
+      return deleted;
+    });
+  }
+
+  async addFundsToCategory(categoryId: string, amount: number, description?: string): Promise<{fundHistory: FundHistory, updatedCategory: Category}> {
+    return await db.transaction(async (tx) => {
+      // Create fund history record
+      const [history] = await tx
+        .insert(fundHistory)
+        .values({
+          categoryId,
+          amount: amount.toString(),
+          description: description || null,
+          addedAt: new Date(),
+        })
+        .returning();
+
+      // Update category allocated funds
+      const [updatedCategory] = await tx
+        .update(categories)
+        .set({
+          allocatedFunds: sql`allocated_funds + ${amount.toString()}`,
+          updatedAt: sql`NOW()`
+        })
+        .where(eq(categories.id, categoryId))
+        .returning();
+
+      if (!updatedCategory) {
+        throw new Error('Category not found');
+      }
+
+      return { fundHistory: history, updatedCategory };
+    });
   }
 
   // =============== PAYMENT METHOD METHODS ===============
