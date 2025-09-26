@@ -49,3 +49,36 @@ export function useDeleteCategory() {
     },
   });
 }
+
+export function useResetCategory() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (id: string): Promise<any> => {
+      const response = await apiRequest("POST", `/api/categories/${id}/reset`);
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidate all relevant data that may have been reset
+      queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/payment-methods"] });
+    },
+  });
+}
+
+export function useResetAllData() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (includeCategories: boolean = false): Promise<any> => {
+      const response = await apiRequest("POST", "/api/reset", { includeCategories });
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidate all data since everything was reset
+      queryClient.invalidateQueries();
+    },
+  });
+}
