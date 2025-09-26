@@ -256,18 +256,19 @@ export default function Categories() {
                         </CollapsibleContent>
                       </Collapsible>
 
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button 
-                            variant="destructive"
-                            size="sm"
-                            data-testid={`button-reset-category-${category}`}
-                            disabled={resetCategory.isPending}
-                          >
-                            <RotateCcw className="h-4 w-4 mr-2" />
-                            {resetCategory.isPending ? "Resetting..." : "Reset"}
-                          </Button>
-                        </AlertDialogTrigger>
+                      <div className="flex justify-end">
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button 
+                              variant="destructive"
+                              size="icon"
+                              className="h-8 w-8"
+                              data-testid={`button-reset-category-${category}`}
+                              disabled={resetCategory.isPending}
+                            >
+                              <RotateCcw className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle>Reset {category} Category</AlertDialogTitle>
@@ -287,7 +288,8 @@ export default function Categories() {
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
-                      </AlertDialog>
+                        </AlertDialog>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
