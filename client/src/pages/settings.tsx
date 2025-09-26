@@ -3,7 +3,7 @@ import { Plus, Edit, Trash2, Settings as SettingsIcon, Download, FileSpreadsheet
 import * as Icons from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -306,6 +306,11 @@ export default function Settings() {
               <DialogTitle>
                 {editingCategory ? 'Edit Category' : 'Add New Category'}
               </DialogTitle>
+              <DialogDescription>
+                {editingCategory 
+                  ? 'Modify the category details below. Changes will affect existing expenses in this category.'
+                  : 'Create a new category to organize your expenses with custom colors and budget settings.'}
+              </DialogDescription>
             </DialogHeader>
             <CategoryForm 
               onClose={() => setIsDialogOpen(false)}
