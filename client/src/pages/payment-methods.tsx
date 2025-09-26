@@ -130,6 +130,10 @@ export default function PaymentMethods() {
               size={isMobile ? "default" : "lg"}
               className="w-full sm:w-auto"
               data-testid="button-add-payment-method"
+              onClick={() => {
+                console.log("Add Payment Method button clicked, current state:", isDialogOpen);
+                setIsDialogOpen(true);
+              }}
             >
               <PlusCircle className="mr-2 h-4 w-4" />
               Add Payment Method
