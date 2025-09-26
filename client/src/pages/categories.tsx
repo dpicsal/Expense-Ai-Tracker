@@ -4,21 +4,27 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useExpenses } from "@/hooks/use-expenses";
 import { useCategories } from "@/hooks/use-categories";
 import { CategoryForm } from "@/components/category-form";
-import { Plus } from "lucide-react";
+import { AddFundsForm } from "@/components/add-funds-form";
+import { FundHistory } from "@/components/fund-history";
+import { Plus, DollarSign, ChevronDown, ChevronUp, Wallet } from "lucide-react";
 
 export default function Categories() {
   const { data: expenses = [], isLoading: expensesLoading } = useExpenses();
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [addFundsDialogOpen, setAddFundsDialogOpen] = useState<string | null>(null);
+  const [expandedHistories, setExpandedHistories] = useState<Set<string>>(new Set());
 
   const categoryStats = categories.map(category => {
     const categoryExpenses = expenses.filter(e => e.category === category.name);
     const total = categoryExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
     const count = categoryExpenses.length;
     return { 
+      ...category,
       category: category.name, 
       color: category.color,
       icon: category.icon,
@@ -28,6 +34,22 @@ export default function Categories() {
       count 
     };
   });
+
+  const handleHistoryExpansion = (categoryName: string, open: boolean) => {
+    setExpandedHistories(prev => {
+      const next = new Set(prev);
+      if (open) {
+        next.add(categoryName);
+      } else {
+        next.delete(categoryName);
+      }
+      return next;
+    });
+  };
+
+  const handleAddFundsSuccess = () => {
+    setAddFundsDialogOpen(null);
+  };
 
   const totalSpent = expenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
 
@@ -67,11 +89,14 @@ export default function Categories() {
         </div>
       ) : (
         <div className="grid gap-4">
-          {categoryStats.map(({ category, color, icon, budget, allocatedFunds, total, count }) => {
+          {categoryStats.map((categoryData) => {
+            const { category, color, icon, budget, allocatedFunds, total, count } = categoryData;
             const percentage = totalSpent > 0 ? (total / totalSpent) * 100 : 0;
+            const remaining = allocatedFunds - total;
+            const isExpanded = expandedHistories.has(category);
             
             return (
-              <Card key={category} className="hover-elevate border-0 shadow-md bg-gradient-to-r from-card to-card/50 transition-all duration-200" data-testid={`category-card-${category}`}>
+              <Card key={category} className="border-0 shadow-md bg-gradient-to-r from-card to-card/50 transition-all duration-200" data-testid={`category-card-${category}`}>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
@@ -85,12 +110,36 @@ export default function Categories() {
                         {count} transaction{count !== 1 ? 's' : ''}
                       </span>
                     </div>
-                    <div className="text-lg font-semibold tabular-nums" data-testid={`category-total-${category}`}>
-                      AED {total.toFixed(2)}
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <div className="text-lg font-semibold tabular-nums" data-testid={`category-total-${category}`}>
+                          AED {total.toFixed(2)}
+                        </div>
+                        {allocatedFunds > 0 && (
+                          <div className="text-xs text-muted-foreground" data-testid={`category-remaining-${category}`}>
+                            {remaining >= 0 ? `AED ${remaining.toFixed(2)} remaining` : `AED ${Math.abs(remaining).toFixed(2)} overspent`}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                   
-                  <div className="space-y-2">
+                  {/* Fund Information */}
+                  {allocatedFunds > 0 && (
+                    <div className="mb-4 p-3 rounded-lg bg-muted/50 border border-border/30">
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <Wallet className="h-4 w-4 text-primary" />
+                          <span className="font-medium">Allocated Funds</span>
+                        </div>
+                        <span className="font-semibold tabular-nums" data-testid={`category-allocated-${category}`}>
+                          AED {allocatedFunds.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="space-y-3">
                     <div className="flex justify-between text-sm">
                       <span>Percentage of total spending</span>
                       <span className="tabular-nums">{percentage.toFixed(1)}%</span>
@@ -100,6 +149,57 @@ export default function Categories() {
                       className="h-2"
                       data-testid={`category-progress-${category}`}
                     />
+                    
+                    {/* Action Buttons */}
+                    <div className="flex gap-2 pt-2">
+                      <Dialog open={addFundsDialogOpen === category} onOpenChange={(open) => setAddFundsDialogOpen(open ? category : null)}>
+                        <DialogTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1"
+                            data-testid={`button-add-funds-${category}`}
+                          >
+                            <DollarSign className="h-4 w-4 mr-2" />
+                            Add Funds
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="w-[95vw] max-w-md">
+                          <DialogHeader>
+                            <DialogTitle>Add Funds to {category}</DialogTitle>
+                            <DialogDescription>
+                              Add funds to increase the allocated budget for this category.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <AddFundsForm 
+                            category={categoryData}
+                            onClose={() => setAddFundsDialogOpen(null)}
+                            onSuccess={handleAddFundsSuccess}
+                          />
+                        </DialogContent>
+                      </Dialog>
+                      
+                      <Collapsible open={isExpanded} onOpenChange={(open) => handleHistoryExpansion(category, open)}>
+                        <CollapsibleTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="flex-1"
+                            data-testid={`button-toggle-history-${category}`}
+                          >
+                            {isExpanded ? (
+                              <ChevronUp className="h-4 w-4 mr-2" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4 mr-2" />
+                            )}
+                            Fund History
+                          </Button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="pt-4">
+                          <FundHistory category={categoryData} />
+                        </CollapsibleContent>
+                      </Collapsible>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
