@@ -297,16 +297,8 @@ export default function Dashboard() {
                         </div>
                       </div>
 
-                      {((category.budget && parseFloat(category.budget) > 0) || (category.allocatedFunds && parseFloat(category.allocatedFunds) > 0)) && (
+                      {category.allocatedFunds && parseFloat(category.allocatedFunds) > 0 && (
                         <div className={`space-y-1 ${isMobile ? 'text-xs' : 'text-sm'} opacity-90 border-t border-black/10 dark:border-white/10 pt-2 mt-2`}>
-                          {category.budget && parseFloat(category.budget) > 0 && (
-                            <div className="flex justify-between">
-                              <span>Budget:</span>
-                              <span className="font-medium" data-testid={`text-category-budget-${category.id}`}>
-                                {formatCurrency(parseFloat(category.budget))}
-                              </span>
-                            </div>
-                          )}
                           {category.allocatedFunds && parseFloat(category.allocatedFunds) > 0 && (
                             <div className="flex justify-between">
                               <span>Available Fund:</span>

@@ -28,7 +28,6 @@ export default function Categories() {
       category: category.name, 
       color: category.color,
       icon: category.icon,
-      budget: category.budget ? parseFloat(category.budget) : 0,
       allocatedFunds: category.allocatedFunds ? parseFloat(category.allocatedFunds) : 0,
       total, 
       count 
@@ -75,7 +74,7 @@ export default function Categories() {
             <DialogHeader>
               <DialogTitle>Add New Category</DialogTitle>
               <DialogDescription>
-                Create a new category to organize your expenses. Set a name, color, and budget for better expense tracking.
+                Create a new category to organize your expenses. Set a name and color for better expense tracking.
               </DialogDescription>
             </DialogHeader>
             <CategoryForm onClose={() => setIsAddDialogOpen(false)} />
@@ -90,7 +89,7 @@ export default function Categories() {
       ) : (
         <div className="grid gap-4">
           {categoryStats.map((categoryData) => {
-            const { category, color, icon, budget, allocatedFunds, total, count } = categoryData;
+            const { category, color, icon, allocatedFunds, total, count } = categoryData;
             const percentage = totalSpent > 0 ? (total / totalSpent) * 100 : 0;
             const remaining = allocatedFunds - total;
             const isExpanded = expandedHistories.has(category);

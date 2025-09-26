@@ -29,7 +29,6 @@ export function CategoryForm({ onClose, initialData, isEditing }: CategoryFormPr
     defaultValues: {
       name: initialData?.name ?? "",
       color: initialData?.color ?? COLOR_OPTIONS[0].value,
-      budget: initialData?.budget ? parseFloat(initialData.budget) : undefined,
       allocatedFunds: initialData?.allocatedFunds ? parseFloat(initialData.allocatedFunds) : undefined,
       icon: initialData?.icon ?? "Tag",
     },
@@ -51,7 +50,6 @@ export function CategoryForm({ onClose, initialData, isEditing }: CategoryFormPr
 
       const processedData = {
         ...data,
-        budget: convertToNumber(data.budget),
         allocatedFunds: convertToNumber(data.allocatedFunds),
       };
 
@@ -171,36 +169,6 @@ export function CategoryForm({ onClose, initialData, isEditing }: CategoryFormPr
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="budget"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-base font-medium">Monthly Budget (Optional)</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground font-medium">AED</span>
-                  <Input
-                    value={field.value === undefined ? "" : field.value.toString()}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      // Pass undefined for empty strings, otherwise pass the string value
-                      // The zod schema will coerce the string to number  
-                      field.onChange(value === "" ? undefined : value);
-                    }}
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="0.00"
-                    className="pl-12"
-                    data-testid="input-category-budget"
-                  />
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
         <FormField
           control={form.control}

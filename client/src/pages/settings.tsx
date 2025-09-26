@@ -237,11 +237,6 @@ export default function Settings() {
                       </Badge>
                     </div>
                     <div className="flex flex-col gap-1">
-                      {category.budget && parseFloat(category.budget) > 0 && (
-                        <span className="text-sm text-muted-foreground">
-                          Budget: AED {parseFloat(category.budget).toFixed(2)}
-                        </span>
-                      )}
                       {category.allocatedFunds && parseFloat(category.allocatedFunds) > 0 && (
                         <span className="text-sm text-green-600 dark:text-green-400 font-medium">
                           Available Fund: AED {parseFloat(category.allocatedFunds).toFixed(2)}
