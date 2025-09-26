@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { 
   insertExpenseSchema, insertCategorySchema, 
-  insertPaymentMethodSchema, insertTransactionSchema 
+  insertPaymentMethodSchema, insertTransactionSchema, insertFundHistorySchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -388,6 +388,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting transaction:", error);
       res.status(500).json({ error: "Failed to delete transaction" });
+    }
+  });
+
+  // =============== FUND HISTORY ROUTES ===============
+
+  // Get all fund history
+  app.get("/api/fund-history", async (req, res) => {
+    try {
+      const fundHistory = await storage.getAllFundHistory();
+      res.json(fundHistory);
+    } catch (error) {
+      console.error("Error fetching fund history:", error);
+      res.status(500).json({ error: "Failed to fetch fund history" });
+    }
+  });
+
+  // Get fund history by category
+  app.get("/api/categories/:categoryId/fund-history", async (req, res) => {
+    try {
+      const fundHistory = await storage.getFundHistoryByCategory(req.params.categoryId);
+      res.json(fundHistory);
+    } catch (error) {
+      console.error("Error fetching fund history for category:", error);
+      res.status(500).json({ error: "Failed to fetch fund history for category" });
+    }
+  });
+
+  // Get single fund history
+  app.get("/api/fund-history/:id", async (req, res) => {
+    try {
+      const fundHistory = await storage.getFundHistory(req.params.id);
+      if (!fundHistory) {
+        return res.status(404).json({ error: "Fund history not found" });
+      }
+      res.json(fundHistory);
+    } catch (error) {
+      console.error("Error fetching fund history:", error);
+      res.status(500).json({ error: "Failed to fetch fund history" });
+    }
+  });
+
+  // Create new fund history (raw creation)
+  app.post("/api/fund-history", async (req, res) => {
+    try {
+      const validatedData = insertFundHistorySchema.parse(req.body);
+      const fundHistory = await storage.createFundHistory(validatedData);
+      res.status(201).json(fundHistory);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
+      console.error("Error creating fund history:", error);
+      res.status(500).json({ error: "Failed to create fund history" });
+    }
+  });
+
+  // Add funds to category (preferred method - creates history and updates category)
+  app.post("/api/categories/:categoryId/add-funds", async (req, res) => {
+    try {
+      const { amount, description } = req.body;
+      
+      // Validate amount
+      if (!amount || typeof amount !== 'number' || amount <= 0) {
+        return res.status(400).json({ error: "Amount must be a positive number" });
+      }
+
+      const result = await storage.addFundsToCategory(
+        req.params.categoryId, 
+        amount, 
+        description
+      );
+      
+      res.status(201).json(result);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Category not found') {
+        return res.status(404).json({ error: "Category not found" });
+      }
+      console.error("Error adding funds to category:", error);
+      res.status(500).json({ error: "Failed to add funds to category" });
+    }
+  });
+
+  // Update fund history
+  app.put("/api/fund-history/:id", async (req, res) => {
+    try {
+      const validatedData = insertFundHistorySchema.partial().parse(req.body);
+      const fundHistory = await storage.updateFundHistory(req.params.id, validatedData);
+      if (!fundHistory) {
+        return res.status(404).json({ error: "Fund history not found" });
+      }
+      res.json(fundHistory);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
+      console.error("Error updating fund history:", error);
+      res.status(500).json({ error: "Failed to update fund history" });
+    }
+  });
+
+  // Delete fund history
+  app.delete("/api/fund-history/:id", async (req, res) => {
+    try {
+      const success = await storage.deleteFundHistory(req.params.id);
+      if (!success) {
+        return res.status(404).json({ error: "Fund history not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting fund history:", error);
+      res.status(500).json({ error: "Failed to delete fund history" });
     }
   });
 
