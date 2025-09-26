@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExpenseForm } from "@/components/expense-form";
 import { ExpenseList } from "@/components/expense-list";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useExpenses, useUpdateExpense, useDeleteExpense, useCreateExpense } from "@/hooks/use-expenses";
@@ -353,6 +353,9 @@ export default function Dashboard() {
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add Expense to {selectedCategory}</DialogTitle>
+            <DialogDescription>
+              Record a new expense for this category. This will update your payment method balance automatically.
+            </DialogDescription>
           </DialogHeader>
           <ExpenseForm
             onSubmit={handleCreateExpense}
@@ -366,6 +369,9 @@ export default function Dashboard() {
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Expense</DialogTitle>
+            <DialogDescription>
+              Modify the details of your expense. Changes will update your payment method balance accordingly.
+            </DialogDescription>
           </DialogHeader>
           {editingExpense && (
             <ExpenseForm
