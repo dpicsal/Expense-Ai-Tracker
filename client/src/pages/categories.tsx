@@ -4,13 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useToast } from "@/hooks/use-toast";
 import { useExpenses } from "@/hooks/use-expenses";
-import { useCategories } from "@/hooks/use-categories";
+import { useCategories, useResetCategory } from "@/hooks/use-categories";
 import { CategoryForm } from "@/components/category-form";
 import { AddFundsForm } from "@/components/add-funds-form";
 import { FundHistory } from "@/components/fund-history";
-import { Plus, DollarSign, ChevronDown, ChevronUp, Wallet } from "lucide-react";
+import { Plus, DollarSign, ChevronDown, ChevronUp, Wallet, RotateCcw } from "lucide-react";
 
 export default function Categories() {
   const { data: expenses = [], isLoading: expensesLoading } = useExpenses();
@@ -18,6 +20,8 @@ export default function Categories() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [addFundsDialogOpen, setAddFundsDialogOpen] = useState<string | null>(null);
   const [expandedHistories, setExpandedHistories] = useState<Set<string>>(new Set());
+  const { toast } = useToast();
+  const resetCategory = useResetCategory();
 
   const categoryStats = categories.map(category => {
     const categoryExpenses = expenses.filter(e => e.category === category.name);
@@ -48,6 +52,23 @@ export default function Categories() {
 
   const handleAddFundsSuccess = () => {
     setAddFundsDialogOpen(null);
+  };
+
+  const handleResetCategory = async (categoryId: string, categoryName: string) => {
+    try {
+      const result = await resetCategory.mutateAsync(categoryId);
+      toast({
+        title: "Category Reset Complete",
+        description: `Reset ${categoryName}: deleted ${result.deletedExpenses} expenses, ${result.deletedTransactions} transactions, and ${result.deletedFundHistory} fund entries.`,
+      });
+    } catch (error) {
+      console.error("Error resetting category:", error);
+      toast({
+        title: "Reset Failed", 
+        description: error instanceof Error ? error.message : "Failed to reset category data",
+        variant: "destructive",
+      });
+    }
   };
 
   const totalSpent = expenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
@@ -198,6 +219,40 @@ export default function Categories() {
                           <FundHistory category={categoryData as any} />
                         </CollapsibleContent>
                       </Collapsible>
+
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="destructive"
+                            size="sm"
+                            className="flex-1"
+                            data-testid={`button-reset-category-${category}`}
+                            disabled={resetCategory.isPending}
+                          >
+                            <RotateCcw className="h-4 w-4 mr-2" />
+                            {resetCategory.isPending ? "Resetting..." : "Reset"}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Reset {category} Category</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will permanently delete all expenses, transactions, and fund history for the "{category}" category. 
+                              The category itself will remain but its allocated funds will be reset to 0.
+                              This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction 
+                              onClick={() => handleResetCategory(categoryData.id, category)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Reset Category
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                 </CardContent>
