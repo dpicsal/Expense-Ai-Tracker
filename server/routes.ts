@@ -239,6 +239,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Reset data for a specific category
+  app.post("/api/categories/:id/reset", async (req, res) => {
+    try {
+      const result = await storage.resetCategory(req.params.id);
+      res.json({ 
+        message: "Category data reset successfully", 
+        ...result 
+      });
+    } catch (error) {
+      console.error("Error resetting category:", error);
+      if (error instanceof Error && error.message === "Category not found") {
+        return res.status(404).json({ error: "Category not found" });
+      }
+      res.status(500).json({ error: "Failed to reset category data" });
+    }
+  });
+
+  // Reset all application data
+  app.post("/api/reset", async (req, res) => {
+    try {
+      const includeCategories = req.body?.includeCategories === true;
+      const result = await storage.resetAllData(includeCategories);
+      res.json({ 
+        message: includeCategories 
+          ? "All data including categories reset successfully" 
+          : "All data reset successfully (categories preserved)", 
+        ...result 
+      });
+    } catch (error) {
+      console.error("Error resetting all data:", error);
+      res.status(500).json({ error: "Failed to reset all data" });
+    }
+  });
+
   // =============== PAYMENT METHOD ROUTES ===============
 
   // Get all payment methods
