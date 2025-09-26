@@ -18,6 +18,7 @@ export interface IStorage {
   // Category management
   getAllCategories(): Promise<Category[]>;
   getCategory(id: string): Promise<Category | undefined>;
+  getCategoryByName(name: string): Promise<Category | undefined>;
   createCategory(category: InsertCategory): Promise<Category>;
   updateCategory(id: string, category: Partial<InsertCategory>): Promise<Category | undefined>;
   deleteCategory(id: string): Promise<boolean>;
@@ -91,6 +92,18 @@ export class DatabaseStorage implements IStorage {
         }
       }
 
+      // Deduct from category allocated funds
+      const category = await this.getCategoryByName(insertExpense.category, tx);
+      if (category) {
+        await tx
+          .update(categories)
+          .set({
+            allocatedFunds: sql`allocated_funds - ${insertExpense.amount.toString()}`,
+            updatedAt: sql`NOW()`
+          })
+          .where(eq(categories.id, category.id));
+      }
+
       return expense;
     });
   }
@@ -150,6 +163,32 @@ export class DatabaseStorage implements IStorage {
         }
       }
 
+      // Handle category fund changes
+      const oldCategory = await this.getCategoryByName(oldExpense.category, tx);
+      const newCategory = updateData.category ? await this.getCategoryByName(updateData.category, tx) : oldCategory;
+      
+      // Restore funds to old category
+      if (oldCategory) {
+        await tx
+          .update(categories)
+          .set({
+            allocatedFunds: sql`allocated_funds + ${oldExpense.amount}`,
+            updatedAt: sql`NOW()`
+          })
+          .where(eq(categories.id, oldCategory.id));
+      }
+      
+      // Deduct funds from new category
+      if (newCategory) {
+        await tx
+          .update(categories)
+          .set({
+            allocatedFunds: sql`allocated_funds - ${newAmount.toString()}`,
+            updatedAt: sql`NOW()`
+          })
+          .where(eq(categories.id, newCategory.id));
+      }
+
       return expense;
     });
   }
@@ -174,6 +213,18 @@ export class DatabaseStorage implements IStorage {
             tx
           );
         }
+        
+        // Restore allocated funds to category
+        const category = await this.getCategoryByName(expense.category, tx);
+        if (category) {
+          await tx
+            .update(categories)
+            .set({
+              allocatedFunds: sql`allocated_funds + ${expense.amount}`,
+              updatedAt: sql`NOW()`
+            })
+            .where(eq(categories.id, category.id));
+        }
       }
 
       return deleted;
@@ -187,6 +238,12 @@ export class DatabaseStorage implements IStorage {
 
   async getCategory(id: string): Promise<Category | undefined> {
     const [category] = await db.select().from(categories).where(eq(categories.id, id));
+    return category || undefined;
+  }
+
+  async getCategoryByName(name: string, tx?: any): Promise<Category | undefined> {
+    const dbInstance = tx || db;
+    const [category] = await dbInstance.select().from(categories).where(eq(categories.name, name));
     return category || undefined;
   }
 
