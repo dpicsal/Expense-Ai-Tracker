@@ -70,7 +70,6 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
   }, [paymentMethods, initialData, isEditing, form]);
 
   const handleSubmit = async (data: ExpenseFormData) => {
-    console.log('Form submitted:', data);
     setIsSubmitting(true);
     try {
       // Send the payment method ID directly to the server for balance updates

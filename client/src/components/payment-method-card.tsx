@@ -87,12 +87,10 @@ export function PaymentMethodCard({ paymentMethod, onEdit, onDelete }: PaymentMe
   const balanceDisplay = getBalanceDisplay(balance, creditLimit, paymentMethod.type);
   
   const handleEdit = () => {
-    console.log('Edit payment method:', paymentMethod.id);
     onEdit?.(paymentMethod);
   };
 
   const handleDelete = () => {
-    console.log('Delete payment method:', paymentMethod.id);
     onDelete?.(paymentMethod.id);
   };
 

@@ -25,12 +25,10 @@ export function ExpenseCard({ expense, onEdit, onDelete }: ExpenseCardProps) {
   const categoryIcon = categoryData?.icon || "Tag";
 
   const handleEdit = () => {
-    console.log('Edit expense:', expense.id);
     onEdit?.(expense);
   };
 
   const handleDelete = () => {
-    console.log('Delete expense:', expense.id);
     onDelete?.(expense.id);
   };
 
