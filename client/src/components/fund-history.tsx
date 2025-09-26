@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
 import { Calendar, DollarSign, FileText, History } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -127,7 +128,7 @@ export function FundHistory({ category }: FundHistoryProps) {
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
                         <Calendar className="h-3 w-3" />
                         <span data-testid={`fund-date-${history.id}`}>
-                          {format(new Date(history.addedAt), "MMM d, yyyy 'at' h:mm a")}
+                          {format(toZonedTime(new Date(history.addedAt), "Asia/Dubai"), "dd/MM/yyyy 'at' HH:mm")}
                         </span>
                       </div>
                     </div>

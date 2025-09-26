@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { format } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
@@ -136,7 +138,7 @@ export default function Settings() {
       // Add data rows
       expenses.forEach((expense) => {
         worksheet.addRow({
-          date: new Date(expense.date).toLocaleDateString(),
+          date: format(toZonedTime(new Date(expense.date), "Asia/Dubai"), "dd/MM/yyyy"),
           description: expense.description,
           category: expense.category,
           amount: parseFloat(expense.amount),
