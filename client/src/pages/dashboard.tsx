@@ -96,17 +96,28 @@ export default function Dashboard() {
   };
 
   const totalExpenses = expenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
+  
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+  
   const thisMonthExpenses = expenses.filter(expense => {
-    const expenseMonth = new Date(expense.date).getMonth();
-    const currentMonth = new Date().getMonth();
-    return expenseMonth === currentMonth;
+    const expenseDate = new Date(expense.date);
+    const expenseMonth = expenseDate.getMonth();
+    const expenseYear = expenseDate.getFullYear();
+    return expenseMonth === currentMonth && expenseYear === currentYear;
   });
   const thisMonthTotal = thisMonthExpenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
 
+  // Handle last month calculation with year transition
+  const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+  const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+  
   const lastMonthExpenses = expenses.filter(expense => {
-    const expenseMonth = new Date(expense.date).getMonth();
-    const lastMonth = new Date().getMonth() - 1;
-    return expenseMonth === lastMonth;
+    const expenseDate = new Date(expense.date);
+    const expenseMonth = expenseDate.getMonth();
+    const expenseYear = expenseDate.getFullYear();
+    return expenseMonth === lastMonth && expenseYear === lastMonthYear;
   });
   const lastMonthTotal = lastMonthExpenses.reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
 
