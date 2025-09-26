@@ -309,7 +309,7 @@ export default function Dashboard() {
                           )}
                           {category.allocatedFunds && parseFloat(category.allocatedFunds) > 0 && (
                             <div className="flex justify-between">
-                              <span>Allocated:</span>
+                              <span>Available Fund:</span>
                               <span className="font-medium" data-testid={`text-category-allocated-${category.id}`}>
                                 {formatCurrency(parseFloat(category.allocatedFunds))}
                               </span>
