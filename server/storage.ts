@@ -47,6 +47,10 @@ export interface IStorage {
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
   updateTransaction(id: string, transaction: Partial<InsertTransaction>): Promise<Transaction | undefined>;
   deleteTransaction(id: string): Promise<boolean>;
+
+  // Data reset management
+  resetCategory(categoryId: string): Promise<{deletedExpenses: number, deletedTransactions: number, deletedFundHistory: number, resetCategory: Category}>;
+  resetAllData(includeCategories?: boolean): Promise<{deletedExpenses: number, deletedTransactions: number, deletedFundHistory: number, deletedCategories?: number, resetPaymentMethods: PaymentMethod[]}>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -606,6 +610,166 @@ export class DatabaseStorage implements IStorage {
       }
 
       return deleted;
+    });
+  }
+
+  async resetCategory(categoryId: string): Promise<{deletedExpenses: number, deletedTransactions: number, deletedFundHistory: number, resetCategory: Category}> {
+    return await db.transaction(async (tx) => {
+      // Get the category first to ensure it exists
+      const [category] = await tx.select().from(categories).where(eq(categories.id, categoryId));
+      if (!category) {
+        throw new Error("Category not found");
+      }
+
+      // Delete all expenses for this category and revert payment method balances
+      const categoryExpenses = await tx.select().from(expenses).where(eq(expenses.category, category.name));
+      let deletedExpensesCount = 0;
+      
+      for (const expense of categoryExpenses) {
+        // Revert the balance change before deleting
+        const paymentMethod = await this.getPaymentMethodByType(expense.paymentMethod);
+        if (paymentMethod) {
+          await this.updatePaymentMethodBalance(
+            paymentMethod.id,
+            expense.amount,
+            true, // reverse the expense (add back to balance)
+            tx
+          );
+        }
+        
+        const result = await tx.delete(expenses).where(eq(expenses.id, expense.id));
+        if ((result.rowCount || 0) > 0) {
+          deletedExpensesCount++;
+        }
+      }
+
+      // Delete all transactions for this category and revert payment method balances
+      const categoryTransactions = await tx.select().from(transactions).where(eq(transactions.category, category.name));
+      let deletedTransactionsCount = 0;
+      
+      for (const transaction of categoryTransactions) {
+        // Revert the balance change before deleting
+        await this.updatePaymentMethodBalance(
+          transaction.paymentMethodId,
+          transaction.amount,
+          transaction.type === 'expense', // Reverse the original operation
+          tx
+        );
+        
+        const result = await tx.delete(transactions).where(eq(transactions.id, transaction.id));
+        if ((result.rowCount || 0) > 0) {
+          deletedTransactionsCount++;
+        }
+      }
+
+      // Delete all fund history for this category and reset allocated funds
+      const categoryFundHistory = await tx.select().from(fundHistory).where(eq(fundHistory.categoryId, categoryId));
+      let deletedFundHistoryCount = 0;
+      
+      for (const history of categoryFundHistory) {
+        const result = await tx.delete(fundHistory).where(eq(fundHistory.id, history.id));
+        if ((result.rowCount || 0) > 0) {
+          deletedFundHistoryCount++;
+        }
+      }
+
+      // Reset the category's allocated funds to 0
+      const [resetCategory] = await tx
+        .update(categories)
+        .set({
+          allocatedFunds: "0",
+          updatedAt: sql`NOW()`
+        })
+        .where(eq(categories.id, categoryId))
+        .returning();
+
+      return {
+        deletedExpenses: deletedExpensesCount,
+        deletedTransactions: deletedTransactionsCount,
+        deletedFundHistory: deletedFundHistoryCount,
+        resetCategory: resetCategory
+      };
+    });
+  }
+
+  async resetAllData(includeCategories: boolean = false): Promise<{deletedExpenses: number, deletedTransactions: number, deletedFundHistory: number, deletedCategories?: number, resetPaymentMethods: PaymentMethod[]}> {
+    return await db.transaction(async (tx) => {
+      let deletedExpensesCount = 0;
+      let deletedTransactionsCount = 0;
+      let deletedFundHistoryCount = 0;
+      let deletedCategoriesCount = 0;
+
+      // Delete all expenses
+      const allExpenses = await tx.select().from(expenses);
+      for (const expense of allExpenses) {
+        // We'll reset payment method balances at the end, so no need to revert here
+        const result = await tx.delete(expenses).where(eq(expenses.id, expense.id));
+        if ((result.rowCount || 0) > 0) {
+          deletedExpensesCount++;
+        }
+      }
+
+      // Delete all transactions
+      const allTransactions = await tx.select().from(transactions);
+      for (const transaction of allTransactions) {
+        // We'll reset payment method balances at the end, so no need to revert here
+        const result = await tx.delete(transactions).where(eq(transactions.id, transaction.id));
+        if ((result.rowCount || 0) > 0) {
+          deletedTransactionsCount++;
+        }
+      }
+
+      // Delete all fund history
+      const allFundHistory = await tx.select().from(fundHistory);
+      for (const history of allFundHistory) {
+        const result = await tx.delete(fundHistory).where(eq(fundHistory.id, history.id));
+        if ((result.rowCount || 0) > 0) {
+          deletedFundHistoryCount++;
+        }
+      }
+
+      // Reset all payment method balances to 0
+      const allPaymentMethods = await tx.select().from(paymentMethods);
+      const resetPaymentMethods = [];
+      
+      for (const pm of allPaymentMethods) {
+        const [resetPM] = await tx
+          .update(paymentMethods)
+          .set({
+            balance: "0",
+            updatedAt: sql`NOW()`
+          })
+          .where(eq(paymentMethods.id, pm.id))
+          .returning();
+        resetPaymentMethods.push(resetPM);
+      }
+
+      // Optionally delete all categories or reset their allocated funds
+      if (includeCategories) {
+        const allCategories = await tx.select().from(categories);
+        for (const category of allCategories) {
+          const result = await tx.delete(categories).where(eq(categories.id, category.id));
+          if ((result.rowCount || 0) > 0) {
+            deletedCategoriesCount++;
+          }
+        }
+      } else {
+        // Reset all categories' allocated funds to 0
+        await tx
+          .update(categories)
+          .set({
+            allocatedFunds: "0",
+            updatedAt: sql`NOW()`
+          });
+      }
+
+      return {
+        deletedExpenses: deletedExpensesCount,
+        deletedTransactions: deletedTransactionsCount,
+        deletedFundHistory: deletedFundHistoryCount,
+        ...(includeCategories && { deletedCategories: deletedCategoriesCount }),
+        resetPaymentMethods
+      };
     });
   }
 }
