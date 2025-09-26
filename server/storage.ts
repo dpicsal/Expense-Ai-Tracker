@@ -11,7 +11,7 @@ export interface IStorage {
   getAllExpenses(): Promise<Expense[]>;
   getExpense(id: string): Promise<Expense | undefined>;
   createExpense(expense: InsertExpense, paymentMethodId?: string): Promise<Expense>;
-  updateExpense(id: string, expense: Partial<InsertExpense>): Promise<Expense | undefined>;
+  updateExpense(id: string, expense: Partial<InsertExpense>, paymentMethodId?: string): Promise<Expense | undefined>;
   deleteExpense(id: string): Promise<boolean>;
   
   // Category management
@@ -85,7 +85,7 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
-  async updateExpense(id: string, updateData: Partial<InsertExpense>): Promise<Expense | undefined> {
+  async updateExpense(id: string, updateData: Partial<InsertExpense>, paymentMethodId?: string): Promise<Expense | undefined> {
     return await db.transaction(async (tx) => {
       // Get the old expense to revert balance changes
       const [oldExpense] = await tx.select().from(expenses).where(eq(expenses.id, id));
@@ -116,17 +116,28 @@ export class DatabaseStorage implements IStorage {
       }
 
       // Apply new balance change
-      const newPaymentMethodType = updateData.paymentMethod ?? oldExpense.paymentMethod;
       const newAmount = updateData.amount ?? parseFloat(oldExpense.amount);
       
-      const newPaymentMethod = await this.getPaymentMethodByType(newPaymentMethodType);
-      if (newPaymentMethod) {
+      if (paymentMethodId) {
+        // Use the specific payment method ID provided (more accurate than type lookup)
         await this.updatePaymentMethodBalance(
-          newPaymentMethod.id,
+          paymentMethodId,
           newAmount,
           false, // expense reduces balance
           tx
         );
+      } else {
+        // Fallback: use payment method type lookup for backward compatibility
+        const newPaymentMethodType = updateData.paymentMethod ?? oldExpense.paymentMethod;
+        const newPaymentMethod = await this.getPaymentMethodByType(newPaymentMethodType);
+        if (newPaymentMethod) {
+          await this.updatePaymentMethodBalance(
+            newPaymentMethod.id,
+            newAmount,
+            false, // expense reduces balance
+            tx
+          );
+        }
       }
 
       return expense;
