@@ -11,6 +11,9 @@ interface FundHistoryProps {
 
 export function FundHistory({ category }: FundHistoryProps) {
   const { data: fundHistory = [], isLoading, error } = useFundHistoryByCategory(category.id);
+  
+  // Calculate total funds added
+  const totalFunds = fundHistory.reduce((sum, history) => sum + parseFloat(history.amount), 0);
 
   if (isLoading) {
     return (
@@ -73,6 +76,21 @@ export function FundHistory({ category }: FundHistoryProps) {
         <p className="text-sm text-muted-foreground">
           Track all fund additions to {category.name}
         </p>
+        {fundHistory.length > 0 && (
+          <div className="mt-4 p-4 rounded-lg bg-primary/5 border border-primary/20">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <DollarSign className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-muted-foreground">Total Funds Added</p>
+                <p className="text-2xl font-bold text-primary tabular-nums" data-testid={`total-funds-${category.name}`}>
+                  AED {totalFunds.toFixed(2)}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </CardHeader>
       <CardContent>
         {fundHistory.length === 0 ? (
