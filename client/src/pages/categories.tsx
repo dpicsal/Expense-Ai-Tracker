@@ -130,7 +130,7 @@ export default function Categories() {
                       <div className="flex items-center justify-between text-sm">
                         <div className="flex items-center gap-2">
                           <Wallet className="h-4 w-4 text-primary" />
-                          <span className="font-medium">Allocated Funds</span>
+                          <span className="font-medium">Available Fund</span>
                         </div>
                         <span className="font-semibold tabular-nums" data-testid={`category-allocated-${category}`}>
                           AED {allocatedFunds.toFixed(2)}
@@ -172,7 +172,7 @@ export default function Categories() {
                             </DialogDescription>
                           </DialogHeader>
                           <AddFundsForm 
-                            category={categoryData}
+                            category={categoryData as any}
                             onClose={() => setAddFundsDialogOpen(null)}
                             onSuccess={handleAddFundsSuccess}
                           />
@@ -196,7 +196,7 @@ export default function Categories() {
                           </Button>
                         </CollapsibleTrigger>
                         <CollapsibleContent className="pt-4">
-                          <FundHistory category={categoryData} />
+                          <FundHistory category={categoryData as any} />
                         </CollapsibleContent>
                       </Collapsible>
                     </div>

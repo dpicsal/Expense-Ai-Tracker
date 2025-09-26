@@ -207,7 +207,7 @@ export function CategoryForm({ onClose, initialData, isEditing }: CategoryFormPr
           name="allocatedFunds"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-base font-medium">Allocated Funds (Optional)</FormLabel>
+              <FormLabel className="text-base font-medium">Available Fund (Optional)</FormLabel>
               <FormControl>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground font-medium">AED</span>
