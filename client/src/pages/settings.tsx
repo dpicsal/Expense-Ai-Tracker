@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { useCategories, useDeleteCategory, useResetAllData } from "@/hooks/use-categories";
+import { useCategories, useDeleteCategory } from "@/hooks/use-categories";
 import { useAppSettings } from "@/hooks/use-app-settings";
 import { useExpenses } from "@/hooks/use-expenses";
 import ExcelJS from "exceljs";
@@ -26,7 +26,6 @@ export default function Settings() {
   
   const { data: categories = [], isLoading } = useCategories();
   const deleteCategory = useDeleteCategory();
-  const resetAllData = useResetAllData();
   const { settings, updateSettings } = useAppSettings();
   const { data: expenses = [] } = useExpenses();
 
@@ -101,22 +100,6 @@ export default function Settings() {
     }
   };
 
-  const handleResetAllData = async (includeCategories: boolean) => {
-    try {
-      const result = await resetAllData.mutateAsync(includeCategories);
-      toast({
-        title: "Data Reset Complete",
-        description: `Reset complete: deleted ${result.deletedExpenses} expenses, ${result.deletedTransactions} transactions, and ${result.deletedFundHistory} fund entries${result.deletedCategories ? `, and ${result.deletedCategories} categories` : ''}.`,
-      });
-    } catch (error) {
-      console.error("Error resetting data:", error);
-      toast({
-        title: "Reset Failed",
-        description: error instanceof Error ? error.message : "Failed to reset application data",
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleExportExpenses = async () => {
     try {
@@ -428,113 +411,6 @@ export default function Settings() {
         </Dialog>
       )}
 
-      <Separator />
-
-      {/* Data Reset */}
-      <Card className="border-0 shadow-md border-destructive/20">
-        <CardHeader className="pb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900">
-              <Plus className="h-5 w-5 text-red-600 dark:text-red-400 rotate-45" />
-            </div>
-            <div>
-              <CardTitle className="text-lg md:text-xl font-semibold">Data Reset</CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">Reset your application data - use with caution</p>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="p-4 border border-destructive/30 rounded-lg bg-gradient-to-r from-red-50/50 to-red-100/50 dark:from-red-950/50 dark:to-red-900/50">
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-medium text-foreground">Reset All Data (Keep Categories)</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Delete all expenses, transactions, and fund history while preserving your categories. Payment method balances will be reset to 0.
-                  </p>
-                </div>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button 
-                      variant="destructive"
-                      disabled={resetAllData.isPending}
-                      data-testid="button-reset-data-keep-categories"
-                      className="w-full sm:w-auto"
-                    >
-                      <Plus className="h-4 w-4 mr-2 rotate-45" />
-                      {resetAllData.isPending ? "Resetting..." : "Reset Data (Keep Categories)"}
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Reset All Data</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This will permanently delete all expenses, transactions, and fund history. Your categories will remain but their allocated funds will be reset to 0. All payment method balances will be reset to 0. This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => handleResetAllData(false)}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      >
-                        Reset All Data
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </div>
-
-            <div className="p-4 border border-destructive/50 rounded-lg bg-gradient-to-r from-red-100/50 to-red-200/50 dark:from-red-900/50 dark:to-red-800/50">
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-medium text-foreground">Complete Reset (Include Categories)</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Delete ALL data including categories, expenses, transactions, and fund history. This will completely reset your application. Payment method balances will be reset to 0.
-                  </p>
-                </div>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button 
-                      variant="destructive"
-                      disabled={resetAllData.isPending}
-                      data-testid="button-reset-all-data"
-                      className="w-full sm:w-auto bg-red-700 hover:bg-red-800"
-                    >
-                      <Plus className="h-4 w-4 mr-2 rotate-45" />
-                      {resetAllData.isPending ? "Resetting..." : "Complete Reset (Include Categories)"}
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle className="text-destructive">Complete Application Reset</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        ⚠️ <strong>Warning:</strong> This will permanently delete EVERYTHING - all categories, expenses, transactions, fund history, and reset all payment method balances to 0. Your application will return to its initial state as if you just installed it. This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => handleResetAllData(true)}
-                        className="bg-red-700 text-white hover:bg-red-800"
-                      >
-                        Complete Reset
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </div>
-            
-            <div className="text-xs text-muted-foreground p-3 bg-muted/50 rounded-lg">
-              <strong>Important:</strong> Reset operations are permanent and cannot be undone. Consider exporting your data first if you want to keep a backup.
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Separator />
 
       {/* Export & Reports */}
       <Card className="border-0 shadow-md">
