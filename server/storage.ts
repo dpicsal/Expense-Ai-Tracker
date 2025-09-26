@@ -252,9 +252,6 @@ export class DatabaseStorage implements IStorage {
       ...insertCategory,
       updatedAt: sql`NOW()`
     };
-    if (insertCategory.budget !== undefined) {
-      categoryValues.budget = insertCategory.budget.toString();
-    }
     if (insertCategory.allocatedFunds !== undefined) {
       categoryValues.allocatedFunds = insertCategory.allocatedFunds.toString();
     }
@@ -271,9 +268,6 @@ export class DatabaseStorage implements IStorage {
       ...updateData,
       updatedAt: sql`NOW()`
     };
-    if (updateData.budget !== undefined) {
-      updateValues.budget = updateData.budget.toString();
-    }
     if (updateData.allocatedFunds !== undefined) {
       updateValues.allocatedFunds = updateData.allocatedFunds.toString();
     }

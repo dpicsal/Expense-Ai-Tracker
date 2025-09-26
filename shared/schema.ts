@@ -7,7 +7,6 @@ export const categories = pgTable("categories", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull().unique(),
   color: text("color").notNull(), // Store the color class for the category
-  budget: decimal("budget", { precision: 10, scale: 2 }).default("0"), // Monthly budget for this category
   allocatedFunds: decimal("allocated_funds", { precision: 10, scale: 2 }).default("0"), // Allocated funds for this category
   icon: text("icon").default("Tag"), // Lucide icon name
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -65,7 +64,6 @@ export const insertCategorySchema = createInsertSchema(categories).omit({
   createdAt: true,
   updatedAt: true,
 }).extend({
-  budget: z.coerce.number().min(0, "Budget must be non-negative").optional(),
   allocatedFunds: z.coerce.number().min(0, "Allocated funds must be non-negative").optional(),
 });
 
