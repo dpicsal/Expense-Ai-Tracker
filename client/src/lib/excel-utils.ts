@@ -13,7 +13,7 @@ export async function exportToExcel(data: ExcelExportData, categoryName?: string
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet(categoryName || 'Expense Tracker');
 
-  // Set up columns based on the Excel image format
+  // Set up columns based on the Excel image format (8 columns total)
   worksheet.columns = [
     { header: 'Date', key: 'date', width: 12 },
     { header: 'Payment Method', key: 'paymentMethod', width: 15 },
@@ -21,7 +21,6 @@ export async function exportToExcel(data: ExcelExportData, categoryName?: string
     { header: 'Description', key: 'description', width: 20 },
     { header: 'Total Expenses', key: 'totalExpenses', width: 15 },
     { header: 'Available Fund', key: 'availableFund', width: 15 },
-    { header: 'Date', key: 'fundDate', width: 12 },
     { header: 'Add Funds', key: 'addFunds', width: 12 },
     { header: 'Total Funds', key: 'totalFunds', width: 15 },
   ];
@@ -48,9 +47,14 @@ export async function exportToExcel(data: ExcelExportData, categoryName?: string
       })
     : data.fundHistory;
 
-  // Calculate running totals
+  // Calculate initial fund total from category allocation and fund history
   let runningExpenseTotal = 0;
   let runningFundTotal = category ? parseFloat(category.allocatedFunds || '0') : 0;
+  
+  // Add all fund history to the initial fund total for this category
+  categoryFundHistory.forEach(fund => {
+    runningFundTotal += parseFloat(fund.amount);
+  });
 
   // Create a combined array of expenses and fund additions, sorted by date
   const combinedData: Array<{
@@ -80,7 +84,11 @@ export async function exportToExcel(data: ExcelExportData, categoryName?: string
   // Sort by date
   combinedData.sort((a, b) => a.date.getTime() - b.date.getTime());
 
-  // Process each row
+  // Reset running fund total to track chronologically
+  runningFundTotal = category ? parseFloat(category.allocatedFunds || '0') : 0;
+  runningExpenseTotal = 0;
+
+  // Process each row chronologically
   combinedData.forEach((item, index) => {
     const row = worksheet.getRow(index + 2); // +2 because Excel is 1-indexed and we have a header
 
@@ -94,23 +102,21 @@ export async function exportToExcel(data: ExcelExportData, categoryName?: string
         amount: `AED ${parseFloat(expense.amount).toFixed(2)}`,
         description: expense.description,
         totalExpenses: `AED ${runningExpenseTotal.toFixed(2)}`,
-        availableFund: category ? `AED ${(parseFloat(category.allocatedFunds || '0') - runningExpenseTotal).toFixed(2)}` : '',
-        fundDate: '',
+        availableFund: `AED ${(runningFundTotal - runningExpenseTotal).toFixed(2)}`,
         addFunds: '',
-        totalFunds: category ? `AED ${parseFloat(category.allocatedFunds || '0').toFixed(2)}` : ''
+        totalFunds: `AED ${runningFundTotal.toFixed(2)}`
       };
     } else {
       const fund = item.data as FundHistory;
       runningFundTotal += parseFloat(fund.amount);
       
       row.values = {
-        date: '',
+        date: new Date(fund.addedAt).toLocaleDateString(),
         paymentMethod: '',
         amount: '',
-        description: '',
+        description: fund.description || 'Fund Addition',
         totalExpenses: `AED ${runningExpenseTotal.toFixed(2)}`,
         availableFund: `AED ${(runningFundTotal - runningExpenseTotal).toFixed(2)}`,
-        fundDate: new Date(fund.addedAt).toLocaleDateString(),
         addFunds: `AED ${parseFloat(fund.amount).toFixed(2)}`,
         totalFunds: `AED ${runningFundTotal.toFixed(2)}`
       };
