@@ -7,6 +7,35 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+// Enhanced error parsing for mutation hooks
+export async function parseErrorMessage(response: Response, fallbackMessage: string): Promise<string> {
+  try {
+    const errorData = await response.json();
+    // Extract specific error message from the server response
+    if (errorData.error) {
+      return errorData.error;
+    }
+    if (errorData.message) {
+      return errorData.message;
+    }
+    if (errorData.details && Array.isArray(errorData.details)) {
+      // Handle Zod validation errors
+      return errorData.details.map((detail: any) => detail.message).join(", ");
+    }
+  } catch (jsonError) {
+    // If JSON parsing fails, try to get text content
+    try {
+      const textContent = await response.text();
+      if (textContent) {
+        return textContent;
+      }
+    } catch (textError) {
+      // Fall through to fallback
+    }
+  }
+  return fallbackMessage;
+}
+
 export async function apiRequest(
   method: string,
   url: string,

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, parseErrorMessage } from "@/lib/queryClient";
 import { type Expense, type InsertExpense } from "@shared/schema";
 
 export function useExpenses() {
@@ -21,7 +21,8 @@ export function useCreateExpense() {
         body: JSON.stringify(expense),
       });
       if (!response.ok) {
-        throw new Error("Failed to create expense");
+        const errorMessage = await parseErrorMessage(response, "Failed to create expense");
+        throw new Error(errorMessage);
       }
       return response.json();
     },
@@ -45,7 +46,8 @@ export function useUpdateExpense() {
         body: JSON.stringify(expense),
       });
       if (!response.ok) {
-        throw new Error("Failed to update expense");
+        const errorMessage = await parseErrorMessage(response, "Failed to update expense");
+        throw new Error(errorMessage);
       }
       return response.json();
     },
@@ -65,7 +67,8 @@ export function useDeleteExpense() {
         method: "DELETE",
       });
       if (!response.ok) {
-        throw new Error("Failed to delete expense");
+        const errorMessage = await parseErrorMessage(response, "Failed to delete expense");
+        throw new Error(errorMessage);
       }
       return response.ok;
     },
