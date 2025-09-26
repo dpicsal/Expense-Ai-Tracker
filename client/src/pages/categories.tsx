@@ -9,14 +9,20 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useToast } from "@/hooks/use-toast";
 import { useExpenses } from "@/hooks/use-expenses";
 import { useCategories, useResetCategory } from "@/hooks/use-categories";
+import { usePaymentMethods } from "@/hooks/use-payment-methods";
+import { useFundHistory } from "@/hooks/use-fund-history";
 import { CategoryForm } from "@/components/category-form";
 import { AddFundsForm } from "@/components/add-funds-form";
 import { FundHistory } from "@/components/fund-history";
+import { ExcelExportButton } from "@/components/excel-export-button";
+import { ExcelImportButton } from "@/components/excel-import-button";
 import { Plus, DollarSign, ChevronDown, ChevronUp, Wallet, RotateCcw } from "lucide-react";
 
 export default function Categories() {
   const { data: expenses = [], isLoading: expensesLoading } = useExpenses();
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
+  const { data: paymentMethods = [] } = usePaymentMethods();
+  const { data: fundHistory = [] } = useFundHistory();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [addFundsDialogOpen, setAddFundsDialogOpen] = useState<string | null>(null);
   const [expandedHistories, setExpandedHistories] = useState<Set<string>>(new Set());
@@ -84,23 +90,43 @@ export default function Categories() {
             Manage your expense categories and analyze spending patterns
           </p>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button data-testid="button-add-category">
-              <Plus className="w-4 h-4" />
-              Add Category
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New Category</DialogTitle>
-              <DialogDescription>
-                Create a new category to organize your expenses. Set a name and color for better expense tracking.
-              </DialogDescription>
-            </DialogHeader>
-            <CategoryForm onClose={() => setIsAddDialogOpen(false)} />
-          </DialogContent>
-        </Dialog>
+        <div className="flex items-center gap-2">
+          <ExcelImportButton 
+            variant="outline" 
+            onImportSuccess={(count) => {
+              toast({
+                title: "Import Complete",
+                description: `Successfully imported ${count} expenses.`,
+              });
+            }}
+          />
+          <ExcelExportButton 
+            data={{
+              expenses,
+              categories,
+              paymentMethods,
+              fundHistory
+            }}
+            variant="outline"
+          />
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button data-testid="button-add-category">
+                <Plus className="w-4 h-4" />
+                Add Category
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add New Category</DialogTitle>
+                <DialogDescription>
+                  Create a new category to organize your expenses. Set a name and color for better expense tracking.
+                </DialogDescription>
+              </DialogHeader>
+              <CategoryForm onClose={() => setIsAddDialogOpen(false)} />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {expensesLoading || categoriesLoading ? (
@@ -171,13 +197,12 @@ export default function Categories() {
                     />
                     
                     {/* Action Buttons */}
-                    <div className="flex gap-2 pt-2">
+                    <div className="grid grid-cols-2 gap-2 pt-2">
                       <Dialog open={addFundsDialogOpen === category} onOpenChange={(open) => setAddFundsDialogOpen(open ? category : null)}>
                         <DialogTrigger asChild>
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            className="flex-1"
                             data-testid={`button-add-funds-${category}`}
                           >
                             <DollarSign className="h-4 w-4 mr-2" />
@@ -199,12 +224,23 @@ export default function Categories() {
                         </DialogContent>
                       </Dialog>
                       
+                      <ExcelExportButton 
+                        data={{
+                          expenses,
+                          categories,
+                          paymentMethods,
+                          fundHistory
+                        }}
+                        categoryName={category}
+                        variant="outline"
+                        size="sm"
+                      />
+                      
                       <Collapsible open={isExpanded} onOpenChange={(open) => handleHistoryExpansion(category, open)}>
                         <CollapsibleTrigger asChild>
                           <Button 
                             variant="ghost" 
-                            size="sm" 
-                            className="flex-1"
+                            size="sm"
                             data-testid={`button-toggle-history-${category}`}
                           >
                             {isExpanded ? (
@@ -225,7 +261,6 @@ export default function Categories() {
                           <Button 
                             variant="destructive"
                             size="sm"
-                            className="flex-1"
                             data-testid={`button-reset-category-${category}`}
                             disabled={resetCategory.isPending}
                           >
