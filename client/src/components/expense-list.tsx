@@ -30,12 +30,10 @@ export function ExpenseList({ expenses, onEdit, onDelete }: ExpenseListProps) {
   });
 
   const handleSearch = (value: string) => {
-    console.log('Search:', value);
     setSearchTerm(value);
   };
 
   const handleCategoryFilter = (value: string) => {
-    console.log('Filter by category:', value);
     setSelectedCategory(value);
   };
 
