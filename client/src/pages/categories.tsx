@@ -30,12 +30,13 @@ export default function Categories() {
   const resetCategory = useResetCategory();
 
   const categoryStats = categories.map(category => {
-    const categoryExpenses = expenses.filter(e => e.category === category.name);
+    const categoryName = category.name.trim();
+    const categoryExpenses = expenses.filter(e => e.category.trim() === categoryName);
     const total = categoryExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
     const count = categoryExpenses.length;
     return { 
       ...category,
-      category: category.name, 
+      category: categoryName, 
       color: category.color,
       icon: category.icon,
       allocatedFunds: category.allocatedFunds ? parseFloat(category.allocatedFunds) : 0,

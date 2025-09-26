@@ -64,6 +64,7 @@ export const insertCategorySchema = createInsertSchema(categories).omit({
   createdAt: true,
   updatedAt: true,
 }).extend({
+  name: z.string().trim().min(1, "Category name is required"),
   allocatedFunds: z.coerce.number().min(0, "Allocated funds must be non-negative").optional(),
 });
 
