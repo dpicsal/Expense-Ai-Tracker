@@ -20,12 +20,12 @@ export function ExpenseList({ expenses, onEdit, onDelete }: ExpenseListProps) {
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
 
   // Create filter options with "All Categories" plus dynamic categories
-  const categoryOptions = ["All Categories", ...categories.map(cat => cat.name)];
+  const categoryOptions = ["All Categories", ...categories.map(cat => cat.name.trim())];
 
   const filteredExpenses = expenses.filter(expense => {
     const matchesSearch = expense.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         expense.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "All Categories" || expense.category === selectedCategory;
+                         expense.category.trim().toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === "All Categories" || expense.category.trim() === selectedCategory.trim();
     return matchesSearch && matchesCategory;
   });
 
