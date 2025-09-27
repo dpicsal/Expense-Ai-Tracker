@@ -3,6 +3,7 @@ import { Edit, Trash2, CreditCard, Banknote, Building, Smartphone, MoreVertical 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -80,6 +81,35 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
     return balance < 0 ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400";
   };
 
+  const getProgressValue = () => {
+    const balance = parseFloat(paymentMethod.balance || "0");
+    
+    if (paymentMethod.type === "credit_card" && paymentMethod.creditLimit) {
+      // For credit cards, show utilization (balance used / credit limit)
+      return Math.min((balance / parseFloat(paymentMethod.creditLimit)) * 100, 100);
+    } else {
+      // For debit cards and cash, show balance as percentage of maximum expected balance
+      const maxBalance = Math.max(balance, 10000); // Use at least 10,000 AED as max, or current balance if higher
+      return Math.min((balance / maxBalance) * 100, 100);
+    }
+  };
+
+  const getProgressColor = () => {
+    const progressValue = getProgressValue();
+    
+    if (paymentMethod.type === "credit_card") {
+      // For credit cards, high utilization is bad
+      if (progressValue > 80) return "bg-red-500";
+      if (progressValue > 50) return "bg-yellow-500";
+      return "bg-green-500";
+    } else {
+      // For debit/cash, higher balance is generally good
+      if (progressValue < 20) return "bg-red-500";
+      if (progressValue < 50) return "bg-yellow-500";
+      return "bg-green-500";
+    }
+  };
+
   return (
     <>
       <Card className="hover-elevate transition-all duration-200" data-testid={`card-payment-method-${paymentMethod.id}`}>
@@ -137,6 +167,29 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
                 </span>
               </div>
             )}
+            
+            {/* Progress Bar */}
+            <div className="space-y-1" data-testid={`progress-payment-method-${paymentMethod.id}`}>
+              <div className="flex justify-between items-center text-xs text-muted-foreground">
+                <span>
+                  {paymentMethod.type === "credit_card" ? "Credit Utilization" : "Balance Level"}
+                </span>
+                <span className="font-medium">
+                  {getProgressValue().toFixed(0)}%
+                </span>
+              </div>
+              <div className="relative">
+                <Progress 
+                  value={getProgressValue()} 
+                  className="h-2"
+                />
+                <div 
+                  className={`absolute inset-0 h-2 rounded-full transition-all ${getProgressColor()}`}
+                  style={{ width: `${getProgressValue()}%` }}
+                />
+              </div>
+            </div>
+
             {!paymentMethod.isActive && (
               <Badge variant="destructive" className="text-xs">
                 Inactive
