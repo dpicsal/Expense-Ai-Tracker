@@ -16,6 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { insertExpenseSchema, type InsertExpense } from "@shared/schema";
 import { useCategories } from "@/hooks/use-categories";
+import { PAYMENT_METHODS } from "@shared/constants";
 
 interface ExpenseFormProps {
   onSubmit: (expense: InsertExpense) => void;
@@ -34,6 +35,7 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
       amount: initialData?.amount ?? 0,
       description: initialData?.description ?? "",
       category: initialData?.category ?? "",
+      paymentMethod: initialData?.paymentMethod ?? "cash",
       date: initialData?.date ?? new Date(),
     },
   });
@@ -120,6 +122,34 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
                       {categories.map((category) => (
                         <SelectItem key={category.id} value={category.name} data-testid={`option-category-${category.name}`}>
                           {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="paymentMethod"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Payment Method</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger data-testid="select-payment-method">
+                        <SelectValue placeholder="Select payment method" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {PAYMENT_METHODS.map((method) => (
+                        <SelectItem key={method.value} value={method.value} data-testid={`option-payment-${method.value}`}>
+                          {method.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
