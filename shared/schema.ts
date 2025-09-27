@@ -30,7 +30,7 @@ export const expenses = pgTable("expenses", {
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
   description: text("description").notNull(),
   category: text("category").notNull(),
- 
+  paymentMethod: text("payment_method").notNull().default("cash"),
   date: timestamp("date").notNull().defaultNow(),
 });
 
@@ -50,6 +50,7 @@ export const insertExpenseSchema = createInsertSchema(expenses).omit({
 }).extend({
   amount: z.coerce.number().positive("Amount must be positive"),
   date: z.coerce.date(),
+  paymentMethod: z.string().trim().min(1, "Payment method is required"),
 });
 
 // Fund History schemas
