@@ -185,16 +185,10 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
                   {getProgressValue().toFixed(0)}%
                 </span>
               </div>
-              <div className="relative">
-                <Progress 
-                  value={getProgressValue()} 
-                  className="h-2"
-                />
-                <div 
-                  className={`absolute inset-0 h-2 rounded-full transition-all ${getProgressColor()}`}
-                  style={{ width: `${getProgressValue()}%` }}
-                />
-              </div>
+              <Progress 
+                value={getProgressValue()} 
+                className={`h-2 ${getProgressColor()}`}
+              />
             </div>
 
             {!paymentMethod.isActive && (
