@@ -135,7 +135,7 @@ export default function Categories() {
         <div className="grid gap-4">
           {categoryStats.map((categoryData) => {
             const { category, color, icon, allocatedFunds, total, count } = categoryData;
-            const percentage = totalSpent > 0 ? (total / totalSpent) * 100 : 0;
+            const percentage = allocatedFunds > 0 ? (total / allocatedFunds) * 100 : 0;
             const remaining = allocatedFunds - total;
             const isExpanded = expandedHistories.has(category);
             
@@ -185,11 +185,11 @@ export default function Categories() {
                   
                   <div className="space-y-3">
                     <div className="flex justify-between text-sm">
-                      <span>Percentage of total spending</span>
+                      <span>Percentage of allocated funds spent</span>
                       <span className="tabular-nums">{percentage.toFixed(1)}%</span>
                     </div>
                     <Progress 
-                      value={percentage} 
+                      value={Math.min(percentage, 100)} 
                       className="h-2"
                       data-testid={`category-progress-${category}`}
                     />
