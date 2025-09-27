@@ -90,6 +90,17 @@ export class DatabaseStorage implements IStorage {
           .where(eq(categories.id, category.id));
       }
 
+      // Deduct from payment method balance
+      if (insertExpense.paymentMethod) {
+        await tx
+          .update(paymentMethods)
+          .set({
+            balance: sql`balance - ${toDecimalString(insertExpense.amount)}`,
+            updatedAt: sql`NOW()`
+          })
+          .where(eq(paymentMethods.id, insertExpense.paymentMethod));
+      }
+
       return expense;
     });
   }
@@ -140,6 +151,32 @@ export class DatabaseStorage implements IStorage {
           .where(eq(categories.id, newCategory.id));
       }
 
+      // Handle payment method balance changes
+      const oldPaymentMethod = oldExpense.paymentMethod;
+      const newPaymentMethod = updateData.paymentMethod ?? oldPaymentMethod;
+      
+      // Restore balance to old payment method
+      if (oldPaymentMethod) {
+        await tx
+          .update(paymentMethods)
+          .set({
+            balance: sql`balance + ${oldExpense.amount}`,
+            updatedAt: sql`NOW()`
+          })
+          .where(eq(paymentMethods.id, oldPaymentMethod));
+      }
+      
+      // Deduct balance from new payment method
+      if (newPaymentMethod) {
+        await tx
+          .update(paymentMethods)
+          .set({
+            balance: sql`balance - ${toDecimalString(newAmount)}`,
+            updatedAt: sql`NOW()`
+          })
+          .where(eq(paymentMethods.id, newPaymentMethod));
+      }
+
       return expense;
     });
   }
@@ -164,6 +201,17 @@ export class DatabaseStorage implements IStorage {
               updatedAt: sql`NOW()`
             })
             .where(eq(categories.id, category.id));
+        }
+
+        // Restore balance to payment method
+        if (expense.paymentMethod) {
+          await tx
+            .update(paymentMethods)
+            .set({
+              balance: sql`balance + ${expense.amount}`,
+              updatedAt: sql`NOW()`
+            })
+            .where(eq(paymentMethods.id, expense.paymentMethod));
         }
       }
 
