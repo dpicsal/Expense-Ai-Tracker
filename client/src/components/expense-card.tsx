@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { cn, formatCurrency } from "@/lib/utils";
 import { type Expense } from "@shared/schema";
 import { useCategories } from "@/hooks/use-categories";
+import { PAYMENT_METHODS } from "@shared/constants";
 
 interface ExpenseCardProps {
   expense: Expense;
@@ -23,6 +24,11 @@ export function ExpenseCard({ expense, onEdit, onDelete }: ExpenseCardProps) {
   const categoryData = categories.find(cat => cat.name === expense.category);
   const categoryColor = categoryData?.color || "bg-slate-50 text-slate-700 border border-slate-200 dark:bg-slate-950 dark:text-slate-300 dark:border-slate-800";
   const categoryIcon = categoryData?.icon || "Tag";
+  
+  // Find the payment method data for this expense
+  const paymentMethodData = PAYMENT_METHODS.find(method => method.value === expense.paymentMethod);
+  const paymentMethodLabel = paymentMethodData?.label || expense.paymentMethod;
+  const paymentMethodIcon = paymentMethodData?.icon || "CreditCard";
 
   const handleEdit = () => {
     onEdit?.(expense);
@@ -61,10 +67,23 @@ export function ExpenseCard({ expense, onEdit, onDelete }: ExpenseCardProps) {
             <p className="text-sm sm:text-base text-foreground/80 mb-1.5 sm:mb-2 truncate font-medium" data-testid={`expense-description-${expense.id}`}>
               {expense.description}
             </p>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <p className="text-xs sm:text-sm text-muted-foreground font-medium" data-testid={`expense-date-${expense.id}`}>
                 {format(toZonedTime(new Date(expense.date), "Asia/Dubai"), "dd/MM/yyyy")}
               </p>
+              <div className="flex items-center gap-1.5" data-testid={`expense-payment-method-${expense.id}`}>
+                {(() => {
+                  const PaymentIconComponent = Icons[paymentMethodIcon as keyof typeof Icons] as React.ComponentType<any>;
+                  return PaymentIconComponent ? (
+                    <div className="p-1 rounded-md bg-background/80">
+                      <PaymentIconComponent className="h-3 w-3 text-muted-foreground" />
+                    </div>
+                  ) : null;
+                })()}
+                <span className="text-xs sm:text-sm text-muted-foreground font-medium">
+                  {paymentMethodLabel}
+                </span>
+              </div>
             </div>
           </div>
           

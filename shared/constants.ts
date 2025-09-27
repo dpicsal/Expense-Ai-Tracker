@@ -81,3 +81,11 @@ export const CATEGORY_ICONS: Record<string, string> = {
   "Other": "Tag",
 };
 
+export const PAYMENT_METHODS = [
+  { value: "cash", label: "Cash", icon: "Banknote" },
+  { value: "credit_card", label: "Credit Card", icon: "CreditCard" },
+  { value: "debit_card", label: "Debit Card", icon: "CreditCard" },
+  { value: "bank_transfer", label: "Bank Transfer", icon: "Building" },
+  { value: "digital_wallet", label: "Digital Wallet", icon: "Smartphone" },
+] as const;
+
