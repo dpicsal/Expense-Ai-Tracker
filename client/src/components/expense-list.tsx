@@ -68,19 +68,6 @@ export function ExpenseList({ expenses, onEdit, onDelete }: ExpenseListProps) {
         </Select>
       </div>
 
-      {/* Summary */}
-      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg border border-primary/20">
-        <div className="flex items-center gap-2">
-          <span className="inline-block w-2 h-2 bg-primary rounded-full"></span>
-          <span className="text-sm font-medium text-primary">
-            {filteredExpenses.length} expenses found
-          </span>
-        </div>
-        <span className="text-xl font-bold tabular-nums text-primary" data-testid="text-total-amount">
-          AED {totalAmount.toFixed(2)}
-        </span>
-      </div>
-
       {/* Expense List */}
       {filteredExpenses.length === 0 ? (
         <div className="text-center py-12" data-testid="text-no-expenses">
