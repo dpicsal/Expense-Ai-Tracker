@@ -357,7 +357,7 @@ export default function Dashboard() {
           <DialogHeader>
             <DialogTitle>Add Expense to {selectedCategory}</DialogTitle>
             <DialogDescription>
-              Record a new expense for this category. This will update your payment method balance automatically.
+              Record a new expense for this category.
             </DialogDescription>
           </DialogHeader>
           <ExpenseForm
@@ -373,7 +373,7 @@ export default function Dashboard() {
           <DialogHeader>
             <DialogTitle>Edit Expense</DialogTitle>
             <DialogDescription>
-              Modify the details of your expense. Changes will update your payment method balance accordingly.
+              Modify the details of your expense.
             </DialogDescription>
           </DialogHeader>
           {editingExpense && (
@@ -381,8 +381,7 @@ export default function Dashboard() {
               onSubmit={handleUpdateExpense}
               initialData={{
                 ...editingExpense,
-                amount: parseFloat(editingExpense.amount),
-                paymentMethod: editingExpense.paymentMethod as any
+                amount: parseFloat(editingExpense.amount)
               }}
               isEditing
             />

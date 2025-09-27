@@ -62,8 +62,6 @@ export function useResetCategory() {
       // Invalidate all relevant data that may have been reset
       queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
       queryClient.invalidateQueries({ queryKey: ["/api/expenses"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/payment-methods"] });
     },
   });
 }

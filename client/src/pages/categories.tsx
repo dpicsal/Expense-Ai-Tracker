@@ -64,7 +64,7 @@ export default function Categories() {
       const result = await resetCategory.mutateAsync(categoryId);
       toast({
         title: "Category Reset Complete",
-        description: `Reset ${categoryName}: deleted ${result.deletedExpenses} expenses, ${result.deletedTransactions} transactions, and ${result.deletedFundHistory} fund entries.`,
+        description: `Reset ${categoryName}: deleted ${result.deletedExpenses} expenses and ${result.deletedFundHistory} fund entries.`,
       });
     } catch (error) {
       console.error("Error resetting category:", error);
@@ -103,7 +103,6 @@ export default function Categories() {
             data={{
               expenses,
               categories,
-              paymentMethods,
               fundHistory
             }}
             variant="outline"
@@ -227,7 +226,6 @@ export default function Categories() {
                         data={{
                           expenses,
                           categories,
-                          paymentMethods,
                           fundHistory
                         }}
                         categoryName={category}
@@ -272,7 +270,7 @@ export default function Categories() {
                           <AlertDialogHeader>
                             <AlertDialogTitle>Reset {category} Category</AlertDialogTitle>
                             <AlertDialogDescription>
-                              This will permanently delete all expenses, transactions, and fund history for the "{category}" category. 
+                              This will permanently delete all expenses and fund history for the "{category}" category. 
                               The category itself will remain but its allocated funds will be reset to 0.
                               This action cannot be undone.
                             </AlertDialogDescription>
