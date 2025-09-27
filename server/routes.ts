@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { 
   insertExpenseSchema, insertCategorySchema, 
-  insertFundHistorySchema
+  insertFundHistorySchema, insertPaymentMethodSchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -333,6 +333,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting fund history:", error);
       res.status(500).json({ error: "Failed to delete fund history" });
+    }
+  });
+
+  // Payment Methods Routes
+  // Get all payment methods
+  app.get("/api/payment-methods", async (req, res) => {
+    try {
+      const paymentMethods = await storage.getAllPaymentMethods();
+      res.json(paymentMethods);
+    } catch (error) {
+      console.error("Error fetching payment methods:", error);
+      res.status(500).json({ error: "Failed to fetch payment methods" });
+    }
+  });
+
+  // Get single payment method
+  app.get("/api/payment-methods/:id", async (req, res) => {
+    try {
+      const paymentMethod = await storage.getPaymentMethod(req.params.id);
+      if (!paymentMethod) {
+        return res.status(404).json({ error: "Payment method not found" });
+      }
+      res.json(paymentMethod);
+    } catch (error) {
+      console.error("Error fetching payment method:", error);
+      res.status(500).json({ error: "Failed to fetch payment method" });
+    }
+  });
+
+  // Create new payment method
+  app.post("/api/payment-methods", async (req, res) => {
+    try {
+      const validatedData = insertPaymentMethodSchema.parse(req.body);
+      const paymentMethod = await storage.createPaymentMethod(validatedData);
+      res.status(201).json(paymentMethod);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
+      console.error("Error creating payment method:", error);
+      res.status(500).json({ error: "Failed to create payment method" });
+    }
+  });
+
+  // Update payment method
+  app.put("/api/payment-methods/:id", async (req, res) => {
+    try {
+      const validatedData = insertPaymentMethodSchema.partial().parse(req.body);
+      const paymentMethod = await storage.updatePaymentMethod(req.params.id, validatedData);
+      if (!paymentMethod) {
+        return res.status(404).json({ error: "Payment method not found" });
+      }
+      res.json(paymentMethod);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
+      console.error("Error updating payment method:", error);
+      res.status(500).json({ error: "Failed to update payment method" });
+    }
+  });
+
+  // Delete payment method
+  app.delete("/api/payment-methods/:id", async (req, res) => {
+    try {
+      const success = await storage.deletePaymentMethod(req.params.id);
+      if (!success) {
+        return res.status(404).json({ error: "Payment method not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting payment method:", error);
+      res.status(500).json({ error: "Failed to delete payment method" });
     }
   });
 
