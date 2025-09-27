@@ -108,6 +108,103 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
     return "bg-yellow-500"; // Between 20-99%
   };
 
+  // Render credit card with special design
+  if (paymentMethod.type === "credit_card") {
+    return (
+      <>
+        <div 
+          className="relative w-full h-48 bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 rounded-xl shadow-xl hover-elevate transition-all duration-200 overflow-hidden"
+          data-testid={`card-payment-method-${paymentMethod.id}`}
+        >
+          {/* Credit Card Background Pattern */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent transform -skew-x-12"></div>
+          
+          {/* Header with menu */}
+          <div className="absolute top-4 right-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" data-testid={`button-payment-method-menu-${paymentMethod.id}`}>
+                  <MoreVertical className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => onEdit(paymentMethod)} data-testid={`button-edit-payment-method-${paymentMethod.id}`}>
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => setShowDeleteDialog(true)}
+                  className="text-red-600 dark:text-red-400"
+                  data-testid={`button-delete-payment-method-${paymentMethod.id}`}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Card Content */}
+          <div className="p-6 h-full flex flex-col justify-between text-white">
+            {/* Top Section */}
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
+                <Icon className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg text-white" data-testid={`text-payment-method-name-${paymentMethod.id}`}>
+                  {paymentMethod.name}
+                </h3>
+                <Badge variant="secondary" className="text-xs bg-white/20 text-white border-0">
+                  {typeLabel}
+                </Badge>
+              </div>
+            </div>
+
+            {/* Middle Section - Balances */}
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-white/70">Available Balance</span>
+                <span className={`font-bold text-lg text-white`} data-testid={`text-payment-method-balance-${paymentMethod.id}`}>
+                  {formatCurrency(parseFloat(paymentMethod.balance || "0"))}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-white/70">Credit Limit</span>
+                <span className="font-medium text-white/90" data-testid={`text-payment-method-limit-${paymentMethod.id}`}>
+                  {formatCurrency(parseFloat(paymentMethod.creditLimit || "0"))}
+                </span>
+              </div>
+            </div>
+
+            {/* Bottom Section - Progress */}
+            <div className="space-y-1" data-testid={`progress-payment-method-${paymentMethod.id}`}>
+              <div className="flex justify-between items-center text-xs text-white/70">
+                <span>Available Credit</span>
+                <span className="font-medium text-white">
+                  {getProgressValue().toFixed(0)}%
+                </span>
+              </div>
+              <div className="relative w-full h-2 bg-white/20 rounded-full overflow-hidden">
+                <div 
+                  className={`h-full transition-all rounded-full ${getProgressColor()}`}
+                  style={{ width: `${getProgressValue()}%` }}
+                />
+              </div>
+            </div>
+
+            {!paymentMethod.isActive && (
+              <Badge variant="destructive" className="text-xs absolute top-16 left-6">
+                Inactive
+              </Badge>
+            )}
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Regular card design for non-credit cards
   return (
     <>
       <Card className="hover-elevate transition-all duration-200" data-testid={`card-payment-method-${paymentMethod.id}`}>
@@ -150,28 +247,16 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
         <CardContent>
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">
-                {paymentMethod.type === "credit_card" ? "Balance" : "Current Balance"}
-              </span>
+              <span className="text-sm text-muted-foreground">Current Balance</span>
               <span className={`font-semibold ${getBalanceColor()}`} data-testid={`text-payment-method-balance-${paymentMethod.id}`}>
                 {formatCurrency(parseFloat(paymentMethod.balance || "0"))}
               </span>
             </div>
-            {paymentMethod.creditLimit && (
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Credit Limit</span>
-                <span className="font-medium text-muted-foreground" data-testid={`text-payment-method-limit-${paymentMethod.id}`}>
-                  {formatCurrency(parseFloat(paymentMethod.creditLimit))}
-                </span>
-              </div>
-            )}
             
             {/* Progress Bar */}
             <div className="space-y-1" data-testid={`progress-payment-method-${paymentMethod.id}`}>
               <div className="flex justify-between items-center text-xs text-muted-foreground">
-                <span>
-                  {paymentMethod.type === "credit_card" ? "Available Credit" : "Balance Level"}
-                </span>
+                <span>Balance Level</span>
                 <span className="font-medium">
                   {getProgressValue().toFixed(0)}%
                 </span>
