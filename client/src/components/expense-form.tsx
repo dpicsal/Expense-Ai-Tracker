@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { insertExpenseSchema, type InsertExpense } from "@shared/schema";
 import { useCategories } from "@/hooks/use-categories";
-import { PAYMENT_METHODS } from "@shared/constants";
+import { usePaymentMethods } from "@/hooks/use-payment-methods";
 
 interface ExpenseFormProps {
   onSubmit: (expense: InsertExpense) => void;
@@ -28,6 +28,7 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isMobile = useIsMobile();
   const { data: categories = [], isLoading: isLoadingCategories } = useCategories();
+  const { data: paymentMethods = [], isLoading: isLoadingPaymentMethods } = usePaymentMethods();
 
   const form = useForm<InsertExpense>({
     resolver: zodResolver(insertExpenseSchema),
@@ -35,7 +36,7 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
       amount: initialData?.amount ?? 0,
       description: initialData?.description ?? "",
       category: initialData?.category ?? "",
-      paymentMethod: initialData?.paymentMethod ?? "cash",
+      paymentMethod: initialData?.paymentMethod ?? "",
       date: initialData?.date ?? new Date(),
     },
   });
@@ -140,6 +141,7 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
+                    disabled={isLoadingPaymentMethods}
                   >
                     <FormControl>
                       <SelectTrigger data-testid="select-payment-method">
@@ -147,9 +149,9 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {PAYMENT_METHODS.map((method) => (
-                        <SelectItem key={method.value} value={method.value} data-testid={`option-payment-${method.value}`}>
-                          {method.label}
+                      {paymentMethods.filter(method => method.isActive).map((method) => (
+                        <SelectItem key={method.id} value={method.id} data-testid={`option-payment-${method.id}`}>
+                          {method.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -205,7 +207,7 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
             <div className="flex gap-4 pt-4">
               <Button
                 type="submit"
-                disabled={isSubmitting || isLoadingCategories}
+                disabled={isSubmitting || isLoadingCategories || isLoadingPaymentMethods}
                 className="flex-1"
                 data-testid="button-submit-expense"
               >
