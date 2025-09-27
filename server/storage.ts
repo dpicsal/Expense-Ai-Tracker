@@ -1,7 +1,6 @@
 import { 
-  expenses, categories, paymentMethods, transactions, fundHistory,
+  expenses, categories, fundHistory,
   type Expense, type InsertExpense, type Category, type InsertCategory,
-  type PaymentMethod, type InsertPaymentMethod, type Transaction, type InsertTransaction,
   type FundHistory, type InsertFundHistory
 } from "@shared/schema";
 import { db } from "./db";
@@ -47,21 +46,6 @@ export interface IStorage {
   deleteFundHistory(id: string): Promise<boolean>;
   addFundsToCategory(categoryId: string, amount: number, description?: string): Promise<{fundHistory: FundHistory, updatedCategory: Category}>;
 
-  // Payment Method management
-  getAllPaymentMethods(): Promise<PaymentMethod[]>;
-  getPaymentMethod(id: string): Promise<PaymentMethod | undefined>;
-  createPaymentMethod(paymentMethod: InsertPaymentMethod): Promise<PaymentMethod>;
-  updatePaymentMethod(id: string, paymentMethod: Partial<InsertPaymentMethod>): Promise<PaymentMethod | undefined>;
-  deletePaymentMethod(id: string): Promise<boolean>;
-  updatePaymentMethodBalance(id: string, amount: string | number, isIncome: boolean, tx?: any): Promise<PaymentMethod | undefined>;
-  getPaymentMethodByType(type: string): Promise<PaymentMethod | undefined>;
-
-  // Transaction management (unified income/expense)
-  getAllTransactions(): Promise<Transaction[]>;
-  getTransaction(id: string): Promise<Transaction | undefined>;
-  createTransaction(transaction: InsertTransaction): Promise<Transaction>;
-  updateTransaction(id: string, transaction: Partial<InsertTransaction>): Promise<Transaction | undefined>;
-  deleteTransaction(id: string): Promise<boolean>;
 
   // Data reset management
   resetCategory(categoryId: string): Promise<{deletedExpenses: number, deletedTransactions: number, deletedFundHistory: number, resetCategory: Category}>;
@@ -79,27 +63,14 @@ export class DatabaseStorage implements IStorage {
 
   async createExpense(insertExpense: InsertExpense): Promise<Expense> {
     return await db.transaction(async (tx) => {
-      if (!insertExpense.paymentMethodId) {
-        throw new Error("Payment method ID is required");
-      }
-
-      // Create the expense with the payment method ID
+      // Create the expense
       const [expense] = await tx
         .insert(expenses)
         .values({
           ...insertExpense,
           amount: toDecimalString(insertExpense.amount),
-          paymentMethodId: insertExpense.paymentMethodId,
         })
         .returning();
-
-      // Update the payment method balance
-      await this.updatePaymentMethodBalance(
-        insertExpense.paymentMethodId,
-        insertExpense.amount,
-        false, // expense reduces balance
-        tx
-      );
 
       // Deduct from category allocated funds
       const category = await this.getCategoryByName(insertExpense.category, tx);
@@ -119,25 +90,13 @@ export class DatabaseStorage implements IStorage {
 
   async updateExpense(id: string, updateData: Partial<InsertExpense>): Promise<Expense | undefined> {
     return await db.transaction(async (tx) => {
-      // Get the old expense to revert balance changes
+      // Get the old expense to revert category fund changes
       const [oldExpense] = await tx.select().from(expenses).where(eq(expenses.id, id));
       if (!oldExpense) return undefined;
-
-      // Ensure old expense has paymentMethodId (should exist after migration)
-      if (!oldExpense.paymentMethodId) {
-        throw new Error("Expense missing payment method ID - data integrity issue");
-      }
-
-      // Determine the new payment method ID to use
-      const newPaymentMethodId = updateData.paymentMethodId || oldExpense.paymentMethodId;
 
       const updateValues: any = { ...updateData };
       if (updateData.amount !== undefined) {
         updateValues.amount = toDecimalString(updateData.amount);
-      }
-      // Always update the payment method ID if provided
-      if (updateData.paymentMethodId) {
-        updateValues.paymentMethodId = updateData.paymentMethodId;
       }
       
       const [expense] = await tx
@@ -148,26 +107,10 @@ export class DatabaseStorage implements IStorage {
 
       if (!expense) return undefined;
 
-      // Revert old balance change
-      await this.updatePaymentMethodBalance(
-        oldExpense.paymentMethodId,
-        oldExpense.amount,
-        true, // reverse the expense (add back to balance)
-        tx
-      );
-
-      // Apply new balance change - keep as string to preserve precision
-      const newAmount = updateData.amount ?? oldExpense.amount;
-      await this.updatePaymentMethodBalance(
-        newPaymentMethodId,
-        newAmount,
-        false, // expense reduces balance
-        tx
-      );
-
       // Handle category fund changes
       const oldCategory = await this.getCategoryByName(oldExpense.category, tx);
       const newCategory = updateData.category ? await this.getCategoryByName(updateData.category, tx) : oldCategory;
+      const newAmount = updateData.amount ?? parseFloat(oldExpense.amount);
       
       // Restore funds to old category
       if (oldCategory) {
@@ -197,27 +140,14 @@ export class DatabaseStorage implements IStorage {
 
   async deleteExpense(id: string): Promise<boolean> {
     return await db.transaction(async (tx) => {
-      // Get the expense to revert balance changes
+      // Get the expense to restore category funds
       const [expense] = await tx.select().from(expenses).where(eq(expenses.id, id));
       if (!expense) return false;
-
-      // Ensure expense has paymentMethodId (should exist after migration)
-      if (!expense.paymentMethodId) {
-        throw new Error("Expense missing payment method ID - data integrity issue");
-      }
 
       const result = await tx.delete(expenses).where(eq(expenses.id, id));
       const deleted = (result.rowCount || 0) > 0;
 
       if (deleted) {
-        // Revert the balance change using the stored paymentMethodId
-        await this.updatePaymentMethodBalance(
-          expense.paymentMethodId,
-          expense.amount,
-          true, // reverse the expense (add back to balance)
-          tx
-        );
-        
         // Restore allocated funds to category
         const category = await this.getCategoryByName(expense.category, tx);
         if (category) {
@@ -431,187 +361,7 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
-  // =============== PAYMENT METHOD METHODS ===============
-  
-  async getAllPaymentMethods(): Promise<PaymentMethod[]> {
-    return await db.select().from(paymentMethods).orderBy(paymentMethods.name);
-  }
 
-  async getPaymentMethod(id: string): Promise<PaymentMethod | undefined> {
-    const [paymentMethod] = await db.select().from(paymentMethods).where(eq(paymentMethods.id, id));
-    return paymentMethod || undefined;
-  }
-
-  async createPaymentMethod(insertPaymentMethod: InsertPaymentMethod): Promise<PaymentMethod> {
-    const paymentMethodValues: any = { 
-      ...insertPaymentMethod,
-      balance: toDecimalString(insertPaymentMethod.balance),
-      updatedAt: sql`NOW()`
-    };
-    if (insertPaymentMethod.creditLimit !== undefined) {
-      paymentMethodValues.creditLimit = toDecimalString(insertPaymentMethod.creditLimit);
-    }
-    
-    const [paymentMethod] = await db
-      .insert(paymentMethods)
-      .values(paymentMethodValues)
-      .returning();
-    return paymentMethod;
-  }
-
-  async updatePaymentMethod(id: string, updateData: Partial<InsertPaymentMethod>): Promise<PaymentMethod | undefined> {
-    const updateValues: any = { 
-      ...updateData,
-      updatedAt: sql`NOW()`
-    };
-    if (updateData.balance !== undefined) {
-      updateValues.balance = toDecimalString(updateData.balance);
-    }
-    if (updateData.creditLimit !== undefined) {
-      updateValues.creditLimit = toDecimalString(updateData.creditLimit);
-    }
-    
-    const [paymentMethod] = await db
-      .update(paymentMethods)
-      .set(updateValues)
-      .where(eq(paymentMethods.id, id))
-      .returning();
-    return paymentMethod || undefined;
-  }
-
-  async deletePaymentMethod(id: string): Promise<boolean> {
-    // Note: This will be restricted by the database due to foreign key constraint
-    const result = await db.delete(paymentMethods).where(eq(paymentMethods.id, id));
-    return (result.rowCount || 0) > 0;
-  }
-
-  async getPaymentMethodByType(type: string): Promise<PaymentMethod | undefined> {
-    const [paymentMethod] = await db.select().from(paymentMethods).where(eq(paymentMethods.type, type));
-    return paymentMethod || undefined;
-  }
-
-  async updatePaymentMethodBalance(id: string, amount: string | number, isIncome: boolean, tx?: any): Promise<PaymentMethod | undefined> {
-    const dbInstance = tx || db;
-    
-    // Perform atomic balance update using SQL arithmetic to avoid floating-point issues
-    const amountStr = toDecimalString(amount);
-    const balanceChange = isIncome ? amountStr : `-${amountStr}`;
-    
-    const [updatedMethod] = await dbInstance
-      .update(paymentMethods)
-      .set({
-        balance: sql`balance + ${balanceChange}`,
-        updatedAt: sql`NOW()`
-      })
-      .where(eq(paymentMethods.id, id))
-      .returning();
-      
-    return updatedMethod || undefined;
-  }
-
-  // =============== TRANSACTION METHODS ===============
-  
-  async getAllTransactions(): Promise<Transaction[]> {
-    return await db.select().from(transactions).orderBy(desc(transactions.date));
-  }
-
-  async getTransaction(id: string): Promise<Transaction | undefined> {
-    const [transaction] = await db.select().from(transactions).where(eq(transactions.id, id));
-    return transaction || undefined;
-  }
-
-  async createTransaction(insertTransaction: InsertTransaction): Promise<Transaction> {
-    return await db.transaction(async (tx) => {
-      // Create the transaction
-      const [transaction] = await tx
-        .insert(transactions)
-        .values({
-          ...insertTransaction,
-          amount: toDecimalString(insertTransaction.amount),
-          updatedAt: sql`NOW()`
-        })
-        .returning();
-
-      // Update payment method balance atomically within the same transaction
-      await this.updatePaymentMethodBalance(
-        insertTransaction.paymentMethodId, 
-        insertTransaction.amount, 
-        insertTransaction.type === 'income',
-        tx
-      );
-
-      return transaction;
-    });
-  }
-
-  async updateTransaction(id: string, updateData: Partial<InsertTransaction>): Promise<Transaction | undefined> {
-    return await db.transaction(async (tx) => {
-      // Get the old transaction to revert balance changes (using tx instance)
-      const [oldTransaction] = await tx.select().from(transactions).where(eq(transactions.id, id));
-      if (!oldTransaction) return undefined;
-
-      const updateValues: any = { 
-        ...updateData,
-        updatedAt: sql`NOW()`
-      };
-      if (updateData.amount !== undefined) {
-        updateValues.amount = toDecimalString(updateData.amount);
-      }
-      
-      const [transaction] = await tx
-        .update(transactions)
-        .set(updateValues)
-        .where(eq(transactions.id, id))
-        .returning();
-
-      if (!transaction) return undefined;
-
-      // Revert old balance change
-      await this.updatePaymentMethodBalance(
-        oldTransaction.paymentMethodId,
-        oldTransaction.amount, // Pass string directly to avoid precision loss
-        oldTransaction.type === 'expense', // Reverse the original operation
-        tx
-      );
-
-      // Apply new balance change - use nullish coalescing for safe fallbacks
-      const newPaymentMethodId = updateData.paymentMethodId ?? oldTransaction.paymentMethodId;
-      const newAmount = updateData.amount ?? oldTransaction.amount; // No parseFloat to preserve precision
-      const newType = updateData.type ?? oldTransaction.type;
-      
-      await this.updatePaymentMethodBalance(
-        newPaymentMethodId,
-        newAmount, // This could be number (from updateData) or string (fallback)
-        newType === 'income',
-        tx
-      );
-
-      return transaction;
-    });
-  }
-
-  async deleteTransaction(id: string): Promise<boolean> {
-    return await db.transaction(async (tx) => {
-      // Get the transaction to revert balance changes (using tx instance)
-      const [transaction] = await tx.select().from(transactions).where(eq(transactions.id, id));
-      if (!transaction) return false;
-
-      const result = await tx.delete(transactions).where(eq(transactions.id, id));
-      const deleted = (result.rowCount || 0) > 0;
-
-      if (deleted) {
-        // Revert the balance change atomically within the same transaction
-        await this.updatePaymentMethodBalance(
-          transaction.paymentMethodId,
-          transaction.amount, // Pass string directly to avoid precision loss
-          transaction.type === 'expense', // Reverse the original operation
-          tx
-        );
-      }
-
-      return deleted;
-    });
-  }
 
   async resetCategory(categoryId: string): Promise<{deletedExpenses: number, deletedTransactions: number, deletedFundHistory: number, resetCategory: Category}> {
     return await db.transaction(async (tx) => {
@@ -621,44 +371,14 @@ export class DatabaseStorage implements IStorage {
         throw new Error("Category not found");
       }
 
-      // Delete all expenses for this category and revert payment method balances
+      // Delete all expenses for this category (no payment method balance updates needed)
       const categoryExpenses = await tx.select().from(expenses).where(eq(expenses.category, category.name));
       let deletedExpensesCount = 0;
       
       for (const expense of categoryExpenses) {
-        // Revert the balance change before deleting
-        const paymentMethod = await this.getPaymentMethodByType(expense.paymentMethod);
-        if (paymentMethod) {
-          await this.updatePaymentMethodBalance(
-            paymentMethod.id,
-            expense.amount,
-            true, // reverse the expense (add back to balance)
-            tx
-          );
-        }
-        
         const result = await tx.delete(expenses).where(eq(expenses.id, expense.id));
         if ((result.rowCount || 0) > 0) {
           deletedExpensesCount++;
-        }
-      }
-
-      // Delete all transactions for this category and revert payment method balances
-      const categoryTransactions = await tx.select().from(transactions).where(eq(transactions.category, category.name));
-      let deletedTransactionsCount = 0;
-      
-      for (const transaction of categoryTransactions) {
-        // Revert the balance change before deleting
-        await this.updatePaymentMethodBalance(
-          transaction.paymentMethodId,
-          transaction.amount,
-          transaction.type === 'expense', // Reverse the original operation
-          tx
-        );
-        
-        const result = await tx.delete(transactions).where(eq(transactions.id, transaction.id));
-        if ((result.rowCount || 0) > 0) {
-          deletedTransactionsCount++;
         }
       }
 
@@ -685,7 +405,7 @@ export class DatabaseStorage implements IStorage {
 
       return {
         deletedExpenses: deletedExpensesCount,
-        deletedTransactions: deletedTransactionsCount,
+        deletedTransactions: 0, // No transactions anymore
         deletedFundHistory: deletedFundHistoryCount,
         resetCategory: resetCategory
       };
