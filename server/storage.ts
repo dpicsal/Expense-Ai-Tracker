@@ -1,7 +1,7 @@
 import { 
-  expenses, categories, fundHistory,
+  expenses, categories, fundHistory, paymentMethods,
   type Expense, type InsertExpense, type Category, type InsertCategory,
-  type FundHistory, type InsertFundHistory
+  type FundHistory, type InsertFundHistory, type PaymentMethod, type InsertPaymentMethod
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql } from "drizzle-orm";
@@ -46,6 +46,12 @@ export interface IStorage {
   deleteFundHistory(id: string): Promise<boolean>;
   addFundsToCategory(categoryId: string, amount: number, description?: string): Promise<{fundHistory: FundHistory, updatedCategory: Category}>;
 
+  // Payment Method management
+  getAllPaymentMethods(): Promise<PaymentMethod[]>;
+  getPaymentMethod(id: string): Promise<PaymentMethod | undefined>;
+  createPaymentMethod(paymentMethod: InsertPaymentMethod): Promise<PaymentMethod>;
+  updatePaymentMethod(id: string, paymentMethod: Partial<InsertPaymentMethod>): Promise<PaymentMethod | undefined>;
+  deletePaymentMethod(id: string): Promise<boolean>;
 
   // Data reset management
   resetCategory(categoryId: string): Promise<{deletedExpenses: number, deletedFundHistory: number, resetCategory: Category}>;
@@ -361,7 +367,57 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
+  // Payment Method management methods
+  async getAllPaymentMethods(): Promise<PaymentMethod[]> {
+    return await db.select().from(paymentMethods).orderBy(desc(paymentMethods.createdAt));
+  }
 
+  async getPaymentMethod(id: string): Promise<PaymentMethod | undefined> {
+    const [paymentMethod] = await db.select().from(paymentMethods).where(eq(paymentMethods.id, id));
+    return paymentMethod || undefined;
+  }
+
+  async createPaymentMethod(insertPaymentMethod: InsertPaymentMethod): Promise<PaymentMethod> {
+    const [paymentMethod] = await db
+      .insert(paymentMethods)
+      .values({
+        ...insertPaymentMethod,
+        balance: insertPaymentMethod.balance ? toDecimalString(insertPaymentMethod.balance) : "0",
+        creditLimit: insertPaymentMethod.creditLimit ? toDecimalString(insertPaymentMethod.creditLimit) : null,
+        updatedAt: sql`NOW()`,
+      })
+      .returning();
+
+    return paymentMethod;
+  }
+
+  async updatePaymentMethod(id: string, updatePaymentMethod: Partial<InsertPaymentMethod>): Promise<PaymentMethod | undefined> {
+    const updateData: any = {
+      ...updatePaymentMethod,
+      updatedAt: sql`NOW()`,
+    };
+
+    // Handle decimal conversions
+    if (updatePaymentMethod.balance !== undefined) {
+      updateData.balance = toDecimalString(updatePaymentMethod.balance);
+    }
+    if (updatePaymentMethod.creditLimit !== undefined) {
+      updateData.creditLimit = updatePaymentMethod.creditLimit ? toDecimalString(updatePaymentMethod.creditLimit) : null;
+    }
+
+    const [paymentMethod] = await db
+      .update(paymentMethods)
+      .set(updateData)
+      .where(eq(paymentMethods.id, id))
+      .returning();
+
+    return paymentMethod || undefined;
+  }
+
+  async deletePaymentMethod(id: string): Promise<boolean> {
+    const result = await db.delete(paymentMethods).where(eq(paymentMethods.id, id));
+    return (result.rowCount || 0) > 0;
+  }
 
   async resetCategory(categoryId: string): Promise<{deletedExpenses: number, deletedFundHistory: number, resetCategory: Category}> {
     return await db.transaction(async (tx) => {

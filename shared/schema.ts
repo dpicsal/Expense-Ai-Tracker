@@ -24,6 +24,18 @@ export const fundHistory = pgTable("fund_history", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Payment Methods table - tracks user's payment accounts
+export const paymentMethods = pgTable("payment_methods", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(), // e.g. "Chase Credit Card", "My Cash Wallet" 
+  type: text("type").notNull(), // cash, credit_card, debit_card, bank_transfer, digital_wallet
+  balance: decimal("balance", { precision: 10, scale: 2 }).default("0"),
+  creditLimit: decimal("credit_limit", { precision: 10, scale: 2 }),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 // Expenses table
 export const expenses = pgTable("expenses", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -62,6 +74,21 @@ export const insertFundHistorySchema = createInsertSchema(fundHistory).omit({
   addedAt: z.coerce.date(),
 });
 
+// Payment Method schemas
+export const insertPaymentMethodSchema = createInsertSchema(paymentMethods).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  name: z.string().trim().min(1, "Payment method name is required"),
+  type: z.enum(["cash", "credit_card", "debit_card", "bank_transfer", "digital_wallet"], {
+    errorMap: () => ({ message: "Please select a valid payment method type" })
+  }),
+  balance: z.coerce.number().optional(),
+  creditLimit: z.coerce.number().positive().optional(),
+  isActive: z.boolean().optional(),
+});
+
 // Type exports
 
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
@@ -69,6 +96,9 @@ export type Category = typeof categories.$inferSelect;
 
 export type InsertFundHistory = z.infer<typeof insertFundHistorySchema>;
 export type FundHistory = typeof fundHistory.$inferSelect;
+
+export type InsertPaymentMethod = z.infer<typeof insertPaymentMethodSchema>;
+export type PaymentMethod = typeof paymentMethods.$inferSelect;
 
 export type InsertExpense = z.infer<typeof insertExpenseSchema>;
 export type Expense = typeof expenses.$inferSelect;
