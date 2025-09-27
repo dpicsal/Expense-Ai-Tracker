@@ -7,6 +7,21 @@ import {
 import { db } from "./db";
 import { eq, desc, sql } from "drizzle-orm";
 
+// Decimal conversion helpers to standardize handling between numbers and DB strings
+function toDecimalString(value: number | string): string {
+  if (typeof value === 'string') return value;
+  return value.toString();
+}
+
+function toNumber(value: string | number): number {
+  if (typeof value === 'number') return value;
+  const parsed = parseFloat(value);
+  if (isNaN(parsed)) {
+    throw new Error(`Cannot convert "${value}" to number`);
+  }
+  return parsed;
+}
+
 export interface IStorage {
   // Legacy expense management (keeping for backward compatibility)
   getAllExpenses(): Promise<Expense[]>;
@@ -18,7 +33,7 @@ export interface IStorage {
   // Category management
   getAllCategories(): Promise<Category[]>;
   getCategory(id: string): Promise<Category | undefined>;
-  getCategoryByName(name: string): Promise<Category | undefined>;
+  getCategoryByName(name: string, tx?: any): Promise<Category | undefined>;
   createCategory(category: InsertCategory): Promise<Category>;
   updateCategory(id: string, category: Partial<InsertCategory>): Promise<Category | undefined>;
   deleteCategory(id: string): Promise<boolean>;
@@ -38,7 +53,7 @@ export interface IStorage {
   createPaymentMethod(paymentMethod: InsertPaymentMethod): Promise<PaymentMethod>;
   updatePaymentMethod(id: string, paymentMethod: Partial<InsertPaymentMethod>): Promise<PaymentMethod | undefined>;
   deletePaymentMethod(id: string): Promise<boolean>;
-  updatePaymentMethodBalance(id: string, amount: number, isIncome: boolean): Promise<PaymentMethod | undefined>;
+  updatePaymentMethodBalance(id: string, amount: string | number, isIncome: boolean, tx?: any): Promise<PaymentMethod | undefined>;
   getPaymentMethodByType(type: string): Promise<PaymentMethod | undefined>;
 
   // Transaction management (unified income/expense)
@@ -73,7 +88,7 @@ export class DatabaseStorage implements IStorage {
         .insert(expenses)
         .values({
           ...insertExpense,
-          amount: insertExpense.amount.toString(),
+          amount: toDecimalString(insertExpense.amount),
           paymentMethodId: insertExpense.paymentMethodId,
         })
         .returning();
@@ -92,7 +107,7 @@ export class DatabaseStorage implements IStorage {
         await tx
           .update(categories)
           .set({
-            allocatedFunds: sql`allocated_funds - ${insertExpense.amount.toString()}`,
+            allocatedFunds: sql`allocated_funds - ${toDecimalString(insertExpense.amount)}`,
             updatedAt: sql`NOW()`
           })
           .where(eq(categories.id, category.id));
@@ -118,7 +133,7 @@ export class DatabaseStorage implements IStorage {
 
       const updateValues: any = { ...updateData };
       if (updateData.amount !== undefined) {
-        updateValues.amount = updateData.amount.toString();
+        updateValues.amount = toDecimalString(updateData.amount);
       }
       // Always update the payment method ID if provided
       if (updateData.paymentMethodId) {
@@ -141,8 +156,8 @@ export class DatabaseStorage implements IStorage {
         tx
       );
 
-      // Apply new balance change
-      const newAmount = updateData.amount ?? parseFloat(oldExpense.amount);
+      // Apply new balance change - keep as string to preserve precision
+      const newAmount = updateData.amount ?? oldExpense.amount;
       await this.updatePaymentMethodBalance(
         newPaymentMethodId,
         newAmount,
@@ -170,7 +185,7 @@ export class DatabaseStorage implements IStorage {
         await tx
           .update(categories)
           .set({
-            allocatedFunds: sql`allocated_funds - ${newAmount.toString()}`,
+            allocatedFunds: sql`allocated_funds - ${toDecimalString(newAmount)}`,
             updatedAt: sql`NOW()`
           })
           .where(eq(categories.id, newCategory.id));
@@ -242,7 +257,7 @@ export class DatabaseStorage implements IStorage {
       updatedAt: sql`NOW()`
     };
     if (insertCategory.allocatedFunds !== undefined) {
-      categoryValues.allocatedFunds = insertCategory.allocatedFunds.toString();
+      categoryValues.allocatedFunds = toDecimalString(insertCategory.allocatedFunds);
     }
     
     const [category] = await db
@@ -258,7 +273,7 @@ export class DatabaseStorage implements IStorage {
       updatedAt: sql`NOW()`
     };
     if (updateData.allocatedFunds !== undefined) {
-      updateValues.allocatedFunds = updateData.allocatedFunds.toString();
+      updateValues.allocatedFunds = toDecimalString(updateData.allocatedFunds);
     }
     
     const [category] = await db
@@ -294,7 +309,7 @@ export class DatabaseStorage implements IStorage {
   async createFundHistory(insertFundHistory: InsertFundHistory): Promise<FundHistory> {
     const historyValues: any = {
       ...insertFundHistory,
-      amount: insertFundHistory.amount.toString(),
+      amount: toDecimalString(insertFundHistory.amount),
     };
     
     const [history] = await db
@@ -312,7 +327,7 @@ export class DatabaseStorage implements IStorage {
 
       const updateValues: any = { ...updateData };
       if (updateData.amount !== undefined) {
-        updateValues.amount = updateData.amount.toString();
+        updateValues.amount = toDecimalString(updateData.amount);
       }
       
       const [updatedHistory] = await tx
@@ -326,7 +341,7 @@ export class DatabaseStorage implements IStorage {
       const oldCategoryId = oldHistory.categoryId;
       const newCategoryId = updateData.categoryId ?? oldHistory.categoryId;
       const oldAmount = oldHistory.amount; // String from database (DECIMAL)
-      const newAmount = updateData.amount?.toString() ?? oldHistory.amount; // Convert to string
+      const newAmount = updateData.amount !== undefined ? toDecimalString(updateData.amount) : oldHistory.amount;
 
       // Handle category change or amount change
       if (oldCategoryId !== newCategoryId) {
@@ -392,7 +407,7 @@ export class DatabaseStorage implements IStorage {
         .insert(fundHistory)
         .values({
           categoryId,
-          amount: amount.toString(),
+          amount: toDecimalString(amount),
           description: description || null,
           addedAt: new Date(),
         })
@@ -402,7 +417,7 @@ export class DatabaseStorage implements IStorage {
       const [updatedCategory] = await tx
         .update(categories)
         .set({
-          allocatedFunds: sql`allocated_funds + ${amount.toString()}`,
+          allocatedFunds: sql`allocated_funds + ${toDecimalString(amount)}`,
           updatedAt: sql`NOW()`
         })
         .where(eq(categories.id, categoryId))
@@ -430,11 +445,11 @@ export class DatabaseStorage implements IStorage {
   async createPaymentMethod(insertPaymentMethod: InsertPaymentMethod): Promise<PaymentMethod> {
     const paymentMethodValues: any = { 
       ...insertPaymentMethod,
-      balance: insertPaymentMethod.balance.toString(),
+      balance: toDecimalString(insertPaymentMethod.balance),
       updatedAt: sql`NOW()`
     };
     if (insertPaymentMethod.creditLimit !== undefined) {
-      paymentMethodValues.creditLimit = insertPaymentMethod.creditLimit.toString();
+      paymentMethodValues.creditLimit = toDecimalString(insertPaymentMethod.creditLimit);
     }
     
     const [paymentMethod] = await db
@@ -450,10 +465,10 @@ export class DatabaseStorage implements IStorage {
       updatedAt: sql`NOW()`
     };
     if (updateData.balance !== undefined) {
-      updateValues.balance = updateData.balance.toString();
+      updateValues.balance = toDecimalString(updateData.balance);
     }
     if (updateData.creditLimit !== undefined) {
-      updateValues.creditLimit = updateData.creditLimit.toString();
+      updateValues.creditLimit = toDecimalString(updateData.creditLimit);
     }
     
     const [paymentMethod] = await db
@@ -479,7 +494,7 @@ export class DatabaseStorage implements IStorage {
     const dbInstance = tx || db;
     
     // Perform atomic balance update using SQL arithmetic to avoid floating-point issues
-    const amountStr = typeof amount === 'string' ? amount : amount.toString();
+    const amountStr = toDecimalString(amount);
     const balanceChange = isIncome ? amountStr : `-${amountStr}`;
     
     const [updatedMethod] = await dbInstance
@@ -512,7 +527,7 @@ export class DatabaseStorage implements IStorage {
         .insert(transactions)
         .values({
           ...insertTransaction,
-          amount: insertTransaction.amount.toString(),
+          amount: toDecimalString(insertTransaction.amount),
           updatedAt: sql`NOW()`
         })
         .returning();
@@ -540,7 +555,7 @@ export class DatabaseStorage implements IStorage {
         updatedAt: sql`NOW()`
       };
       if (updateData.amount !== undefined) {
-        updateValues.amount = updateData.amount.toString();
+        updateValues.amount = toDecimalString(updateData.amount);
       }
       
       const [transaction] = await tx
