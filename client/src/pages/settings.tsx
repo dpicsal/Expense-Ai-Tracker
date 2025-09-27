@@ -124,7 +124,6 @@ export default function Settings() {
         { header: 'Description', key: 'description', width: 30 },
         { header: 'Category', key: 'category', width: 20 },
         { header: 'Amount (AED)', key: 'amount', width: 15 },
-        { header: 'Payment Method', key: 'paymentMethod', width: 20 },
       ];
 
       // Style the header row
@@ -142,7 +141,6 @@ export default function Settings() {
           description: expense.description,
           category: expense.category,
           amount: parseFloat(expense.amount),
-          paymentMethod: expense.paymentMethod,
         });
       });
 

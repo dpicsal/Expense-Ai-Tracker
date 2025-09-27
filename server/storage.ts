@@ -48,7 +48,7 @@ export interface IStorage {
 
 
   // Data reset management
-  resetCategory(categoryId: string): Promise<{deletedExpenses: number, deletedTransactions: number, deletedFundHistory: number, resetCategory: Category}>;
+  resetCategory(categoryId: string): Promise<{deletedExpenses: number, deletedFundHistory: number, resetCategory: Category}>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -363,7 +363,7 @@ export class DatabaseStorage implements IStorage {
 
 
 
-  async resetCategory(categoryId: string): Promise<{deletedExpenses: number, deletedTransactions: number, deletedFundHistory: number, resetCategory: Category}> {
+  async resetCategory(categoryId: string): Promise<{deletedExpenses: number, deletedFundHistory: number, resetCategory: Category}> {
     return await db.transaction(async (tx) => {
       // Get the category first to ensure it exists
       const [category] = await tx.select().from(categories).where(eq(categories.id, categoryId));
@@ -405,7 +405,6 @@ export class DatabaseStorage implements IStorage {
 
       return {
         deletedExpenses: deletedExpensesCount,
-        deletedTransactions: 0, // No transactions anymore
         deletedFundHistory: deletedFundHistoryCount,
         resetCategory: resetCategory
       };
