@@ -88,10 +88,10 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
       // For credit cards, show utilization (balance used / credit limit)
       return Math.min((balance / parseFloat(paymentMethod.creditLimit)) * 100, 100);
     } else {
-      // For debit cards and cash, show balance relative to a reasonable scale
-      // Use 20,000 AED as a reference point for "good" balance
-      const referenceBalance = 20000;
-      return Math.min((balance / referenceBalance) * 100, 100);
+      // For debit cards and cash, show current balance relative to max balance ever had
+      const maxBalance = parseFloat(paymentMethod.maxBalance || paymentMethod.balance || "0");
+      if (maxBalance <= 0) return 100; // If no max balance, show full
+      return Math.min((balance / maxBalance) * 100, 100);
     }
   };
 

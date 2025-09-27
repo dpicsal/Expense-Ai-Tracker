@@ -30,6 +30,7 @@ export const paymentMethods = pgTable("payment_methods", {
   name: text("name").notNull(), // e.g. "Chase Credit Card", "My Cash Wallet" 
   type: text("type").notNull(), // cash, credit_card, debit_card, bank_transfer, digital_wallet
   balance: decimal("balance", { precision: 10, scale: 2 }).default("0"),
+  maxBalance: decimal("max_balance", { precision: 10, scale: 2 }).default("0"), // Track highest balance for progress bars
   creditLimit: decimal("credit_limit", { precision: 10, scale: 2 }),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),

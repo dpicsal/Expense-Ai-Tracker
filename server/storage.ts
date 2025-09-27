@@ -426,11 +426,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createPaymentMethod(insertPaymentMethod: InsertPaymentMethod): Promise<PaymentMethod> {
+    const balance = insertPaymentMethod.balance ? toDecimalString(insertPaymentMethod.balance) : "0";
     const [paymentMethod] = await db
       .insert(paymentMethods)
       .values({
         ...insertPaymentMethod,
-        balance: insertPaymentMethod.balance ? toDecimalString(insertPaymentMethod.balance) : "0",
+        balance,
+        maxBalance: balance, // Set maxBalance to initial balance
         creditLimit: insertPaymentMethod.creditLimit ? toDecimalString(insertPaymentMethod.creditLimit) : null,
         updatedAt: sql`NOW()`,
       })
@@ -440,26 +442,39 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updatePaymentMethod(id: string, updatePaymentMethod: Partial<InsertPaymentMethod>): Promise<PaymentMethod | undefined> {
-    const updateData: any = {
-      ...updatePaymentMethod,
-      updatedAt: sql`NOW()`,
-    };
+    return await db.transaction(async (tx) => {
+      // Get current payment method to check maxBalance
+      const [currentPaymentMethod] = await tx.select().from(paymentMethods).where(eq(paymentMethods.id, id));
+      if (!currentPaymentMethod) return undefined;
 
-    // Handle decimal conversions
-    if (updatePaymentMethod.balance !== undefined) {
-      updateData.balance = toDecimalString(updatePaymentMethod.balance);
-    }
-    if (updatePaymentMethod.creditLimit !== undefined) {
-      updateData.creditLimit = updatePaymentMethod.creditLimit ? toDecimalString(updatePaymentMethod.creditLimit) : null;
-    }
+      const updateData: any = {
+        ...updatePaymentMethod,
+        updatedAt: sql`NOW()`,
+      };
 
-    const [paymentMethod] = await db
-      .update(paymentMethods)
-      .set(updateData)
-      .where(eq(paymentMethods.id, id))
-      .returning();
+      // Handle decimal conversions
+      if (updatePaymentMethod.balance !== undefined) {
+        updateData.balance = toDecimalString(updatePaymentMethod.balance);
+        
+        // Update maxBalance if new balance is higher
+        const newBalance = toNumber(updateData.balance);
+        const currentMaxBalance = toNumber(currentPaymentMethod.maxBalance || "0");
+        if (newBalance > currentMaxBalance) {
+          updateData.maxBalance = toDecimalString(newBalance);
+        }
+      }
+      if (updatePaymentMethod.creditLimit !== undefined) {
+        updateData.creditLimit = updatePaymentMethod.creditLimit ? toDecimalString(updatePaymentMethod.creditLimit) : null;
+      }
 
-    return paymentMethod || undefined;
+      const [paymentMethod] = await tx
+        .update(paymentMethods)
+        .set(updateData)
+        .where(eq(paymentMethods.id, id))
+        .returning();
+
+      return paymentMethod || undefined;
+    });
   }
 
   async deletePaymentMethod(id: string): Promise<boolean> {
