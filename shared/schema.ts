@@ -30,7 +30,7 @@ export const expenses = pgTable("expenses", {
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
   description: text("description").notNull(),
   category: text("category").notNull(),
-  paymentMethod: text("payment_method").notNull().default("cash"), // Payment method type 
+ 
   date: timestamp("date").notNull().defaultNow(),
 });
 
@@ -43,7 +43,6 @@ export const insertCategorySchema = createInsertSchema(categories).omit({
   allocatedFunds: z.coerce.number().min(0, "Allocated funds must be non-negative").optional(),
 });
 
-const paymentMethodEnum = z.enum(["cash", "credit_card", "debit_card", "bank_transfer", "digital_wallet", "other"]);
 
 // Expenses schema
 export const insertExpenseSchema = createInsertSchema(expenses).omit({
@@ -51,7 +50,6 @@ export const insertExpenseSchema = createInsertSchema(expenses).omit({
 }).extend({
   amount: z.coerce.number().positive("Amount must be positive"),
   date: z.coerce.date(),
-  paymentMethod: paymentMethodEnum.optional(), // Payment method type
 });
 
 // Fund History schemas
@@ -64,8 +62,6 @@ export const insertFundHistorySchema = createInsertSchema(fundHistory).omit({
 });
 
 // Type exports
-export type PaymentMethodType = z.infer<typeof paymentMethodEnum>;
-export const PAYMENT_METHOD_TYPES = paymentMethodEnum.options;
 
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type Category = typeof categories.$inferSelect;

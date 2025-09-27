@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn, formatCurrency } from "@/lib/utils";
 import { type Expense } from "@shared/schema";
-import { PAYMENT_METHOD_LABELS } from "@shared/constants";
 import { useCategories } from "@/hooks/use-categories";
 
 interface ExpenseCardProps {
@@ -66,15 +65,6 @@ export function ExpenseCard({ expense, onEdit, onDelete }: ExpenseCardProps) {
               <p className="text-xs sm:text-sm text-muted-foreground font-medium" data-testid={`expense-date-${expense.id}`}>
                 {format(toZonedTime(new Date(expense.date), "Asia/Dubai"), "dd/MM/yyyy")}
               </p>
-              {expense.paymentMethod && (
-                <Badge 
-                  variant="outline" 
-                  className="text-xs px-2 py-0.5"
-                  data-testid={`expense-payment-method-${expense.id}`}
-                >
-                  {PAYMENT_METHOD_LABELS[expense.paymentMethod] || expense.paymentMethod}
-                </Badge>
-              )}
             </div>
           </div>
           

@@ -28,12 +28,6 @@ const navigationItems = [
     testId: "tab-categories"
   },
   {
-    title: "Payments",
-    icon: Wallet,
-    href: "/payment-methods",
-    testId: "tab-payment-methods"
-  },
-  {
     title: "Settings",
     icon: Settings,
     href: "/settings",

@@ -9,7 +9,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useToast } from "@/hooks/use-toast";
 import { useExpenses } from "@/hooks/use-expenses";
 import { useCategories, useResetCategory } from "@/hooks/use-categories";
-import { usePaymentMethods } from "@/hooks/use-payment-methods";
 import { useFundHistory } from "@/hooks/use-fund-history";
 import { CategoryForm } from "@/components/category-form";
 import { AddFundsForm } from "@/components/add-funds-form";
@@ -21,7 +20,6 @@ import { Plus, DollarSign, ChevronDown, ChevronUp, Wallet, RotateCcw } from "luc
 export default function Categories() {
   const { data: expenses = [], isLoading: expensesLoading } = useExpenses();
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
-  const { data: paymentMethods = [] } = usePaymentMethods();
   const { data: fundHistory = [] } = useFundHistory();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [addFundsDialogOpen, setAddFundsDialogOpen] = useState<string | null>(null);
