@@ -88,24 +88,26 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
       // For credit cards, show utilization (balance used / credit limit)
       return Math.min((balance / parseFloat(paymentMethod.creditLimit)) * 100, 100);
     } else {
-      // For debit cards and cash, show balance as percentage of maximum expected balance
-      const maxBalance = Math.max(balance, 10000); // Use at least 10,000 AED as max, or current balance if higher
-      return Math.min((balance / maxBalance) * 100, 100);
+      // For debit cards and cash, show balance relative to a reasonable scale
+      // Use 20,000 AED as a reference point for "good" balance
+      const referenceBalance = 20000;
+      return Math.min((balance / referenceBalance) * 100, 100);
     }
   };
 
   const getProgressColor = () => {
-    const progressValue = getProgressValue();
+    const balance = parseFloat(paymentMethod.balance || "0");
     
-    if (paymentMethod.type === "credit_card") {
+    if (paymentMethod.type === "credit_card" && paymentMethod.creditLimit) {
       // For credit cards, high utilization is bad
-      if (progressValue > 80) return "bg-red-500";
-      if (progressValue > 50) return "bg-yellow-500";
+      const utilization = (balance / parseFloat(paymentMethod.creditLimit)) * 100;
+      if (utilization > 80) return "bg-red-500";
+      if (utilization > 50) return "bg-yellow-500";
       return "bg-green-500";
     } else {
-      // For debit/cash, higher balance is generally good
-      if (progressValue < 20) return "bg-red-500";
-      if (progressValue < 50) return "bg-yellow-500";
+      // For debit/cash, show green for positive balances, red for low/negative
+      if (balance <= 0) return "bg-red-500";
+      if (balance < 1000) return "bg-yellow-500";
       return "bg-green-500";
     }
   };
