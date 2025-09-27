@@ -39,7 +39,7 @@
 
   --card-foreground: 214 13% 12%;
 
-  --card-border: 220 13% 92%; /* Soft card borders */
+  --card-border: 220 13% 88%; /* Enhanced card borders for better definition */
 
   --sidebar: 0 0% 98%; /* Clean sidebar background */
 
@@ -154,11 +154,11 @@
 
   --border: 0 0% 15%; /* Dark mode borders */
 
-  --card: 0 0% 9%; /* Dark cards */
+  --card: 0 0% 12%; /* Enhanced dark cards with better contrast */
 
   --card-foreground: 0 0% 96%;
 
-  --card-border: 0 0% 18%; /* Subtle card borders */
+  --card-border: 0 0% 24%; /* More visible card borders */
 
   --sidebar: 0 0% 7%; /* Dark sidebar */
 
