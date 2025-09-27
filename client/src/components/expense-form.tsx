@@ -73,12 +73,13 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
   const handleSubmit = async (data: ExpenseFormData) => {
     setIsSubmitting(true);
     try {
-      // Send the payment method ID directly to the server for balance updates
-      // The server will handle converting to type for legacy storage
+      // Send the payment method ID to the server via paymentMethodId field
+      // The server will handle setting the legacy paymentMethod field
       const selectedPaymentMethod = paymentMethods.find(pm => pm.id === data.paymentMethod);
       const mappedData: InsertExpense = {
         ...data,
-        paymentMethod: data.paymentMethod as InsertExpense['paymentMethod'] // Send ID directly
+        paymentMethodId: data.paymentMethod, // Set the paymentMethodId field that the backend expects
+        paymentMethod: selectedPaymentMethod?.type as InsertExpense['paymentMethod'] // Set legacy field for backward compatibility
       };
       await onSubmit(mappedData);
       if (!isEditing) {
