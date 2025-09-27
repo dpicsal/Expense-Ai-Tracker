@@ -13,12 +13,7 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
-import { useExpenses } from "@/hooks/use-expenses";
-import { formatCurrency } from "@/lib/utils";
 
 const mainMenuItems = [
   {
@@ -56,15 +51,6 @@ const mainMenuItems = [
 
 export function AppSidebar() {
   const [location] = useLocation();
-  const { data: expenses = [] } = useExpenses();
-  
-  const totalThisMonth = expenses
-    .filter(expense => {
-      const expenseMonth = new Date(expense.date).getMonth();
-      const currentMonth = new Date().getMonth();
-      return expenseMonth === currentMonth;
-    })
-    .reduce((sum, expense) => sum + parseFloat(expense.amount), 0);
 
   return (
     <Sidebar className="bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800">
@@ -79,15 +65,6 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="px-4 py-2">
-        {/* Compact Stats */}
-        <div className="mb-6 bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-4" data-testid="text-monthly-total">
-          <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">THIS MONTH</div>
-          <div className="text-xl font-bold text-slate-900 dark:text-white">{formatCurrency(totalThisMonth)}</div>
-          <div className="text-xs text-slate-500 dark:text-slate-400">
-            {expenses.filter(e => new Date(e.date).getMonth() === new Date().getMonth()).length} expenses
-          </div>
-        </div>
-
         {/* Clean Navigation */}
         <SidebarGroup>
           <SidebarGroupContent>
