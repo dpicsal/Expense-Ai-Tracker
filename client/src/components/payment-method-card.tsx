@@ -85,8 +85,10 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
     const balance = parseFloat(paymentMethod.balance || "0");
     
     if (paymentMethod.type === "credit_card" && paymentMethod.creditLimit) {
-      // For credit cards, show utilization (balance used / credit limit)
-      return Math.min((balance / parseFloat(paymentMethod.creditLimit)) * 100, 100);
+      // For credit cards, show available credit (credit limit - balance used)
+      const creditLimit = parseFloat(paymentMethod.creditLimit);
+      const availableCredit = creditLimit - balance;
+      return Math.max((availableCredit / creditLimit) * 100, 0);
     } else {
       // For debit cards and cash, show current balance relative to max balance ever had
       const maxBalance = parseFloat(paymentMethod.maxBalance || paymentMethod.balance || "0");
@@ -99,11 +101,14 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
     const balance = parseFloat(paymentMethod.balance || "0");
     
     if (paymentMethod.type === "credit_card" && paymentMethod.creditLimit) {
-      // For credit cards, high utilization is bad
-      const utilization = (balance / parseFloat(paymentMethod.creditLimit)) * 100;
-      if (utilization > 80) return "bg-red-500";
-      if (utilization > 50) return "bg-yellow-500";
-      return "bg-green-500";
+      // For credit cards, low available credit is bad (high utilization)
+      const creditLimit = parseFloat(paymentMethod.creditLimit);
+      const availableCredit = creditLimit - balance;
+      const availablePercentage = (availableCredit / creditLimit) * 100;
+      
+      if (availablePercentage < 20) return "bg-red-500";   // Less than 20% available credit
+      if (availablePercentage < 50) return "bg-yellow-500"; // Less than 50% available credit
+      return "bg-green-500"; // Good available credit
     } else {
       // For debit/cash, show green for positive balances, red for low/negative
       if (balance <= 0) return "bg-red-500";
@@ -174,7 +179,7 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
             <div className="space-y-1" data-testid={`progress-payment-method-${paymentMethod.id}`}>
               <div className="flex justify-between items-center text-xs text-muted-foreground">
                 <span>
-                  {paymentMethod.type === "credit_card" ? "Credit Utilization" : "Balance Level"}
+                  {paymentMethod.type === "credit_card" ? "Available Credit" : "Balance Level"}
                 </span>
                 <span className="font-medium">
                   {getProgressValue().toFixed(0)}%
