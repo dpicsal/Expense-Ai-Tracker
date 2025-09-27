@@ -81,23 +81,3 @@ export const CATEGORY_ICONS: Record<string, string> = {
   "Other": "Tag",
 };
 
-export const PAYMENT_METHOD_COLOR_OPTIONS = [
-  { value: "bg-blue-100", label: "Blue", color: "bg-blue-500" },
-  { value: "bg-green-100", label: "Green", color: "bg-green-500" },
-  { value: "bg-purple-100", label: "Purple", color: "bg-purple-500" },
-  { value: "bg-orange-100", label: "Orange", color: "bg-orange-500" },
-  { value: "bg-pink-100", label: "Pink", color: "bg-pink-500" },
-  { value: "bg-cyan-100", label: "Cyan", color: "bg-cyan-500" },
-  { value: "bg-yellow-100", label: "Yellow", color: "bg-yellow-500" },
-  { value: "bg-red-100", label: "Red", color: "bg-red-500" },
-  { value: "bg-gray-100", label: "Gray", color: "bg-gray-500" },
-];
-
-export const PAYMENT_METHOD_LABELS: Record<string, string> = {
-  "cash": "Cash",
-  "credit_card": "Credit Card", 
-  "debit_card": "Debit Card",
-  "bank_transfer": "Bank Transfer",
-  "digital_wallet": "Digital Wallet",
-  "other": "Other",
-};
