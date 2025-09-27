@@ -148,7 +148,7 @@
   --elevate-2: rgba(255,255,255, .09);
 
   /* iOS-style dark mode colors */
-  --background: 0 0% 6%; /* iOS dark mode background */
+  --background: 0 0% 5%; /* Enhanced iOS dark mode background for better card contrast */
 
   --foreground: 0 0% 96%; /* Light text for dark mode */
 
