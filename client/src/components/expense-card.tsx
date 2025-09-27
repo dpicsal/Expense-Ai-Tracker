@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { cn, formatCurrency } from "@/lib/utils";
 import { type Expense } from "@shared/schema";
 import { useCategories } from "@/hooks/use-categories";
+import { usePaymentMethods } from "@/hooks/use-payment-methods";
 import { PAYMENT_METHODS } from "@shared/constants";
 
 interface ExpenseCardProps {
@@ -19,6 +20,7 @@ interface ExpenseCardProps {
 
 export function ExpenseCard({ expense, onEdit, onDelete }: ExpenseCardProps) {
   const { data: categories = [] } = useCategories();
+  const { data: paymentMethods = [] } = usePaymentMethods();
   
   // Find the category data for this expense
   const categoryData = categories.find(cat => cat.name === expense.category);
@@ -26,9 +28,10 @@ export function ExpenseCard({ expense, onEdit, onDelete }: ExpenseCardProps) {
   const categoryIcon = categoryData?.icon || "Tag";
   
   // Find the payment method data for this expense
-  const paymentMethodData = PAYMENT_METHODS.find(method => method.value === expense.paymentMethod);
-  const paymentMethodLabel = paymentMethodData?.label || expense.paymentMethod;
-  const paymentMethodIcon = paymentMethodData?.icon || "CreditCard";
+  const paymentMethodFromDb = paymentMethods.find(method => method.id === expense.paymentMethod);
+  const paymentMethodTypeData = PAYMENT_METHODS.find(method => method.value === paymentMethodFromDb?.type);
+  const paymentMethodLabel = paymentMethodFromDb?.name || expense.paymentMethod;
+  const paymentMethodIcon = paymentMethodTypeData?.icon || "CreditCard";
 
   const handleEdit = () => {
     onEdit?.(expense);
