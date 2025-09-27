@@ -74,7 +74,10 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
   const getBalanceColor = () => {
     const balance = parseFloat(paymentMethod.balance || "0");
     if (paymentMethod.type === "credit_card" && paymentMethod.creditLimit) {
-      const utilization = balance / parseFloat(paymentMethod.creditLimit);
+      // For credit cards, balance is available credit, so utilization = (limit - available) / limit
+      const creditLimit = parseFloat(paymentMethod.creditLimit);
+      const usedAmount = creditLimit - balance;
+      const utilization = usedAmount / creditLimit;
       if (utilization > 0.8) return "text-red-600 dark:text-red-400";
       if (utilization > 0.5) return "text-yellow-600 dark:text-yellow-400";
     }
@@ -85,10 +88,9 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
     const balance = parseFloat(paymentMethod.balance || "0");
     
     if (paymentMethod.type === "credit_card" && paymentMethod.creditLimit) {
-      // For credit cards, show available credit (credit limit - balance used)
+      // For credit cards, balance represents available credit
       const creditLimit = parseFloat(paymentMethod.creditLimit);
-      const availableCredit = creditLimit - balance;
-      return Math.max((availableCredit / creditLimit) * 100, 0);
+      return Math.max((balance / creditLimit) * 100, 0);
     } else {
       // For debit cards and cash, show current balance relative to max balance ever had
       const maxBalance = parseFloat(paymentMethod.maxBalance || paymentMethod.balance || "0");
@@ -101,10 +103,9 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
     const balance = parseFloat(paymentMethod.balance || "0");
     
     if (paymentMethod.type === "credit_card" && paymentMethod.creditLimit) {
-      // For credit cards, low available credit is bad (high utilization)
+      // For credit cards, balance is available credit
       const creditLimit = parseFloat(paymentMethod.creditLimit);
-      const availableCredit = creditLimit - balance;
-      const availablePercentage = (availableCredit / creditLimit) * 100;
+      const availablePercentage = (balance / creditLimit) * 100;
       
       if (availablePercentage < 20) return "bg-red-500";   // Less than 20% available credit
       if (availablePercentage < 50) return "bg-yellow-500"; // Less than 50% available credit
