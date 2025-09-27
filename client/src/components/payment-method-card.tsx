@@ -100,22 +100,12 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
   };
 
   const getProgressColor = () => {
-    const balance = parseFloat(paymentMethod.balance || "0");
+    const progressValue = getProgressValue();
     
-    if (paymentMethod.type === "credit_card" && paymentMethod.creditLimit) {
-      // For credit cards, balance is available credit
-      const creditLimit = parseFloat(paymentMethod.creditLimit);
-      const availablePercentage = (balance / creditLimit) * 100;
-      
-      if (availablePercentage < 20) return "bg-red-500";   // Less than 20% available credit
-      if (availablePercentage < 50) return "bg-yellow-500"; // Less than 50% available credit
-      return "bg-green-500"; // Good available credit
-    } else {
-      // For debit/cash, show green for positive balances, red for low/negative
-      if (balance <= 0) return "bg-red-500";
-      if (balance < 1000) return "bg-yellow-500";
-      return "bg-green-500";
-    }
+    // Green only when full (100%), red when below 20%
+    if (progressValue >= 100) return "bg-green-500";
+    if (progressValue < 20) return "bg-red-500";
+    return "bg-yellow-500"; // Between 20-99%
   };
 
   return (
@@ -186,10 +176,12 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
                   {getProgressValue().toFixed(0)}%
                 </span>
               </div>
-              <Progress 
-                value={getProgressValue()} 
-                className={`h-2 ${getProgressColor()}`}
-              />
+              <div className="relative w-full h-2 bg-secondary rounded-full overflow-hidden">
+                <div 
+                  className={`h-full transition-all rounded-full ${getProgressColor()}`}
+                  style={{ width: `${getProgressValue()}%` }}
+                />
+              </div>
             </div>
 
             {!paymentMethod.isActive && (
