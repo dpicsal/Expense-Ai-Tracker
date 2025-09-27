@@ -7,6 +7,7 @@ export const categories = pgTable("categories", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull().unique(),
   color: text("color").notNull(), // Store the color class for the category
+  budget: decimal("budget", { precision: 10, scale: 2 }), // Legacy budget field (keeping for backward compatibility)
   allocatedFunds: decimal("allocated_funds", { precision: 10, scale: 2 }).default("0"), // Allocated funds for this category
   icon: text("icon").default("Tag"), // Lucide icon name
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -55,7 +56,8 @@ export const expenses = pgTable("expenses", {
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
   description: text("description").notNull(),
   category: text("category").notNull(),
-  paymentMethod: text("payment_method").notNull().default("cash"), // Payment method: cash, credit_card, debit_card, etc.
+  paymentMethod: text("payment_method").notNull().default("cash"), // Legacy: Payment method type for backward compatibility
+  paymentMethodId: varchar("payment_method_id").notNull().references(() => paymentMethods.id, { onDelete: "restrict" }), // Required: Foreign key to payment_methods table
   date: timestamp("date").notNull().defaultNow(),
 });
 
@@ -98,7 +100,8 @@ export const insertExpenseSchema = createInsertSchema(expenses).omit({
 }).extend({
   amount: z.coerce.number().positive("Amount must be positive"),
   date: z.coerce.date(),
-  paymentMethod: paymentMethodEnum,
+  paymentMethod: paymentMethodEnum.optional(), // Legacy field - optional for backward compatibility
+  paymentMethodId: z.string().uuid("Payment method ID must be a valid UUID"), // Required field after migration
 });
 
 // Fund History schemas

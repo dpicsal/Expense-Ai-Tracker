@@ -11,8 +11,8 @@ export interface IStorage {
   // Legacy expense management (keeping for backward compatibility)
   getAllExpenses(): Promise<Expense[]>;
   getExpense(id: string): Promise<Expense | undefined>;
-  createExpense(expense: InsertExpense, paymentMethodId?: string): Promise<Expense>;
-  updateExpense(id: string, expense: Partial<InsertExpense>, paymentMethodId?: string): Promise<Expense | undefined>;
+  createExpense(expense: InsertExpense): Promise<Expense>;
+  updateExpense(id: string, expense: Partial<InsertExpense>): Promise<Expense | undefined>;
   deleteExpense(id: string): Promise<boolean>;
   
   // Category management
@@ -62,38 +62,29 @@ export class DatabaseStorage implements IStorage {
     return expense || undefined;
   }
 
-  async createExpense(insertExpense: InsertExpense, paymentMethodId?: string): Promise<Expense> {
+  async createExpense(insertExpense: InsertExpense): Promise<Expense> {
     return await db.transaction(async (tx) => {
-      // Create the expense
+      if (!insertExpense.paymentMethodId) {
+        throw new Error("Payment method ID is required");
+      }
+
+      // Create the expense with the payment method ID
       const [expense] = await tx
         .insert(expenses)
         .values({
           ...insertExpense,
           amount: insertExpense.amount.toString(),
+          paymentMethodId: insertExpense.paymentMethodId,
         })
         .returning();
 
-      // Update the payment method balance using either the provided ID or find by type
-      if (paymentMethodId) {
-        // Use the specific payment method ID provided
-        await this.updatePaymentMethodBalance(
-          paymentMethodId,
-          insertExpense.amount,
-          false, // expense reduces balance
-          tx
-        );
-      } else {
-        // Fallback: find payment method by type (for backward compatibility)
-        const paymentMethod = await this.getPaymentMethodByType(insertExpense.paymentMethod);
-        if (paymentMethod) {
-          await this.updatePaymentMethodBalance(
-            paymentMethod.id,
-            insertExpense.amount,
-            false, // expense reduces balance
-            tx
-          );
-        }
-      }
+      // Update the payment method balance
+      await this.updatePaymentMethodBalance(
+        insertExpense.paymentMethodId,
+        insertExpense.amount,
+        false, // expense reduces balance
+        tx
+      );
 
       // Deduct from category allocated funds
       const category = await this.getCategoryByName(insertExpense.category, tx);
@@ -111,15 +102,27 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
-  async updateExpense(id: string, updateData: Partial<InsertExpense>, paymentMethodId?: string): Promise<Expense | undefined> {
+  async updateExpense(id: string, updateData: Partial<InsertExpense>): Promise<Expense | undefined> {
     return await db.transaction(async (tx) => {
       // Get the old expense to revert balance changes
       const [oldExpense] = await tx.select().from(expenses).where(eq(expenses.id, id));
       if (!oldExpense) return undefined;
 
+      // Ensure old expense has paymentMethodId (should exist after migration)
+      if (!oldExpense.paymentMethodId) {
+        throw new Error("Expense missing payment method ID - data integrity issue");
+      }
+
+      // Determine the new payment method ID to use
+      const newPaymentMethodId = updateData.paymentMethodId || oldExpense.paymentMethodId;
+
       const updateValues: any = { ...updateData };
       if (updateData.amount !== undefined) {
         updateValues.amount = updateData.amount.toString();
+      }
+      // Always update the payment method ID if provided
+      if (updateData.paymentMethodId) {
+        updateValues.paymentMethodId = updateData.paymentMethodId;
       }
       
       const [expense] = await tx
@@ -131,40 +134,21 @@ export class DatabaseStorage implements IStorage {
       if (!expense) return undefined;
 
       // Revert old balance change
-      const oldPaymentMethod = await this.getPaymentMethodByType(oldExpense.paymentMethod);
-      if (oldPaymentMethod) {
-        await this.updatePaymentMethodBalance(
-          oldPaymentMethod.id,
-          oldExpense.amount,
-          true, // reverse the expense (add back to balance)
-          tx
-        );
-      }
+      await this.updatePaymentMethodBalance(
+        oldExpense.paymentMethodId,
+        oldExpense.amount,
+        true, // reverse the expense (add back to balance)
+        tx
+      );
 
       // Apply new balance change
       const newAmount = updateData.amount ?? parseFloat(oldExpense.amount);
-      
-      if (paymentMethodId) {
-        // Use the specific payment method ID provided (more accurate than type lookup)
-        await this.updatePaymentMethodBalance(
-          paymentMethodId,
-          newAmount,
-          false, // expense reduces balance
-          tx
-        );
-      } else {
-        // Fallback: use payment method type lookup for backward compatibility
-        const newPaymentMethodType = updateData.paymentMethod ?? oldExpense.paymentMethod;
-        const newPaymentMethod = await this.getPaymentMethodByType(newPaymentMethodType);
-        if (newPaymentMethod) {
-          await this.updatePaymentMethodBalance(
-            newPaymentMethod.id,
-            newAmount,
-            false, // expense reduces balance
-            tx
-          );
-        }
-      }
+      await this.updatePaymentMethodBalance(
+        newPaymentMethodId,
+        newAmount,
+        false, // expense reduces balance
+        tx
+      );
 
       // Handle category fund changes
       const oldCategory = await this.getCategoryByName(oldExpense.category, tx);
@@ -202,20 +186,22 @@ export class DatabaseStorage implements IStorage {
       const [expense] = await tx.select().from(expenses).where(eq(expenses.id, id));
       if (!expense) return false;
 
+      // Ensure expense has paymentMethodId (should exist after migration)
+      if (!expense.paymentMethodId) {
+        throw new Error("Expense missing payment method ID - data integrity issue");
+      }
+
       const result = await tx.delete(expenses).where(eq(expenses.id, id));
       const deleted = (result.rowCount || 0) > 0;
 
       if (deleted) {
-        // Revert the balance change
-        const paymentMethod = await this.getPaymentMethodByType(expense.paymentMethod);
-        if (paymentMethod) {
-          await this.updatePaymentMethodBalance(
-            paymentMethod.id,
-            expense.amount,
-            true, // reverse the expense (add back to balance)
-            tx
-          );
-        }
+        // Revert the balance change using the stored paymentMethodId
+        await this.updatePaymentMethodBalance(
+          expense.paymentMethodId,
+          expense.amount,
+          true, // reverse the expense (add back to balance)
+          tx
+        );
         
         // Restore allocated funds to category
         const category = await this.getCategoryByName(expense.category, tx);

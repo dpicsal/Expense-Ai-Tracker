@@ -36,25 +36,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create new expense
   app.post("/api/expenses", async (req, res) => {
     try {
-      // Capture the payment method ID from the request
-      const paymentMethodId = req.body.paymentMethod;
+      // Require paymentMethodId explicitly - no legacy support
+      const paymentMethodId = req.body.paymentMethodId;
       
-      // Get the payment method to determine its type for legacy storage
+      if (!paymentMethodId) {
+        // Check if they sent legacy paymentMethod and provide clear error
+        if (req.body.paymentMethod) {
+          return res.status(400).json({ 
+            error: "Legacy paymentMethod field not supported. Use paymentMethodId with a valid UUID instead." 
+          });
+        }
+        return res.status(400).json({ error: "paymentMethodId is required" });
+      }
+
+      // Verify the payment method exists
       const paymentMethod = await storage.getPaymentMethod(paymentMethodId);
       if (!paymentMethod) {
-        return res.status(400).json({ error: "Invalid payment method" });
+        return res.status(400).json({ error: "Invalid payment method ID" });
       }
       
-      // Create the expense data with the payment method type for legacy storage
+      // Create the expense data with the payment method ID
       const expenseData = {
         ...req.body,
-        paymentMethod: paymentMethod.type
+        paymentMethodId,
+        paymentMethod: paymentMethod.type, // Keep for backward compatibility
       };
       
       const validatedData = insertExpenseSchema.parse(expenseData);
       
-      // Pass both the validated data and the payment method ID for balance updates
-      const expense = await storage.createExpense(validatedData, paymentMethodId);
+      // Create the expense using the new payment method ID approach
+      const expense = await storage.createExpense(validatedData);
       res.status(201).json(expense);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -68,29 +79,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update expense
   app.put("/api/expenses/:id", async (req, res) => {
     try {
-      let expenseData = { ...req.body };
-      let paymentMethodId: string | undefined;
+      // Handle payment method ID updates with strict validation
+      const paymentMethodId = req.body.paymentMethodId;
       
-      // Handle payment method ID conversion like in the POST route
-      if (req.body.paymentMethod) {
-        paymentMethodId = req.body.paymentMethod;
-        
-        // Get the payment method to determine its type for legacy storage
-        const paymentMethod = await storage.getPaymentMethod(paymentMethodId!);
+      if (req.body.paymentMethod && !req.body.paymentMethodId) {
+        // Legacy paymentMethod field provided without paymentMethodId
+        return res.status(400).json({ 
+          error: "Legacy paymentMethod field not supported. Use paymentMethodId with a valid UUID instead." 
+        });
+      }
+      
+      if (paymentMethodId) {
+        // Verify the payment method exists
+        const paymentMethod = await storage.getPaymentMethod(paymentMethodId);
         if (!paymentMethod) {
-          return res.status(400).json({ error: "Invalid payment method" });
+          return res.status(400).json({ error: "Invalid payment method ID" });
         }
         
-        // Update the expense data with the payment method type for legacy storage
-        expenseData.paymentMethod = paymentMethod.type;
+        // Update the expense data with the payment method ID
+        const expenseData = {
+          ...req.body,
+          paymentMethodId,
+          paymentMethod: paymentMethod.type, // Keep for backward compatibility
+        };
+        
+        const validatedData = insertExpenseSchema.partial().parse(expenseData);
+        const expense = await storage.updateExpense(req.params.id, validatedData);
+        if (!expense) {
+          return res.status(404).json({ error: "Expense not found" });
+        }
+        res.json(expense);
+      } else {
+        // No payment method provided, update other fields only
+        const validatedData = insertExpenseSchema.partial().parse(req.body);
+        const expense = await storage.updateExpense(req.params.id, validatedData);
+        if (!expense) {
+          return res.status(404).json({ error: "Expense not found" });
+        }
+        res.json(expense);
       }
-      
-      const validatedData = insertExpenseSchema.partial().parse(expenseData);
-      const expense = await storage.updateExpense(req.params.id, validatedData, paymentMethodId);
-      if (!expense) {
-        return res.status(404).json({ error: "Expense not found" });
-      }
-      res.json(expense);
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: "Validation failed", details: error.errors });
