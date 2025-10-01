@@ -90,7 +90,7 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
     } else {
       // For debit cards and cash, show current balance relative to max balance ever had
       const maxBalance = parseFloat(paymentMethod.maxBalance || paymentMethod.balance || "0");
-      if (maxBalance <= 0) return 100; // If no max balance, show full
+      if (maxBalance <= 0) return 0;
       return Math.min((balance / maxBalance) * 100, 100);
     }
   };
