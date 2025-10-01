@@ -16,13 +16,42 @@ export function PaymentMethodFundHistory({ paymentMethod }: PaymentMethodFundHis
   const totalFunds = fundHistory.reduce((sum, history) => sum + parseFloat(history.amount), 0);
   
   const isCreditCard = paymentMethod.type === "credit_card";
-  const historyTitle = isCreditCard ? "Payments History" : "Fund Addition History";
-  const itemLabel = isCreditCard ? "payment" : "addition";
-  const itemsLabel = isCreditCard ? "payments" : "additions";
-  const totalLabel = isCreditCard ? "Total Payments Made" : "Total Funds Added";
-  const trackingText = isCreditCard ? `Track all payments to ${paymentMethod.name}` : `Track all fund additions to ${paymentMethod.name}`;
-  const emptyTitle = isCreditCard ? "No payments yet" : "No fund additions yet";
-  const emptyText = isCreditCard ? "Payments to this credit card will appear here" : "Fund additions to this payment method will appear here";
+  const isDebitCard = paymentMethod.type === "debit_card";
+  
+  const historyTitle = 
+    isCreditCard ? "Payments History" :
+    isDebitCard ? "Fund Deposit History" :
+    "Fund Addition History";
+    
+  const itemLabel = 
+    isCreditCard ? "payment" :
+    isDebitCard ? "deposit" :
+    "addition";
+    
+  const itemsLabel = 
+    isCreditCard ? "payments" :
+    isDebitCard ? "deposits" :
+    "additions";
+    
+  const totalLabel = 
+    isCreditCard ? "Total Payments Made" :
+    isDebitCard ? "Total Deposits Made" :
+    "Total Funds Added";
+    
+  const trackingText = 
+    isCreditCard ? `Track all payments to ${paymentMethod.name}` :
+    isDebitCard ? `Track all deposits to ${paymentMethod.name}` :
+    `Track all fund additions to ${paymentMethod.name}`;
+    
+  const emptyTitle = 
+    isCreditCard ? "No payments yet" :
+    isDebitCard ? "No deposits yet" :
+    "No fund additions yet";
+    
+  const emptyText = 
+    isCreditCard ? "Payments to this credit card will appear here" :
+    isDebitCard ? "Deposits to this debit card will appear here" :
+    "Fund additions to this payment method will appear here";
 
   if (isLoading) {
     return (
@@ -37,7 +66,7 @@ export function PaymentMethodFundHistory({ paymentMethod }: PaymentMethodFundHis
           <div className="text-center py-8 text-muted-foreground">
             <div className="flex flex-col items-center gap-3">
               <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-ios-spinner"></div>
-              <div className="animate-pulse-glow">Loading {isCreditCard ? "payment" : "fund"} history...</div>
+              <div className="animate-pulse-glow">Loading {isCreditCard ? "payment" : isDebitCard ? "deposit" : "fund"} history...</div>
             </div>
           </div>
         </CardContent>
@@ -58,7 +87,7 @@ export function PaymentMethodFundHistory({ paymentMethod }: PaymentMethodFundHis
           <div className="text-center py-8 text-destructive">
             <div className="flex flex-col items-center gap-2">
               <FileText className="h-8 w-8" />
-              <p>Failed to load {isCreditCard ? "payment" : "fund"} history</p>
+              <p>Failed to load {isCreditCard ? "payment" : isDebitCard ? "deposit" : "fund"} history</p>
             </div>
           </div>
         </CardContent>
