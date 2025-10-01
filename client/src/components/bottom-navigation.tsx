@@ -1,4 +1,4 @@
-import { Home, PlusCircle, PieChart, Tag, Wallet, Settings, Database } from "lucide-react";
+import { Home, PlusCircle, PieChart, Tag, Wallet, Settings, Database, FileText, PiggyBank, Receipt, User, Building2 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +16,12 @@ const navigationItems = [
     testId: "tab-add"
   },
   {
+    title: "Reports",
+    icon: FileText,
+    href: "/reports",
+    testId: "tab-reports"
+  },
+  {
     title: "Analytics", 
     icon: PieChart,
     href: "/analytics",
@@ -28,10 +34,34 @@ const navigationItems = [
     testId: "tab-categories"
   },
   {
+    title: "Budgets",
+    icon: PiggyBank,
+    href: "/budgets",
+    testId: "tab-budgets"
+  },
+  {
     title: "Payments",
     icon: Wallet,
     href: "/payment-methods",
     testId: "tab-payment-methods"
+  },
+  {
+    title: "Receipts",
+    icon: Receipt,
+    href: "/receipts",
+    testId: "tab-receipts"
+  },
+  {
+    title: "Company",
+    icon: Building2,
+    href: "/company",
+    testId: "tab-company"
+  },
+  {
+    title: "Profile",
+    icon: User,
+    href: "/profile",
+    testId: "tab-profile"
   },
   {
     title: "Backup",
