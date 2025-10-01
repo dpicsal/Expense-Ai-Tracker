@@ -183,13 +183,13 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
     return "bg-yellow-500"; // Between 20-99%
   };
 
-  // Render credit card with special design
-  const creditCardContent = paymentMethod.type === "credit_card" ? (
+  // Render card-style design for credit and debit cards
+  const cardStyleContent = (paymentMethod.type === "credit_card" || paymentMethod.type === "debit_card") ? (
     <div 
       className="relative w-full h-48 bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 rounded-xl shadow-xl hover-elevate transition-all duration-200 overflow-hidden"
       data-testid={`card-payment-method-${paymentMethod.id}`}
     >
-      {/* Credit Card Background Pattern */}
+      {/* Card Background Pattern */}
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent transform -skew-x-12"></div>
       
       {/* Header with menu */}
@@ -245,38 +245,44 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
         {/* Middle Section - Balances */}
         <div className="space-y-1">
           <div className="flex justify-between items-center">
-            <span className="text-xs text-white/70">Available Balance</span>
+            <span className="text-xs text-white/70">
+              {paymentMethod.type === "credit_card" ? "Available Balance" : "Current Balance"}
+            </span>
             <span className={`font-bold text-lg text-white`} data-testid={`text-payment-method-balance-${paymentMethod.id}`}>
               {formatCurrency(parseFloat(paymentMethod.balance || "0"))}
             </span>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs text-white/70">Credit Limit</span>
-            <span className="font-medium text-sm text-white/90" data-testid={`text-payment-method-limit-${paymentMethod.id}`}>
-              {formatCurrency(parseFloat(paymentMethod.creditLimit || "0"))}
-            </span>
-          </div>
-          {paymentMethod.dueDate && getNextDueDate() && (
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-white/70">Payment Due Date</span>
-              <div className="flex items-center gap-1.5">
-                <span className="font-medium text-sm text-white/90" data-testid={`text-payment-method-due-date-${paymentMethod.id}`}>
-                  {formatDueDate(getNextDueDate()!)}
+          {paymentMethod.type === "credit_card" && paymentMethod.creditLimit && (
+            <>
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-white/70">Credit Limit</span>
+                <span className="font-medium text-sm text-white/90" data-testid={`text-payment-method-limit-${paymentMethod.id}`}>
+                  {formatCurrency(parseFloat(paymentMethod.creditLimit || "0"))}
                 </span>
-                {getDueDateDisplay() && (
-                  <span className={`text-xs font-semibold ${getDueDateDisplay()?.color}`} data-testid={`text-payment-method-days-left-${paymentMethod.id}`}>
-                    ({getDueDateDisplay()?.text})
-                  </span>
-                )}
               </div>
-            </div>
+              {paymentMethod.dueDate && getNextDueDate() && (
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-white/70">Payment Due Date</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-medium text-sm text-white/90" data-testid={`text-payment-method-due-date-${paymentMethod.id}`}>
+                      {formatDueDate(getNextDueDate()!)}
+                    </span>
+                    {getDueDateDisplay() && (
+                      <span className={`text-xs font-semibold ${getDueDateDisplay()?.color}`} data-testid={`text-payment-method-days-left-${paymentMethod.id}`}>
+                        ({getDueDateDisplay()?.text})
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
 
         {/* Bottom Section - Progress */}
         <div className="space-y-1" data-testid={`progress-payment-method-${paymentMethod.id}`}>
           <div className="flex justify-between items-center text-xs text-white/70">
-            <span>Available Credit</span>
+            <span>{paymentMethod.type === "credit_card" ? "Available Credit" : "Balance Level"}</span>
             <span className="font-medium text-white">
               {getProgressValue().toFixed(0)}%
             </span>
@@ -298,8 +304,8 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
     </div>
   ) : null;
 
-  // Regular card design for non-credit cards
-  const regularCardContent = paymentMethod.type !== "credit_card" ? (
+  // Regular card design for cash
+  const regularCardContent = (paymentMethod.type !== "credit_card" && paymentMethod.type !== "debit_card") ? (
     <Card className="hover-elevate transition-all duration-200" data-testid={`card-payment-method-${paymentMethod.id}`}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div className="flex items-center gap-3">
@@ -382,7 +388,7 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
 
   return (
     <div className="space-y-4">
-      {creditCardContent}
+      {cardStyleContent}
       {regularCardContent}
 
       {showHistory && (
