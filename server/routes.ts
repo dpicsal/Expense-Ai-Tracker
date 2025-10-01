@@ -409,6 +409,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add funds to payment method
+  app.post("/api/payment-methods/:id/add-funds", async (req, res) => {
+    try {
+      const { amount } = req.body;
+      
+      if (!amount || typeof amount !== 'number' || amount <= 0) {
+        return res.status(400).json({ error: "Amount must be a positive number" });
+      }
+
+      const updatedPaymentMethod = await storage.addFundsToPaymentMethod(req.params.id, amount);
+      res.status(200).json(updatedPaymentMethod);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Payment method not found') {
+        return res.status(404).json({ error: "Payment method not found" });
+      }
+      console.error("Error adding funds to payment method:", error);
+      res.status(500).json({ error: "Failed to add funds to payment method" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
