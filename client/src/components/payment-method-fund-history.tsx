@@ -14,6 +14,15 @@ export function PaymentMethodFundHistory({ paymentMethod }: PaymentMethodFundHis
   const { data: fundHistory = [], isLoading, error } = usePaymentMethodFundHistoryByPaymentMethod(paymentMethod.id);
   
   const totalFunds = fundHistory.reduce((sum, history) => sum + parseFloat(history.amount), 0);
+  
+  const isCreditCard = paymentMethod.type === "credit_card";
+  const historyTitle = isCreditCard ? "Payments History" : "Fund Addition History";
+  const itemLabel = isCreditCard ? "payment" : "addition";
+  const itemsLabel = isCreditCard ? "payments" : "additions";
+  const totalLabel = isCreditCard ? "Total Payments Made" : "Total Funds Added";
+  const trackingText = isCreditCard ? `Track all payments to ${paymentMethod.name}` : `Track all fund additions to ${paymentMethod.name}`;
+  const emptyTitle = isCreditCard ? "No payments yet" : "No fund additions yet";
+  const emptyText = isCreditCard ? "Payments to this credit card will appear here" : "Fund additions to this payment method will appear here";
 
   if (isLoading) {
     return (
@@ -21,14 +30,14 @@ export function PaymentMethodFundHistory({ paymentMethod }: PaymentMethodFundHis
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-2 text-lg">
             <History className="h-5 w-5" />
-            Fund Addition History
+            {historyTitle}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-muted-foreground">
             <div className="flex flex-col items-center gap-3">
               <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-ios-spinner"></div>
-              <div className="animate-pulse-glow">Loading fund history...</div>
+              <div className="animate-pulse-glow">Loading {isCreditCard ? "payment" : "fund"} history...</div>
             </div>
           </div>
         </CardContent>
@@ -42,14 +51,14 @@ export function PaymentMethodFundHistory({ paymentMethod }: PaymentMethodFundHis
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-2 text-lg">
             <History className="h-5 w-5" />
-            Fund Addition History
+            {historyTitle}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-destructive">
             <div className="flex flex-col items-center gap-2">
               <FileText className="h-8 w-8" />
-              <p>Failed to load fund history</p>
+              <p>Failed to load {isCreditCard ? "payment" : "fund"} history</p>
             </div>
           </div>
         </CardContent>
@@ -63,18 +72,18 @@ export function PaymentMethodFundHistory({ paymentMethod }: PaymentMethodFundHis
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg">
             <History className="h-5 w-5" />
-            Fund Addition History
+            {historyTitle}
           </CardTitle>
           <Badge 
             variant="secondary" 
             className="text-xs"
             data-testid={`fund-history-count-${paymentMethod.name}`}
           >
-            {fundHistory.length} {fundHistory.length === 1 ? 'addition' : 'additions'}
+            {fundHistory.length} {fundHistory.length === 1 ? itemLabel : itemsLabel}
           </Badge>
         </div>
         <p className="text-sm text-muted-foreground">
-          Track all fund additions to {paymentMethod.name}
+          {trackingText}
         </p>
         {fundHistory.length > 0 && (
           <div className="mt-4 p-4 rounded-lg bg-primary/5 border border-primary/20">
@@ -83,7 +92,7 @@ export function PaymentMethodFundHistory({ paymentMethod }: PaymentMethodFundHis
                 <DollarSign className="h-5 w-5 text-primary" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium text-muted-foreground">Total Funds Added</p>
+                <p className="text-sm font-medium text-muted-foreground">{totalLabel}</p>
                 <p className="text-2xl font-bold text-primary tabular-nums" data-testid={`total-funds-${paymentMethod.name}`}>
                   AED {totalFunds.toFixed(2)}
                 </p>
@@ -100,9 +109,9 @@ export function PaymentMethodFundHistory({ paymentMethod }: PaymentMethodFundHis
                 <DollarSign className="h-8 w-8" />
               </div>
               <div className="space-y-1">
-                <h3 className="font-medium">No fund additions yet</h3>
+                <h3 className="font-medium">{emptyTitle}</h3>
                 <p className="text-sm">
-                  Fund additions to this payment method will appear here
+                  {emptyText}
                 </p>
               </div>
             </div>
