@@ -55,7 +55,8 @@ export function BottomNavigation() {
                     "hover-elevate active-elevate-2", // Use proper elevation utilities
                     isActive 
                       ? "bg-primary/10 text-primary" 
-                      : "text-muted-foreground"
+                      : "text-muted-foreground",
+                    item.title === "Add" && "hidden"
                   )}
                   data-testid={item.testId}
                 >
