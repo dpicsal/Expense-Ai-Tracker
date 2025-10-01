@@ -34,16 +34,12 @@ const iconMap = {
   cash: Banknote,
   credit_card: CreditCard,
   debit_card: CreditCard,
-  bank_transfer: Building,
-  digital_wallet: Smartphone,
 } as const;
 
 const typeLabels = {
   cash: "Cash",
   credit_card: "Credit Card",
-  debit_card: "Debit Card", 
-  bank_transfer: "Bank Transfer",
-  digital_wallet: "Digital Wallet",
+  debit_card: "Debit Card",
 } as const;
 
 export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardProps) {
