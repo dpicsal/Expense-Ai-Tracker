@@ -33,6 +33,9 @@ export function AddFundsToPaymentMethodForm({ paymentMethod, onClose, onSuccess 
   const { toast } = useToast();
   
   const addFunds = useAddFundsToPaymentMethod();
+  const isDebitCard = paymentMethod.type === "debit_card";
+  const actionLabel = isDebitCard ? "Deposit" : "Add Funds";
+  const actionVerb = isDebitCard ? "Deposited" : "Added";
 
   const form = useForm<AddFundsFormData>({
     resolver: zodResolver(addFundsSchema),
@@ -53,7 +56,7 @@ export function AddFundsToPaymentMethodForm({ paymentMethod, onClose, onSuccess 
       
       toast({
         title: "Success",
-        description: `Added AED ${data.amount.toFixed(2)} to ${paymentMethod.name}`,
+        description: `${actionVerb} AED ${data.amount.toFixed(2)} to ${paymentMethod.name}`,
       });
       
       form.reset({
@@ -84,7 +87,7 @@ export function AddFundsToPaymentMethodForm({ paymentMethod, onClose, onSuccess 
             <DollarSign className="h-5 w-5 text-primary" />
           </div>
           <div className="flex-1">
-            <CardTitle className="text-xl">Add Funds</CardTitle>
+            <CardTitle className="text-xl">{actionLabel}</CardTitle>
             <div className="flex items-center gap-2 mt-1">
               <span className="text-sm text-muted-foreground">to</span>
               <Badge variant="outline" data-testid={`payment-method-badge-${paymentMethod.name}`}>
@@ -94,7 +97,9 @@ export function AddFundsToPaymentMethodForm({ paymentMethod, onClose, onSuccess 
           </div>
         </div>
         <p className="text-sm text-muted-foreground mt-2">
-          Add funds to this payment method. This will create a history record and update the balance.
+          {isDebitCard 
+            ? "Deposit money to this payment method. This will create a history record and update the balance."
+            : "Add funds to this payment method. This will create a history record and update the balance."}
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -163,12 +168,12 @@ export function AddFundsToPaymentMethodForm({ paymentMethod, onClose, onSuccess 
                 {isSubmitting ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-background border-t-transparent rounded-full animate-ios-spinner"></div>
-                    Adding Funds...
+                    {isDebitCard ? "Depositing..." : "Adding Funds..."}
                   </div>
                 ) : (
                   <>
                     <Plus className="w-4 h-4 mr-2" />
-                    Add Funds
+                    {actionLabel}
                   </>
                 )}
               </Button>
