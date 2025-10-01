@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, decimal, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, decimal, timestamp, boolean, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -32,6 +32,7 @@ export const paymentMethods = pgTable("payment_methods", {
   balance: decimal("balance", { precision: 10, scale: 2 }).default("0"),
   maxBalance: decimal("max_balance", { precision: 10, scale: 2 }).default("0"), // Track highest balance for progress bars
   creditLimit: decimal("credit_limit", { precision: 10, scale: 2 }),
+  dueDate: integer("due_date"), // Day of month (1-31) when credit card payment is due
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -97,6 +98,7 @@ export const insertPaymentMethodSchema = createInsertSchema(paymentMethods).omit
   }),
   balance: z.coerce.number().optional(),
   creditLimit: z.coerce.number().positive().optional(),
+  dueDate: z.coerce.number().int().min(1).max(31).optional(),
   isActive: z.boolean().optional(),
 });
 

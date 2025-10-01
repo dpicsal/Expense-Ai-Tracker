@@ -54,6 +54,7 @@ export function PaymentMethodForm({ paymentMethod, onSuccess }: PaymentMethodFor
       type: (paymentMethod?.type as any) || "cash",
       balance: paymentMethod?.balance ? parseFloat(paymentMethod.balance) : undefined,
       creditLimit: paymentMethod?.creditLimit ? parseFloat(paymentMethod.creditLimit) : undefined,
+      dueDate: paymentMethod?.dueDate || undefined,
       isActive: paymentMethod?.isActive ?? true,
     },
   });
@@ -162,27 +163,54 @@ export function PaymentMethodForm({ paymentMethod, onSuccess }: PaymentMethodFor
         />
 
         {isCreditCard && (
-          <FormField
-            control={form.control}
-            name="creditLimit"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Credit Limit</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    {...field}
-                    value={field.value ?? ""}
-                    onChange={(e) => field.onChange(e.target.value)}
-                    data-testid="input-payment-method-credit-limit"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <>
+            <FormField
+              control={form.control}
+              name="creditLimit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Credit Limit</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      {...field}
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      data-testid="input-payment-method-credit-limit"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="dueDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Payment Due Date (Day of Month)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="31"
+                      placeholder="e.g., 15"
+                      {...field}
+                      value={field.value ?? ""}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      data-testid="input-payment-method-due-date"
+                    />
+                  </FormControl>
+                  <div className="text-[0.8rem] text-muted-foreground">
+                    Enter the day of the month when payment is due (1-31)
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </>
         )}
 
         <FormField
