@@ -1,4 +1,4 @@
-import { Home, Tag, TrendingUp, Wallet, LogOut, Calendar, Settings, Database } from "lucide-react";
+import { Home, Tag, TrendingUp, Wallet, LogOut, Calendar, Settings, Database, FileText, PiggyBank, Receipt, User, Building2 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
   Sidebar,
@@ -29,16 +29,46 @@ const mainMenuItems = [
     description: "Charts & insights",
   },
   {
+    title: "Reports",
+    url: "/reports",
+    icon: FileText,
+    description: "Financial reports & summaries",
+  },
+  {
     title: "Categories",
     url: "/categories", 
     icon: Tag,
     description: "Manage spending categories",
   },
   {
+    title: "Budgets",
+    url: "/budgets",
+    icon: PiggyBank,
+    description: "Budget planning & tracking",
+  },
+  {
     title: "Payment Methods",
     url: "/payment-methods",
     icon: Wallet,
     description: "Manage payment accounts",
+  },
+  {
+    title: "Receipts",
+    url: "/receipts",
+    icon: Receipt,
+    description: "Upload & manage receipts",
+  },
+  {
+    title: "Company",
+    url: "/company",
+    icon: Building2,
+    description: "Organization settings",
+  },
+  {
+    title: "Profile",
+    url: "/profile",
+    icon: User,
+    description: "Personal account settings",
   },
   {
     title: "Backup & Restore",
