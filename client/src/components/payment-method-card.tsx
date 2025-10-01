@@ -88,6 +88,41 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
     paymentMethod.type === "debit_card" ? "Deposit" : 
     "Add Funds";
 
+  const calculateDaysUntilDue = () => {
+    if (!paymentMethod.dueDate) return null;
+    
+    const today = new Date();
+    const currentDay = today.getDate();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    
+    // Create due date for current month
+    let dueDate = new Date(currentYear, currentMonth, paymentMethod.dueDate);
+    
+    // If the due date has already passed this month, calculate for next month
+    if (currentDay > paymentMethod.dueDate) {
+      dueDate = new Date(currentYear, currentMonth + 1, paymentMethod.dueDate);
+    }
+    
+    // Calculate difference in days
+    const diffTime = dueDate.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    return diffDays;
+  };
+
+  const getDueDateDisplay = () => {
+    const daysLeft = calculateDaysUntilDue();
+    if (daysLeft === null) return null;
+    
+    if (daysLeft === 0) return { text: "Due today", color: "text-red-400" };
+    if (daysLeft === 1) return { text: "Due tomorrow", color: "text-orange-400" };
+    if (daysLeft < 0) return { text: `Overdue by ${Math.abs(daysLeft)} days`, color: "text-red-400" };
+    if (daysLeft <= 3) return { text: `${daysLeft} days left`, color: "text-red-400" };
+    if (daysLeft <= 7) return { text: `${daysLeft} days left`, color: "text-yellow-400" };
+    return { text: `${daysLeft} days left`, color: "text-green-400" };
+  };
+
   const getBalanceColor = () => {
     const balance = parseFloat(paymentMethod.balance || "0");
     if (paymentMethod.type === "credit_card" && paymentMethod.creditLimit) {
@@ -201,9 +236,16 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
           {paymentMethod.dueDate && (
             <div className="flex justify-between items-center">
               <span className="text-sm text-white/70">Payment Due Date</span>
-              <span className="font-medium text-white/90" data-testid={`text-payment-method-due-date-${paymentMethod.id}`}>
-                Day {paymentMethod.dueDate} of month
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-white/90" data-testid={`text-payment-method-due-date-${paymentMethod.id}`}>
+                  Day {paymentMethod.dueDate}
+                </span>
+                {getDueDateDisplay() && (
+                  <span className={`text-sm font-semibold ${getDueDateDisplay()?.color}`} data-testid={`text-payment-method-days-left-${paymentMethod.id}`}>
+                    ({getDueDateDisplay()?.text})
+                  </span>
+                )}
+              </div>
             </div>
           )}
         </div>
