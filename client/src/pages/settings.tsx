@@ -264,19 +264,19 @@ export default function Settings() {
         }}>
           <Card className="border-0 shadow-md">
             <CardHeader className="pb-4">
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <SettingsIcon className="h-5 w-5 text-primary" />
+                  <div className={`${isMobile ? 'p-1.5' : 'p-2'} rounded-lg bg-primary/10`}>
+                    <SettingsIcon className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-primary`} />
                   </div>
                   <div>
-                    <CardTitle className="text-lg md:text-xl font-semibold">Category Management</CardTitle>
-                    <p className="text-sm text-muted-foreground mt-1">Add, edit, or remove expense categories</p>
+                    <CardTitle className={`${isMobile ? 'text-base' : 'text-lg md:text-xl'} font-semibold`}>Category Management</CardTitle>
+                    <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground mt-1`}>Add, edit, or remove expense categories</p>
                   </div>
                 </div>
                 {categories.length > 0 && (
                   <DialogTrigger asChild>
-                    <Button onClick={handleAddCategory} data-testid="button-add-category">
+                    <Button onClick={handleAddCategory} size={isMobile ? "lg" : "default"} className={isMobile ? 'min-h-11' : ''} data-testid="button-add-category">
                       <Plus className="h-4 w-4 mr-2" />
                       Add Category
                     </Button>
@@ -297,14 +297,14 @@ export default function Settings() {
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted/50 flex items-center justify-center">
                 <SettingsIcon className="h-8 w-8 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-medium mb-2">No categories found</h3>
-              <p className="text-muted-foreground mb-4">Load the default categories to get started editing them</p>
-              <div className="space-y-3">
-                <Button onClick={handleLoadDefaultCategories} data-testid="button-load-default-categories" className="mr-3">
+              <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-medium mb-2`}>No categories found</h3>
+              <p className={`${isMobile ? 'text-sm' : 'text-base'} text-muted-foreground mb-4`}>Load the default categories to get started editing them</p>
+              <div className={isMobile ? 'space-y-2 flex flex-col' : 'space-y-3'}>
+                <Button onClick={handleLoadDefaultCategories} size={isMobile ? "lg" : "default"} className={isMobile ? 'min-h-11' : 'mr-3'} data-testid="button-load-default-categories">
                   Load Default Categories
                 </Button>
                 <DialogTrigger asChild>
-                  <Button variant="outline" onClick={handleAddCategory} data-testid="button-add-category-empty">
+                  <Button variant="outline" onClick={handleAddCategory} size={isMobile ? "lg" : "default"} className={isMobile ? 'min-h-11' : ''} data-testid="button-add-category-empty">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Custom Category
                   </Button>
@@ -393,7 +393,7 @@ export default function Settings() {
           )}
         </CardContent>
           </Card>
-          <DialogContent className="max-w-md">
+          <DialogContent className={isMobile ? 'w-[95vw] max-w-md' : 'sm:max-w-md'}>
             <DialogHeader>
               <DialogTitle>
                 {editingCategory ? 'Edit Category' : 'Add New Category'}
@@ -413,46 +413,46 @@ export default function Settings() {
         </Dialog>
       )}
 
-
-      {/* Export & Reports */}
-      <Card className="border-0 shadow-md">
-        <CardHeader className="pb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900">
-              <FileSpreadsheet className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            </div>
-            <div>
-              <CardTitle className="text-lg md:text-xl font-semibold">Reports & Export</CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">Download your expense data in Excel format</p>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 border border-border/50 rounded-lg bg-gradient-to-r from-blue-50/50 to-blue-100/50 dark:from-blue-950/50 dark:to-blue-900/50">
-              <div>
-                <h3 className="font-medium text-foreground">Export All Expenses</h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Download all your expenses in an Excel spreadsheet with categories and date ranges
-                </p>
+      {!isMobile && (
+        <Card className="border-0 shadow-md">
+          <CardHeader className="pb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900">
+                <FileSpreadsheet className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
-              <Button 
-                onClick={handleExportExpenses}
-                data-testid="button-export-expenses"
-                className="shrink-0"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Export Excel
-              </Button>
+              <div>
+                <CardTitle className="text-lg md:text-xl font-semibold">Reports & Export</CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">Download your expense data in Excel format</p>
+              </div>
             </div>
-            
-            <div className="text-xs text-muted-foreground p-3 bg-muted/50 rounded-lg">
-              <strong>Note:</strong> The exported Excel file will include all your expense data with proper AED formatting, 
-              category breakdowns, and monthly summaries for easy analysis.
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 border border-border/50 rounded-lg bg-gradient-to-r from-blue-50/50 to-blue-100/50 dark:from-blue-950/50 dark:to-blue-900/50">
+                <div>
+                  <h3 className="font-medium text-foreground">Export All Expenses</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Download all your expenses in an Excel spreadsheet with categories and date ranges
+                  </p>
+                </div>
+                <Button 
+                  onClick={handleExportExpenses}
+                  data-testid="button-export-expenses"
+                  className="shrink-0"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Export Excel
+                </Button>
+              </div>
+          
+              <div className="text-xs text-muted-foreground p-3 bg-muted/50 rounded-lg">
+                <strong>Note:</strong> The exported Excel file will include all your expense data with proper AED formatting, 
+                category breakdowns, and monthly summaries for easy analysis.
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

@@ -150,8 +150,8 @@ export default function BackupRestorePage() {
             <Button
               onClick={handleBackup}
               disabled={isBackingUp}
-              className="w-full"
-              size={isMobile ? "default" : "default"}
+              className={isMobile ? 'w-full min-h-11' : 'w-full'}
+              size={isMobile ? "lg" : "default"}
               data-testid="button-create-backup"
             >
               {isBackingUp ? (
@@ -205,8 +205,8 @@ export default function BackupRestorePage() {
                   asChild
                   variant="outline"
                   disabled={isRestoring}
-                  size={isMobile ? "default" : "default"}
-                  className="w-full"
+                  size={isMobile ? "lg" : "default"}
+                  className={isMobile ? 'w-full min-h-11' : 'w-full'}
                   data-testid="button-select-backup-file"
                 >
                   <span className="cursor-pointer">
@@ -227,7 +227,7 @@ export default function BackupRestorePage() {
 
       {/* Restore Confirmation Dialog */}
       <AlertDialog open={showRestoreDialog} onOpenChange={setShowRestoreDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className={isMobile ? 'w-[95vw] max-w-md' : 'sm:max-w-md'}>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
