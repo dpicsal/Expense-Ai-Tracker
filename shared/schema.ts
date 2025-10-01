@@ -52,9 +52,9 @@ export const paymentMethodFundHistory = pgTable("payment_method_fund_history", {
 export const expenses = pgTable("expenses", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
-  description: text("description").notNull(),
+  description: text("description"),
   category: text("category").notNull(),
-  paymentMethod: text("payment_method").notNull().default("cash"),
+  paymentMethod: text("payment_method"),
   date: timestamp("date").notNull().defaultNow(),
 });
 
@@ -73,8 +73,9 @@ export const insertExpenseSchema = createInsertSchema(expenses).omit({
   id: true,
 }).extend({
   amount: z.coerce.number().positive("Amount must be positive"),
+  description: z.string().trim().optional(),
   date: z.coerce.date(),
-  paymentMethod: z.string().trim().min(1, "Payment method is required"),
+  paymentMethod: z.string().trim().optional(),
 });
 
 // Fund History schemas
