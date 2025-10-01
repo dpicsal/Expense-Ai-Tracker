@@ -198,6 +198,14 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
               {formatCurrency(parseFloat(paymentMethod.creditLimit || "0"))}
             </span>
           </div>
+          {paymentMethod.dueDate && (
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-white/70">Payment Due Date</span>
+              <span className="font-medium text-white/90" data-testid={`text-payment-method-due-date-${paymentMethod.id}`}>
+                Day {paymentMethod.dueDate} of month
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Bottom Section - Progress */}
