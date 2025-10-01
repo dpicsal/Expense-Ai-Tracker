@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Edit, Trash2, CreditCard, Banknote, Building, Smartphone, MoreVertical, Plus } from "lucide-react";
+import { Edit, Trash2, CreditCard, Banknote, Building, Smartphone, MoreVertical, Plus, ChevronDown, ChevronUp, History } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,13 +24,13 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useDeletePaymentMethod, useAddFundsToPaymentMethod } from "@/hooks/use-payment-methods";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useDeletePaymentMethod } from "@/hooks/use-payment-methods";
+import { AddFundsToPaymentMethodForm } from "@/components/add-funds-to-payment-method-form";
+import { PaymentMethodFundHistory } from "@/components/payment-method-fund-history";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
 import type { PaymentMethod } from "@shared/schema";
@@ -55,9 +55,8 @@ const typeLabels = {
 export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showAddFundsDialog, setShowAddFundsDialog] = useState(false);
-  const [fundAmount, setFundAmount] = useState("");
+  const [showHistory, setShowHistory] = useState(false);
   const deletePaymentMethod = useDeletePaymentMethod();
-  const addFundsToPaymentMethod = useAddFundsToPaymentMethod();
   const { toast } = useToast();
 
   const Icon = iconMap[paymentMethod.type as keyof typeof iconMap] || CreditCard;
@@ -80,32 +79,8 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
     setShowDeleteDialog(false);
   };
 
-  const handleAddFunds = async () => {
-    const amount = parseFloat(fundAmount);
-    if (isNaN(amount) || amount <= 0) {
-      toast({
-        title: "Invalid amount",
-        description: "Please enter a valid amount greater than 0.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      await addFundsToPaymentMethod.mutateAsync({ id: paymentMethod.id, amount });
-      toast({
-        title: "Funds added",
-        description: `${formatCurrency(amount)} has been added to ${paymentMethod.name}.`,
-      });
-      setShowAddFundsDialog(false);
-      setFundAmount("");
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to add funds. Please try again.",
-        variant: "destructive",
-      });
-    }
+  const handleAddFundsSuccess = () => {
+    setShowAddFundsDialog(false);
   };
 
   const getBalanceColor = () => {
@@ -166,6 +141,10 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
             <DropdownMenuItem onClick={() => setShowAddFundsDialog(true)} data-testid={`button-add-funds-payment-method-${paymentMethod.id}`}>
               <Plus className="w-4 h-4 mr-2" />
               Add Funds
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setShowHistory(!showHistory)} data-testid={`button-view-history-payment-method-${paymentMethod.id}`}>
+              <History className="w-4 h-4 mr-2" />
+              {showHistory ? "Hide History" : "View History"}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onEdit(paymentMethod)} data-testid={`button-edit-payment-method-${paymentMethod.id}`}>
               <Edit className="w-4 h-4 mr-2" />
@@ -269,6 +248,10 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
               <Plus className="w-4 h-4 mr-2" />
               Add Funds
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setShowHistory(!showHistory)} data-testid={`button-view-history-payment-method-${paymentMethod.id}`}>
+              <History className="w-4 h-4 mr-2" />
+              {showHistory ? "Hide History" : "View History"}
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onEdit(paymentMethod)} data-testid={`button-edit-payment-method-${paymentMethod.id}`}>
               <Edit className="w-4 h-4 mr-2" />
               Edit
@@ -320,9 +303,13 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
   ) : null;
 
   return (
-    <>
+    <div className="space-y-4">
       {creditCardContent}
       {regularCardContent}
+
+      {showHistory && (
+        <PaymentMethodFundHistory paymentMethod={paymentMethod} />
+      )}
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
@@ -346,49 +333,20 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
       </AlertDialog>
 
       <Dialog open={showAddFundsDialog} onOpenChange={setShowAddFundsDialog}>
-        <DialogContent data-testid="dialog-add-funds">
+        <DialogContent className="w-[95vw] max-w-md">
           <DialogHeader>
             <DialogTitle>Add Funds to {paymentMethod.name}</DialogTitle>
             <DialogDescription>
-              Enter the amount you want to add to this payment method.
+              Add funds to increase the balance for this payment method.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="amount">Amount</Label>
-              <Input
-                id="amount"
-                type="number"
-                placeholder="0.00"
-                value={fundAmount}
-                onChange={(e) => setFundAmount(e.target.value)}
-                data-testid="input-add-funds-amount"
-                step="0.01"
-                min="0"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setShowAddFundsDialog(false);
-                setFundAmount("");
-              }}
-              data-testid="button-cancel-add-funds"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleAddFunds}
-              disabled={addFundsToPaymentMethod.isPending}
-              data-testid="button-confirm-add-funds"
-            >
-              {addFundsToPaymentMethod.isPending ? "Adding..." : "Add Funds"}
-            </Button>
-          </DialogFooter>
+          <AddFundsToPaymentMethodForm 
+            paymentMethod={paymentMethod}
+            onClose={() => setShowAddFundsDialog(false)}
+            onSuccess={handleAddFundsSuccess}
+          />
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }
