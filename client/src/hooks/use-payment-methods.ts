@@ -49,3 +49,17 @@ export function useDeletePaymentMethod() {
     },
   });
 }
+
+export function useAddFundsToPaymentMethod() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ id, amount }: { id: string; amount: number }) => {
+      const response = await apiRequest("POST", `/api/payment-methods/${id}/add-funds`, { amount });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/payment-methods"] });
+    },
+  });
+}

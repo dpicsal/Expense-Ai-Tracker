@@ -52,6 +52,7 @@ export interface IStorage {
   createPaymentMethod(paymentMethod: InsertPaymentMethod): Promise<PaymentMethod>;
   updatePaymentMethod(id: string, paymentMethod: Partial<InsertPaymentMethod>): Promise<PaymentMethod | undefined>;
   deletePaymentMethod(id: string): Promise<boolean>;
+  addFundsToPaymentMethod(paymentMethodId: string, amount: number): Promise<PaymentMethod>;
 
   // Data reset management
   resetCategory(categoryId: string): Promise<{deletedExpenses: number, deletedFundHistory: number, resetCategory: Category}>;
@@ -480,6 +481,32 @@ export class DatabaseStorage implements IStorage {
   async deletePaymentMethod(id: string): Promise<boolean> {
     const result = await db.delete(paymentMethods).where(eq(paymentMethods.id, id));
     return (result.rowCount || 0) > 0;
+  }
+
+  async addFundsToPaymentMethod(paymentMethodId: string, amount: number): Promise<PaymentMethod> {
+    return await db.transaction(async (tx) => {
+      const [currentPaymentMethod] = await tx.select().from(paymentMethods).where(eq(paymentMethods.id, paymentMethodId));
+      if (!currentPaymentMethod) {
+        throw new Error('Payment method not found');
+      }
+
+      const amountStr = toDecimalString(amount);
+      const [updatedPaymentMethod] = await tx
+        .update(paymentMethods)
+        .set({
+          balance: sql`balance + ${amountStr}`,
+          maxBalance: sql`CASE WHEN balance + ${amountStr} > max_balance THEN balance + ${amountStr} ELSE max_balance END`,
+          updatedAt: sql`NOW()`
+        })
+        .where(eq(paymentMethods.id, paymentMethodId))
+        .returning();
+
+      if (!updatedPaymentMethod) {
+        throw new Error('Failed to update payment method');
+      }
+
+      return updatedPaymentMethod;
+    });
   }
 
   async resetCategory(categoryId: string): Promise<{deletedExpenses: number, deletedFundHistory: number, resetCategory: Category}> {
