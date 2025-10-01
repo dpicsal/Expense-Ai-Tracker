@@ -226,14 +226,14 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
       </div>
 
       {/* Card Content */}
-      <div className="p-6 h-full flex flex-col justify-between text-white">
+      <div className="p-5 h-full flex flex-col justify-between text-white">
         {/* Top Section */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
-            <Icon className="w-5 h-5 text-white" />
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center">
+            <Icon className="w-4 h-4 text-white" />
           </div>
           <div>
-            <h3 className="font-bold text-lg text-white" data-testid={`text-payment-method-name-${paymentMethod.id}`}>
+            <h3 className="font-bold text-base text-white" data-testid={`text-payment-method-name-${paymentMethod.id}`}>
               {paymentMethod.name}
             </h3>
             <Badge variant="secondary" className="text-xs bg-white/20 text-white border-0">
@@ -243,28 +243,28 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
         </div>
 
         {/* Middle Section - Balances */}
-        <div className="space-y-2">
+        <div className="space-y-1">
           <div className="flex justify-between items-center">
-            <span className="text-sm text-white/70">Available Balance</span>
+            <span className="text-xs text-white/70">Available Balance</span>
             <span className={`font-bold text-lg text-white`} data-testid={`text-payment-method-balance-${paymentMethod.id}`}>
               {formatCurrency(parseFloat(paymentMethod.balance || "0"))}
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-sm text-white/70">Credit Limit</span>
-            <span className="font-medium text-white/90" data-testid={`text-payment-method-limit-${paymentMethod.id}`}>
+            <span className="text-xs text-white/70">Credit Limit</span>
+            <span className="font-medium text-sm text-white/90" data-testid={`text-payment-method-limit-${paymentMethod.id}`}>
               {formatCurrency(parseFloat(paymentMethod.creditLimit || "0"))}
             </span>
           </div>
           {paymentMethod.dueDate && getNextDueDate() && (
             <div className="flex justify-between items-center">
-              <span className="text-sm text-white/70">Payment Due Date</span>
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-white/90" data-testid={`text-payment-method-due-date-${paymentMethod.id}`}>
+              <span className="text-xs text-white/70">Payment Due Date</span>
+              <div className="flex items-center gap-1.5">
+                <span className="font-medium text-sm text-white/90" data-testid={`text-payment-method-due-date-${paymentMethod.id}`}>
                   {formatDueDate(getNextDueDate()!)}
                 </span>
                 {getDueDateDisplay() && (
-                  <span className={`text-sm font-semibold ${getDueDateDisplay()?.color}`} data-testid={`text-payment-method-days-left-${paymentMethod.id}`}>
+                  <span className={`text-xs font-semibold ${getDueDateDisplay()?.color}`} data-testid={`text-payment-method-days-left-${paymentMethod.id}`}>
                     ({getDueDateDisplay()?.text})
                   </span>
                 )}
