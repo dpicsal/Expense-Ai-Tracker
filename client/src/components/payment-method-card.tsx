@@ -186,7 +186,11 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
   // Render card-style design for credit and debit cards
   const cardStyleContent = (paymentMethod.type === "credit_card" || paymentMethod.type === "debit_card") ? (
     <div 
-      className="relative w-full h-48 bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 rounded-xl shadow-xl hover-elevate transition-all duration-200 overflow-hidden"
+      className={`relative w-full h-48 rounded-xl shadow-xl hover-elevate transition-all duration-200 overflow-hidden ${
+        paymentMethod.type === "credit_card" 
+          ? "bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900" 
+          : "bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900"
+      }`}
       data-testid={`card-payment-method-${paymentMethod.id}`}
     >
       {/* Card Background Pattern */}
