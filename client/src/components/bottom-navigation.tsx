@@ -32,6 +32,12 @@ const navigationItems = [
     icon: Wallet,
     href: "/payment-methods",
     testId: "tab-payment-methods"
+  },
+  {
+    title: "Settings",
+    icon: Settings,
+    href: "/settings",
+    testId: "tab-settings"
   }
 ];
 
