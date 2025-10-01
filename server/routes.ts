@@ -612,7 +612,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               description: expense.description,
               category: expense.category,
               paymentMethod: newPaymentMethodId || expense.paymentMethod,
-              date: expense.date
+              date: new Date(expense.date)
             });
           }
         }
@@ -626,7 +626,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 categoryId: newCategoryId,
                 amount: history.amount,
                 description: history.description,
-                addedAt: history.addedAt
+                addedAt: new Date(history.addedAt)
               });
             }
           }
@@ -641,7 +641,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 paymentMethodId: newPaymentMethodId,
                 amount: history.amount,
                 description: history.description,
-                addedAt: history.addedAt
+                addedAt: new Date(history.addedAt)
               });
             }
           }
