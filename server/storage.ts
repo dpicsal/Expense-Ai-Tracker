@@ -65,6 +65,9 @@ export interface IStorage {
 
   // Data reset management
   resetCategory(categoryId: string): Promise<{deletedExpenses: number, deletedFundHistory: number, resetCategory: Category}>;
+  
+  // Backup & Restore
+  clearAllData(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -688,6 +691,17 @@ export class DatabaseStorage implements IStorage {
         deletedFundHistory: deletedFundHistoryCount,
         resetCategory: resetCategory
       };
+    });
+  }
+
+  async clearAllData(): Promise<void> {
+    await db.transaction(async (tx) => {
+      // Delete in order to respect foreign key constraints
+      await tx.delete(expenses);
+      await tx.delete(fundHistory);
+      await tx.delete(paymentMethodFundHistory);
+      await tx.delete(paymentMethods);
+      await tx.delete(categories);
     });
   }
 
