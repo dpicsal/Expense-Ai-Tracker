@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useCategories, useDeleteCategory } from "@/hooks/use-categories";
 import { useAppSettings } from "@/hooks/use-app-settings";
 import { useExpenses } from "@/hooks/use-expenses";
+import { useIsMobile } from "@/hooks/use-mobile";
 import ExcelJS from "exceljs";
 import { CategoryForm } from "@/components/category-form";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,7 @@ export default function Settings() {
   const [deletingCategory, setDeletingCategory] = useState<Category | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   
   const { data: categories = [], isLoading } = useCategories();
   const deleteCategory = useDeleteCategory();
@@ -201,27 +203,27 @@ export default function Settings() {
   };
 
   return (
-    <div className="space-y-8 animate-fade-in-up">
+    <div className={`${isMobile ? 'space-y-6' : 'space-y-8'} animate-fade-in-up`}>
       {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-2xl md:text-4xl font-semibold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+      <div className="space-y-1">
+        <h1 className={`${isMobile ? 'text-2xl' : 'text-2xl md:text-4xl'} font-semibold tracking-tight text-foreground`}>
           Settings
         </h1>
-        <p className="text-base md:text-lg font-normal text-muted-foreground">
+        <p className={`${isMobile ? 'text-sm' : 'text-base md:text-lg'} text-muted-foreground`}>
           Manage your categories and export your data
         </p>
       </div>
 
       {/* App Preferences */}
       <Card className="border-0 shadow-md">
-        <CardHeader className="pb-4">
+        <CardHeader className={isMobile ? 'pb-3 px-4 pt-4' : 'pb-4'}>
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900">
-              <Shield className="h-5 w-5 text-green-600 dark:text-green-400" />
+            <div className={`${isMobile ? 'p-1.5' : 'p-2'} rounded-lg bg-green-100 dark:bg-green-900`}>
+              <Shield className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-green-600 dark:text-green-400`} />
             </div>
             <div>
-              <CardTitle className="text-lg md:text-xl font-semibold">App Preferences</CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">Control app features and permissions</p>
+              <CardTitle className={`${isMobile ? 'text-base' : 'text-lg md:text-xl'} font-semibold`}>App Preferences</CardTitle>
+              <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground mt-1`}>Control app features and permissions</p>
             </div>
           </div>
         </CardHeader>

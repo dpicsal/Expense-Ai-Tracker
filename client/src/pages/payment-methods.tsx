@@ -11,12 +11,14 @@ import {
 import { PaymentMethodCard } from "@/components/payment-method-card";
 import { PaymentMethodForm } from "@/components/payment-method-form";
 import { usePaymentMethods } from "@/hooks/use-payment-methods";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { formatCurrency } from "@/lib/utils";
 import type { PaymentMethod } from "@shared/schema";
 
 export default function PaymentMethodsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingPaymentMethod, setEditingPaymentMethod] = useState<PaymentMethod | null>(null);
+  const isMobile = useIsMobile();
   
   const { data: paymentMethods = [], isLoading } = usePaymentMethods();
 
@@ -57,11 +59,11 @@ export default function PaymentMethodsPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className={isMobile ? 'space-y-4' : 'space-y-6'}>
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">Payment Methods</h1>
+          <h1 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-foreground`}>Payment Methods</h1>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className={`grid grid-cols-1 md:grid-cols-3 ${isMobile ? 'gap-3' : 'gap-4'}`}>
           {[1, 2, 3].map((i) => (
             <Card key={i} className="animate-pulse">
               <CardHeader className="pb-2">
@@ -78,65 +80,65 @@ export default function PaymentMethodsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className={isMobile ? 'space-y-5' : 'space-y-6'}>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground" data-testid="text-payment-methods-title">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className={`${isMobile ? 'text-2xl' : 'text-2xl'} font-semibold tracking-tight text-foreground`} data-testid="text-payment-methods-title">
             Payment Methods
           </h1>
-          <p className="text-muted-foreground">
+          <p className={`${isMobile ? 'text-sm' : 'text-base'} text-muted-foreground`}>
             Manage your payment accounts and track balances
           </p>
         </div>
-        <Button onClick={handleAddNew} data-testid="button-add-payment-method">
+        <Button onClick={handleAddNew} size={isMobile ? "default" : "default"} data-testid="button-add-payment-method">
           <Plus className="w-4 h-4 mr-2" />
           Add Payment Method
         </Button>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Balance</CardTitle>
-            <Wallet className="w-4 h-4 text-muted-foreground" />
+      <div className={`grid grid-cols-1 md:grid-cols-3 ${isMobile ? 'gap-3' : 'gap-4'}`}>
+        <Card className={isMobile ? 'min-h-[6.5rem]' : ''}>
+          <CardHeader className={`flex flex-row items-center justify-between space-y-0 ${isMobile ? 'pb-2 px-4 pt-3' : 'pb-2'}`}>
+            <CardTitle className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium`}>Total Balance</CardTitle>
+            <Wallet className={`${isMobile ? 'w-3.5 h-3.5' : 'w-4 h-4'} text-muted-foreground`} />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold" data-testid="text-total-balance">
+          <CardContent className={isMobile ? 'px-4 pb-3' : ''}>
+            <div className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`} data-testid="text-total-balance">
               {formatCurrency(totalBalance)}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className={`${isMobile ? 'text-xs' : 'text-xs'} text-muted-foreground`}>
               Across {paymentMethods.length} accounts
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Methods</CardTitle>
-            <TrendingUp className="w-4 h-4 text-muted-foreground" />
+        <Card className={isMobile ? 'min-h-[6.5rem]' : ''}>
+          <CardHeader className={`flex flex-row items-center justify-between space-y-0 ${isMobile ? 'pb-2 px-4 pt-3' : 'pb-2'}`}>
+            <CardTitle className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium`}>Active Methods</CardTitle>
+            <TrendingUp className={`${isMobile ? 'w-3.5 h-3.5' : 'w-4 h-4'} text-muted-foreground`} />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold" data-testid="text-active-methods">
+          <CardContent className={isMobile ? 'px-4 pb-3' : ''}>
+            <div className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`} data-testid="text-active-methods">
               {paymentMethods.filter(m => m.isActive).length}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className={`${isMobile ? 'text-xs' : 'text-xs'} text-muted-foreground`}>
               Available for expenses
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Needs Attention</CardTitle>
-            <AlertTriangle className="w-4 h-4 text-muted-foreground" />
+        <Card className={isMobile ? 'min-h-[6.5rem]' : ''}>
+          <CardHeader className={`flex flex-row items-center justify-between space-y-0 ${isMobile ? 'pb-2 px-4 pt-3' : 'pb-2'}`}>
+            <CardTitle className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium`}>Needs Attention</CardTitle>
+            <AlertTriangle className={`${isMobile ? 'w-3.5 h-3.5' : 'w-4 h-4'} text-muted-foreground`} />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold" data-testid="text-needs-attention">
+          <CardContent className={isMobile ? 'px-4 pb-3' : ''}>
+            <div className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`} data-testid="text-needs-attention">
               {needsAttention}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className={`${isMobile ? 'text-xs' : 'text-xs'} text-muted-foreground`}>
               Low balance or high usage
             </p>
           </CardContent>
@@ -144,27 +146,27 @@ export default function PaymentMethodsPage() {
       </div>
 
       {/* Payment Methods List */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-foreground">Your Payment Methods</h2>
+      <div className={isMobile ? 'space-y-3' : 'space-y-4'}>
+        <h2 className={`${isMobile ? 'text-base' : 'text-lg'} font-semibold text-foreground`}>Your Payment Methods</h2>
         
         {paymentMethods.length === 0 ? (
-          <Card className="p-8 text-center">
-            <CardContent className="space-y-4">
-              <Wallet className="w-12 h-12 text-muted-foreground mx-auto" />
+          <Card className={isMobile ? 'p-6' : 'p-8'}>
+            <CardContent className="space-y-4 text-center">
+              <Wallet className={`${isMobile ? 'w-10 h-10' : 'w-12 h-12'} text-muted-foreground mx-auto`} />
               <div>
-                <h3 className="font-semibold text-foreground">No payment methods yet</h3>
-                <p className="text-muted-foreground">
+                <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-semibold text-foreground`}>No payment methods yet</h3>
+                <p className={`${isMobile ? 'text-sm' : 'text-base'} text-muted-foreground`}>
                   Add your first payment method to start tracking balances and expenses.
                 </p>
               </div>
-              <Button onClick={handleAddNew} data-testid="button-add-first-payment-method">
+              <Button onClick={handleAddNew} size={isMobile ? "default" : "default"} data-testid="button-add-first-payment-method">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Your First Payment Method
               </Button>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 ${isMobile ? 'gap-3' : 'gap-4'}`}>
             {paymentMethods.map((paymentMethod) => (
               <PaymentMethodCard
                 key={paymentMethod.id}
@@ -178,7 +180,7 @@ export default function PaymentMethodsPage() {
 
       {/* Add/Edit Dialog */}
       <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className={isMobile ? 'w-[95vw] max-w-[425px]' : 'sm:max-w-[425px]'}>
           <DialogHeader>
             <DialogTitle>
               {editingPaymentMethod ? "Edit Payment Method" : "Add Payment Method"}

@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useExpenses } from "@/hooks/use-expenses";
 import { useCategories, useResetCategory } from "@/hooks/use-categories";
 import { useFundHistory } from "@/hooks/use-fund-history";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { CategoryForm } from "@/components/category-form";
 import { AddFundsForm } from "@/components/add-funds-form";
 import { FundHistory } from "@/components/fund-history";
@@ -77,44 +78,51 @@ export default function Categories() {
   };
 
   const totalSpent = expenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
+  const isMobile = useIsMobile();
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+    <div className={isMobile ? 'space-y-6' : 'space-y-8'}>
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className={`${isMobile ? 'text-2xl' : 'text-4xl'} font-semibold tracking-tight text-foreground`}>
             Categories
           </h1>
-          <p className="text-lg text-muted-foreground">
+          <p className={`${isMobile ? 'text-base' : 'text-lg'} text-muted-foreground`}>
             Manage your expense categories and analyze spending patterns
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <ExcelImportButton 
-            variant="outline" 
-            onImportSuccess={(count) => {
-              toast({
-                title: "Import Complete",
-                description: `Successfully imported ${count} expenses.`,
-              });
-            }}
-          />
-          <ExcelExportButton 
-            data={{
-              expenses,
-              categories,
-              fundHistory
-            }}
-            variant="outline"
-          />
+        <div className={`flex flex-wrap items-center ${isMobile ? 'gap-2' : 'gap-3'}`}>
+          {!isMobile && (
+            <>
+              <ExcelImportButton 
+                variant="outline"
+                size="sm"
+                onImportSuccess={(count) => {
+                  toast({
+                    title: "Import Complete",
+                    description: `Successfully imported ${count} expenses.`,
+                  });
+                }}
+              />
+              <ExcelExportButton 
+                data={{
+                  expenses,
+                  categories,
+                  fundHistory
+                }}
+                variant="outline"
+                size="sm"
+              />
+            </>
+          )}
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button data-testid="button-add-category">
-                <Plus className="w-4 h-4" />
+              <Button size={isMobile ? "default" : "default"} data-testid="button-add-category">
+                <Plus className="w-4 h-4 mr-2" />
                 Add Category
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className={isMobile ? 'w-[95vw] max-w-md' : ''}>
               <DialogHeader>
                 <DialogTitle>Add New Category</DialogTitle>
                 <DialogDescription>
@@ -132,7 +140,7 @@ export default function Categories() {
           Loading categories...
         </div>
       ) : (
-        <div className="grid gap-4">
+        <div className={`grid ${isMobile ? 'gap-3' : 'gap-4'}`}>
           {categoryStats.map((categoryData) => {
             const { category, color, icon, allocatedFunds, total, count } = categoryData;
             const percentage = allocatedFunds > 0 ? (total / allocatedFunds) * 100 : 0;
@@ -141,7 +149,7 @@ export default function Categories() {
             
             return (
               <Card key={category} className="border-0 shadow-md bg-gradient-to-r from-card to-card/50 transition-all duration-200" data-testid={`category-card-${category}`}>
-                <CardContent className="p-6">
+                <CardContent className={isMobile ? 'p-4' : 'p-6'}>
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                       <Badge 
@@ -195,12 +203,13 @@ export default function Categories() {
                     />
                     
                     {/* Action Buttons */}
-                    <div className="grid grid-cols-2 gap-2 pt-2">
+                    <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-2 pt-2`}>
                       <Dialog open={addFundsDialogOpen === category} onOpenChange={(open) => setAddFundsDialogOpen(open ? category : null)}>
                         <DialogTrigger asChild>
                           <Button 
                             variant="outline" 
-                            size="sm" 
+                            size={isMobile ? "default" : "sm"}
+                            className={isMobile ? 'w-full justify-start' : ''}
                             data-testid={`button-add-funds-${category}`}
                           >
                             <DollarSign className="h-4 w-4 mr-2" />
@@ -222,22 +231,25 @@ export default function Categories() {
                         </DialogContent>
                       </Dialog>
                       
-                      <ExcelExportButton 
-                        data={{
-                          expenses,
-                          categories,
-                          fundHistory
-                        }}
-                        categoryName={category}
-                        variant="outline"
-                        size="sm"
-                      />
+                      {!isMobile && (
+                        <ExcelExportButton 
+                          data={{
+                            expenses,
+                            categories,
+                            fundHistory
+                          }}
+                          categoryName={category}
+                          variant="outline"
+                          size="sm"
+                        />
+                      )}
                       
                       <Collapsible open={isExpanded} onOpenChange={(open) => handleHistoryExpansion(category, open)}>
                         <CollapsibleTrigger asChild>
                           <Button 
                             variant="ghost" 
-                            size="sm"
+                            size={isMobile ? "default" : "sm"}
+                            className={isMobile ? 'w-full justify-start' : ''}
                             data-testid={`button-toggle-history-${category}`}
                           >
                             {isExpanded ? (
@@ -253,17 +265,18 @@ export default function Categories() {
                         </CollapsibleContent>
                       </Collapsible>
 
-                      <div className="flex justify-end">
+                      <div className={`flex ${isMobile ? 'justify-start' : 'justify-end'}`}>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button 
                               variant="destructive"
-                              size="icon"
-                              className="h-8 w-8"
+                              size={isMobile ? "default" : "icon"}
+                              className={isMobile ? 'w-full' : 'h-8 w-8'}
                               data-testid={`button-reset-category-${category}`}
                               disabled={resetCategory.isPending}
                             >
                               <RotateCcw className="h-4 w-4" />
+                              {isMobile && <span className="ml-2">Reset Category</span>}
                             </Button>
                           </AlertDialogTrigger>
                         <AlertDialogContent>
