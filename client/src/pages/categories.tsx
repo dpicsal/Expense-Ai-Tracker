@@ -269,14 +269,14 @@ export default function Categories() {
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button 
-                              variant="destructive"
-                              size={isMobile ? "lg" : "icon"}
-                              className={isMobile ? 'w-full min-h-11' : 'h-8 w-8'}
+                              variant="outline"
+                              size={isMobile ? "lg" : "sm"}
+                              className={isMobile ? 'w-full justify-start min-h-11' : ''}
                               data-testid={`button-reset-category-${category}`}
                               disabled={resetCategory.isPending}
                             >
-                              <RotateCcw className="h-4 w-4" />
-                              {isMobile && <span className="ml-2">Reset Category</span>}
+                              <RotateCcw className="h-4 w-4 mr-2" />
+                              Reset Category
                             </Button>
                           </AlertDialogTrigger>
                         <AlertDialogContent>
