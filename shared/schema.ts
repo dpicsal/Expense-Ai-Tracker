@@ -37,6 +37,16 @@ export const paymentMethods = pgTable("payment_methods", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// Payment Method Fund History table - tracks fund additions/deposits to payment methods
+export const paymentMethodFundHistory = pgTable("payment_method_fund_history", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  paymentMethodId: varchar("payment_method_id").notNull().references(() => paymentMethods.id, { onDelete: "cascade" }),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  description: text("description"), // Optional description for the fund addition
+  addedAt: timestamp("added_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // Expenses table
 export const expenses = pgTable("expenses", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -90,6 +100,15 @@ export const insertPaymentMethodSchema = createInsertSchema(paymentMethods).omit
   isActive: z.boolean().optional(),
 });
 
+// Payment Method Fund History schemas
+export const insertPaymentMethodFundHistorySchema = createInsertSchema(paymentMethodFundHistory).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  amount: z.coerce.number().positive("Amount must be positive"),
+  addedAt: z.coerce.date(),
+});
+
 // Type exports
 
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
@@ -100,6 +119,9 @@ export type FundHistory = typeof fundHistory.$inferSelect;
 
 export type InsertPaymentMethod = z.infer<typeof insertPaymentMethodSchema>;
 export type PaymentMethod = typeof paymentMethods.$inferSelect;
+
+export type InsertPaymentMethodFundHistory = z.infer<typeof insertPaymentMethodFundHistorySchema>;
+export type PaymentMethodFundHistory = typeof paymentMethodFundHistory.$inferSelect;
 
 export type InsertExpense = z.infer<typeof insertExpenseSchema>;
 export type Expense = typeof expenses.$inferSelect;

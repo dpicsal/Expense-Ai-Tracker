@@ -3,7 +3,8 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { 
   insertExpenseSchema, insertCategorySchema, 
-  insertFundHistorySchema, insertPaymentMethodSchema
+  insertFundHistorySchema, insertPaymentMethodSchema,
+  insertPaymentMethodFundHistorySchema
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -412,20 +413,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add funds to payment method
   app.post("/api/payment-methods/:id/add-funds", async (req, res) => {
     try {
-      const { amount } = req.body;
+      const { amount, description } = req.body;
       
       if (!amount || typeof amount !== 'number' || amount <= 0) {
         return res.status(400).json({ error: "Amount must be a positive number" });
       }
 
-      const updatedPaymentMethod = await storage.addFundsToPaymentMethod(req.params.id, amount);
-      res.status(200).json(updatedPaymentMethod);
+      const result = await storage.addFundsToPaymentMethod(req.params.id, amount, description);
+      res.status(200).json(result);
     } catch (error) {
       if (error instanceof Error && error.message === 'Payment method not found') {
         return res.status(404).json({ error: "Payment method not found" });
       }
       console.error("Error adding funds to payment method:", error);
       res.status(500).json({ error: "Failed to add funds to payment method" });
+    }
+  });
+
+  // Payment Method Fund History Routes
+  // Get all payment method fund history
+  app.get("/api/payment-method-fund-history", async (req, res) => {
+    try {
+      const fundHistory = await storage.getAllPaymentMethodFundHistory();
+      res.json(fundHistory);
+    } catch (error) {
+      console.error("Error fetching payment method fund history:", error);
+      res.status(500).json({ error: "Failed to fetch payment method fund history" });
+    }
+  });
+
+  // Get payment method fund history by payment method ID
+  app.get("/api/payment-methods/:paymentMethodId/fund-history", async (req, res) => {
+    try {
+      const fundHistory = await storage.getPaymentMethodFundHistoryByPaymentMethod(req.params.paymentMethodId);
+      res.json(fundHistory);
+    } catch (error) {
+      console.error("Error fetching payment method fund history:", error);
+      res.status(500).json({ error: "Failed to fetch payment method fund history" });
+    }
+  });
+
+  // Get single payment method fund history
+  app.get("/api/payment-method-fund-history/:id", async (req, res) => {
+    try {
+      const fundHistory = await storage.getPaymentMethodFundHistory(req.params.id);
+      if (!fundHistory) {
+        return res.status(404).json({ error: "Payment method fund history not found" });
+      }
+      res.json(fundHistory);
+    } catch (error) {
+      console.error("Error fetching payment method fund history:", error);
+      res.status(500).json({ error: "Failed to fetch payment method fund history" });
+    }
+  });
+
+  // Create new payment method fund history
+  app.post("/api/payment-method-fund-history", async (req, res) => {
+    try {
+      const validatedData = insertPaymentMethodFundHistorySchema.parse(req.body);
+      const fundHistory = await storage.createPaymentMethodFundHistory(validatedData);
+      res.status(201).json(fundHistory);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
+      console.error("Error creating payment method fund history:", error);
+      res.status(500).json({ error: "Failed to create payment method fund history" });
+    }
+  });
+
+  // Update payment method fund history
+  app.put("/api/payment-method-fund-history/:id", async (req, res) => {
+    try {
+      const validatedData = insertPaymentMethodFundHistorySchema.partial().parse(req.body);
+      const fundHistory = await storage.updatePaymentMethodFundHistory(req.params.id, validatedData);
+      if (!fundHistory) {
+        return res.status(404).json({ error: "Payment method fund history not found" });
+      }
+      res.json(fundHistory);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
+      console.error("Error updating payment method fund history:", error);
+      res.status(500).json({ error: "Failed to update payment method fund history" });
+    }
+  });
+
+  // Delete payment method fund history
+  app.delete("/api/payment-method-fund-history/:id", async (req, res) => {
+    try {
+      const success = await storage.deletePaymentMethodFundHistory(req.params.id);
+      if (!success) {
+        return res.status(404).json({ error: "Payment method fund history not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting payment method fund history:", error);
+      res.status(500).json({ error: "Failed to delete payment method fund history" });
     }
   });
 

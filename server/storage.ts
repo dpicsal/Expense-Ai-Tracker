@@ -1,7 +1,8 @@
 import { 
-  expenses, categories, fundHistory, paymentMethods,
+  expenses, categories, fundHistory, paymentMethods, paymentMethodFundHistory,
   type Expense, type InsertExpense, type Category, type InsertCategory,
-  type FundHistory, type InsertFundHistory, type PaymentMethod, type InsertPaymentMethod
+  type FundHistory, type InsertFundHistory, type PaymentMethod, type InsertPaymentMethod,
+  type PaymentMethodFundHistory, type InsertPaymentMethodFundHistory
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql } from "drizzle-orm";
@@ -52,7 +53,15 @@ export interface IStorage {
   createPaymentMethod(paymentMethod: InsertPaymentMethod): Promise<PaymentMethod>;
   updatePaymentMethod(id: string, paymentMethod: Partial<InsertPaymentMethod>): Promise<PaymentMethod | undefined>;
   deletePaymentMethod(id: string): Promise<boolean>;
-  addFundsToPaymentMethod(paymentMethodId: string, amount: number): Promise<PaymentMethod>;
+  addFundsToPaymentMethod(paymentMethodId: string, amount: number, description?: string): Promise<{fundHistory: PaymentMethodFundHistory, updatedPaymentMethod: PaymentMethod}>;
+
+  // Payment Method Fund History management
+  getAllPaymentMethodFundHistory(): Promise<PaymentMethodFundHistory[]>;
+  getPaymentMethodFundHistory(id: string): Promise<PaymentMethodFundHistory | undefined>;
+  getPaymentMethodFundHistoryByPaymentMethod(paymentMethodId: string): Promise<PaymentMethodFundHistory[]>;
+  createPaymentMethodFundHistory(fundHistory: InsertPaymentMethodFundHistory): Promise<PaymentMethodFundHistory>;
+  updatePaymentMethodFundHistory(id: string, fundHistory: Partial<InsertPaymentMethodFundHistory>): Promise<PaymentMethodFundHistory | undefined>;
+  deletePaymentMethodFundHistory(id: string): Promise<boolean>;
 
   // Data reset management
   resetCategory(categoryId: string): Promise<{deletedExpenses: number, deletedFundHistory: number, resetCategory: Category}>;
@@ -483,29 +492,154 @@ export class DatabaseStorage implements IStorage {
     return (result.rowCount || 0) > 0;
   }
 
-  async addFundsToPaymentMethod(paymentMethodId: string, amount: number): Promise<PaymentMethod> {
+  async addFundsToPaymentMethod(paymentMethodId: string, amount: number, description?: string): Promise<{fundHistory: PaymentMethodFundHistory, updatedPaymentMethod: PaymentMethod}> {
     return await db.transaction(async (tx) => {
-      const [currentPaymentMethod] = await tx.select().from(paymentMethods).where(eq(paymentMethods.id, paymentMethodId));
-      if (!currentPaymentMethod) {
+      // First verify payment method exists
+      const [existingPaymentMethod] = await tx
+        .select()
+        .from(paymentMethods)
+        .where(eq(paymentMethods.id, paymentMethodId));
+
+      if (!existingPaymentMethod) {
         throw new Error('Payment method not found');
       }
 
-      const amountStr = toDecimalString(amount);
+      // Create fund history record
+      const [history] = await tx
+        .insert(paymentMethodFundHistory)
+        .values({
+          paymentMethodId,
+          amount: toDecimalString(amount),
+          description: description || null,
+          addedAt: new Date(),
+        })
+        .returning();
+
+      // Update payment method balance
       const [updatedPaymentMethod] = await tx
         .update(paymentMethods)
         .set({
-          balance: sql`balance + ${amountStr}`,
-          maxBalance: sql`CASE WHEN balance + ${amountStr} > max_balance THEN balance + ${amountStr} ELSE max_balance END`,
+          balance: sql`balance + ${toDecimalString(amount)}`,
+          maxBalance: sql`CASE WHEN balance + ${toDecimalString(amount)} > max_balance THEN balance + ${toDecimalString(amount)} ELSE max_balance END`,
           updatedAt: sql`NOW()`
         })
         .where(eq(paymentMethods.id, paymentMethodId))
         .returning();
 
       if (!updatedPaymentMethod) {
-        throw new Error('Failed to update payment method');
+        throw new Error('Payment method not found');
       }
 
-      return updatedPaymentMethod;
+      return { fundHistory: history, updatedPaymentMethod };
+    });
+  }
+
+  async getAllPaymentMethodFundHistory(): Promise<PaymentMethodFundHistory[]> {
+    return await db.select().from(paymentMethodFundHistory).orderBy(desc(paymentMethodFundHistory.addedAt));
+  }
+
+  async getPaymentMethodFundHistory(id: string): Promise<PaymentMethodFundHistory | undefined> {
+    const [history] = await db.select().from(paymentMethodFundHistory).where(eq(paymentMethodFundHistory.id, id));
+    return history || undefined;
+  }
+
+  async getPaymentMethodFundHistoryByPaymentMethod(paymentMethodId: string): Promise<PaymentMethodFundHistory[]> {
+    return await db.select().from(paymentMethodFundHistory)
+      .where(eq(paymentMethodFundHistory.paymentMethodId, paymentMethodId))
+      .orderBy(desc(paymentMethodFundHistory.addedAt));
+  }
+
+  async createPaymentMethodFundHistory(insertFundHistory: InsertPaymentMethodFundHistory): Promise<PaymentMethodFundHistory> {
+    const historyValues: any = {
+      ...insertFundHistory,
+      amount: toDecimalString(insertFundHistory.amount),
+    };
+    
+    const [history] = await db
+      .insert(paymentMethodFundHistory)
+      .values(historyValues)
+      .returning();
+    return history;
+  }
+
+  async updatePaymentMethodFundHistory(id: string, updateData: Partial<InsertPaymentMethodFundHistory>): Promise<PaymentMethodFundHistory | undefined> {
+    return await db.transaction(async (tx) => {
+      // Get the old fund history to calculate balance adjustment
+      const [oldHistory] = await tx.select().from(paymentMethodFundHistory).where(eq(paymentMethodFundHistory.id, id));
+      if (!oldHistory) return undefined;
+
+      const updateValues: any = { ...updateData };
+      if (updateData.amount !== undefined) {
+        updateValues.amount = toDecimalString(updateData.amount);
+      }
+      
+      const [updatedHistory] = await tx
+        .update(paymentMethodFundHistory)
+        .set(updateValues)
+        .where(eq(paymentMethodFundHistory.id, id))
+        .returning();
+
+      if (!updatedHistory) return undefined;
+
+      const oldPaymentMethodId = oldHistory.paymentMethodId;
+      const newPaymentMethodId = updateData.paymentMethodId ?? oldHistory.paymentMethodId;
+      const oldAmount = oldHistory.amount;
+      const newAmount = updateData.amount !== undefined ? toDecimalString(updateData.amount) : oldHistory.amount;
+
+      // Handle payment method change or amount change
+      if (oldPaymentMethodId !== newPaymentMethodId) {
+        // Payment method changed: subtract old amount from old method, add new amount to new method
+        await tx
+          .update(paymentMethods)
+          .set({
+            balance: sql`balance - ${oldAmount}`,
+            updatedAt: sql`NOW()`
+          })
+          .where(eq(paymentMethods.id, oldPaymentMethodId));
+
+        await tx
+          .update(paymentMethods)
+          .set({
+            balance: sql`balance + ${newAmount}`,
+            updatedAt: sql`NOW()`
+          })
+          .where(eq(paymentMethods.id, newPaymentMethodId));
+      } else if (updateData.amount !== undefined) {
+        // Same payment method, but amount changed
+        await tx
+          .update(paymentMethods)
+          .set({
+            balance: sql`balance + (${newAmount} - ${oldAmount})`,
+            updatedAt: sql`NOW()`
+          })
+          .where(eq(paymentMethods.id, oldPaymentMethodId));
+      }
+
+      return updatedHistory;
+    });
+  }
+
+  async deletePaymentMethodFundHistory(id: string): Promise<boolean> {
+    return await db.transaction(async (tx) => {
+      // Get the fund history to adjust payment method balance
+      const [history] = await tx.select().from(paymentMethodFundHistory).where(eq(paymentMethodFundHistory.id, id));
+      if (!history) return false;
+
+      const result = await tx.delete(paymentMethodFundHistory).where(eq(paymentMethodFundHistory.id, id));
+      const deleted = (result.rowCount || 0) > 0;
+
+      if (deleted) {
+        // Subtract the amount from payment method balance
+        await tx
+          .update(paymentMethods)
+          .set({
+            balance: sql`balance - ${history.amount}`,
+            updatedAt: sql`NOW()`
+          })
+          .where(eq(paymentMethods.id, history.paymentMethodId));
+      }
+
+      return deleted;
     });
   }
 
