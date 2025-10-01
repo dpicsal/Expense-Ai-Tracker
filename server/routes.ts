@@ -1,10 +1,12 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { db } from "./db";
 import { 
   insertExpenseSchema, insertCategorySchema, 
   insertFundHistorySchema, insertPaymentMethodSchema,
-  insertPaymentMethodFundHistorySchema
+  insertPaymentMethodFundHistorySchema,
+  expenses, categories, fundHistory, paymentMethods, paymentMethodFundHistory
 } from "@shared/schema";
 import { z } from "zod";
 
@@ -511,6 +513,147 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting payment method fund history:", error);
       res.status(500).json({ error: "Failed to delete payment method fund history" });
+    }
+  });
+
+  // =============== BACKUP & RESTORE ROUTES ===============
+
+  // Backup all data
+  app.get("/api/backup", async (req, res) => {
+    try {
+      const [expenses, categories, fundHistory, paymentMethods, paymentMethodFundHistory] = await Promise.all([
+        storage.getAllExpenses(),
+        storage.getAllCategories(),
+        storage.getAllFundHistory(),
+        storage.getAllPaymentMethods(),
+        storage.getAllPaymentMethodFundHistory()
+      ]);
+
+      const backup = {
+        version: "1.0",
+        timestamp: new Date().toISOString(),
+        data: {
+          expenses,
+          categories,
+          fundHistory,
+          paymentMethods,
+          paymentMethodFundHistory
+        }
+      };
+
+      res.json(backup);
+    } catch (error) {
+      console.error("Error creating backup:", error);
+      res.status(500).json({ error: "Failed to create backup" });
+    }
+  });
+
+  // Restore data from backup
+  app.post("/api/restore", async (req, res) => {
+    try {
+      const backup = req.body;
+      
+      if (!backup.data || !backup.version) {
+        return res.status(400).json({ error: "Invalid backup file format" });
+      }
+
+      // Use a transaction to ensure all-or-nothing restore
+      const result = await db.transaction(async (tx) => {
+        // Clear existing data
+        await tx.delete(expenses);
+        await tx.delete(fundHistory);
+        await tx.delete(paymentMethodFundHistory);
+        await tx.delete(paymentMethods);
+        await tx.delete(categories);
+
+        // Build ID mapping for categories
+        const categoryIdMap = new Map<string, string>();
+        if (backup.data.categories) {
+          for (const category of backup.data.categories) {
+            const [newCategory] = await tx
+              .insert(categories)
+              .values({
+                name: category.name,
+                color: category.color,
+                icon: category.icon,
+                allocatedFunds: category.allocatedFunds || "0"
+              })
+              .returning();
+            categoryIdMap.set(category.id, newCategory.id);
+          }
+        }
+
+        // Build ID mapping for payment methods
+        const paymentMethodIdMap = new Map<string, string>();
+        if (backup.data.paymentMethods) {
+          for (const paymentMethod of backup.data.paymentMethods) {
+            const [newPaymentMethod] = await tx
+              .insert(paymentMethods)
+              .values({
+                name: paymentMethod.name,
+                type: paymentMethod.type,
+                balance: paymentMethod.balance || "0",
+                maxBalance: paymentMethod.maxBalance || "0",
+                creditLimit: paymentMethod.creditLimit,
+                dueDate: paymentMethod.dueDate,
+                isActive: paymentMethod.isActive ?? true
+              })
+              .returning();
+            paymentMethodIdMap.set(paymentMethod.id, newPaymentMethod.id);
+          }
+        }
+
+        // Restore expenses with remapped IDs (without balance updates)
+        if (backup.data.expenses) {
+          for (const expense of backup.data.expenses) {
+            const newPaymentMethodId = paymentMethodIdMap.get(expense.paymentMethod);
+            await tx.insert(expenses).values({
+              amount: expense.amount,
+              description: expense.description,
+              category: expense.category,
+              paymentMethod: newPaymentMethodId || expense.paymentMethod,
+              date: expense.date
+            });
+          }
+        }
+
+        // Restore fund history with remapped category IDs (without balance updates)
+        if (backup.data.fundHistory) {
+          for (const history of backup.data.fundHistory) {
+            const newCategoryId = categoryIdMap.get(history.categoryId);
+            if (newCategoryId) {
+              await tx.insert(fundHistory).values({
+                categoryId: newCategoryId,
+                amount: history.amount,
+                description: history.description,
+                addedAt: history.addedAt
+              });
+            }
+          }
+        }
+
+        // Restore payment method fund history with remapped payment method IDs (without balance updates)
+        if (backup.data.paymentMethodFundHistory) {
+          for (const history of backup.data.paymentMethodFundHistory) {
+            const newPaymentMethodId = paymentMethodIdMap.get(history.paymentMethodId);
+            if (newPaymentMethodId) {
+              await tx.insert(paymentMethodFundHistory).values({
+                paymentMethodId: newPaymentMethodId,
+                amount: history.amount,
+                description: history.description,
+                addedAt: history.addedAt
+              });
+            }
+          }
+        }
+
+        return { success: true };
+      });
+
+      res.json({ success: true, message: "Data restored successfully" });
+    } catch (error) {
+      console.error("Error restoring backup:", error);
+      res.status(500).json({ error: "Failed to restore backup" });
     }
   });
 

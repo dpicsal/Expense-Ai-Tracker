@@ -1,4 +1,4 @@
-import { Home, Tag, TrendingUp, Wallet, LogOut, Calendar, Settings } from "lucide-react";
+import { Home, Tag, TrendingUp, Wallet, LogOut, Calendar, Settings, Database } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
   Sidebar,
@@ -39,6 +39,12 @@ const mainMenuItems = [
     url: "/payment-methods",
     icon: Wallet,
     description: "Manage payment accounts",
+  },
+  {
+    title: "Backup & Restore",
+    url: "/backup-restore",
+    icon: Database,
+    description: "Backup and restore data",
   },
   {
     title: "Settings",

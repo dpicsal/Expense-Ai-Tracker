@@ -15,6 +15,7 @@ import Analytics from "@/pages/analytics";
 import Categories from "@/pages/categories";
 import PaymentMethods from "@/pages/payment-methods";
 import Settings from "@/pages/settings";
+import BackupRestore from "@/pages/backup-restore";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -25,6 +26,7 @@ function Router() {
       <Route path="/analytics" component={Analytics} />
       <Route path="/categories" component={Categories} />
       <Route path="/payment-methods" component={PaymentMethods} />
+      <Route path="/backup-restore" component={BackupRestore} />
       <Route path="/settings" component={Settings} />
       <Route component={NotFound} />
     </Switch>
