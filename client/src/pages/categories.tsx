@@ -117,12 +117,12 @@ export default function Categories() {
           )}
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button size={isMobile ? "default" : "default"} data-testid="button-add-category">
+              <Button size={isMobile ? "lg" : "default"} className={isMobile ? 'min-h-11' : ''} data-testid="button-add-category">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Category
               </Button>
             </DialogTrigger>
-            <DialogContent className={isMobile ? 'w-[95vw] max-w-md' : ''}>
+            <DialogContent className={isMobile ? 'w-[95vw] max-w-md' : 'sm:max-w-md'}>
               <DialogHeader>
                 <DialogTitle>Add New Category</DialogTitle>
                 <DialogDescription>
@@ -208,15 +208,15 @@ export default function Categories() {
                         <DialogTrigger asChild>
                           <Button 
                             variant="outline" 
-                            size={isMobile ? "default" : "sm"}
-                            className={isMobile ? 'w-full justify-start' : ''}
+                            size={isMobile ? "lg" : "sm"}
+                            className={isMobile ? 'w-full justify-start min-h-11' : ''}
                             data-testid={`button-add-funds-${category}`}
                           >
                             <DollarSign className="h-4 w-4 mr-2" />
                             Add Funds
                           </Button>
                         </DialogTrigger>
-                        <DialogContent className="w-[95vw] max-w-md">
+                        <DialogContent className={isMobile ? 'w-[95vw] max-w-md' : 'sm:max-w-md'}>
                           <DialogHeader>
                             <DialogTitle>Add Funds to {category}</DialogTitle>
                             <DialogDescription>
@@ -248,8 +248,8 @@ export default function Categories() {
                         <CollapsibleTrigger asChild>
                           <Button 
                             variant="ghost" 
-                            size={isMobile ? "default" : "sm"}
-                            className={isMobile ? 'w-full justify-start' : ''}
+                            size={isMobile ? "lg" : "sm"}
+                            className={isMobile ? 'w-full justify-start min-h-11' : ''}
                             data-testid={`button-toggle-history-${category}`}
                           >
                             {isExpanded ? (
@@ -270,8 +270,8 @@ export default function Categories() {
                           <AlertDialogTrigger asChild>
                             <Button 
                               variant="destructive"
-                              size={isMobile ? "default" : "icon"}
-                              className={isMobile ? 'w-full' : 'h-8 w-8'}
+                              size={isMobile ? "lg" : "icon"}
+                              className={isMobile ? 'w-full min-h-11' : 'h-8 w-8'}
                               data-testid={`button-reset-category-${category}`}
                               disabled={resetCategory.isPending}
                             >

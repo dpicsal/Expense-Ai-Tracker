@@ -91,7 +91,7 @@ export default function PaymentMethodsPage() {
             Manage your payment accounts and track balances
           </p>
         </div>
-        <Button onClick={handleAddNew} size={isMobile ? "default" : "default"} data-testid="button-add-payment-method">
+        <Button onClick={handleAddNew} size={isMobile ? "lg" : "default"} className={isMobile ? 'min-h-11' : ''} data-testid="button-add-payment-method">
           <Plus className="w-4 h-4 mr-2" />
           Add Payment Method
         </Button>
@@ -159,7 +159,7 @@ export default function PaymentMethodsPage() {
                   Add your first payment method to start tracking balances and expenses.
                 </p>
               </div>
-              <Button onClick={handleAddNew} size={isMobile ? "default" : "default"} data-testid="button-add-first-payment-method">
+              <Button onClick={handleAddNew} size={isMobile ? "lg" : "default"} className={isMobile ? 'min-h-11' : ''} data-testid="button-add-first-payment-method">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Your First Payment Method
               </Button>
