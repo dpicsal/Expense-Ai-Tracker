@@ -1,4 +1,4 @@
-import { Home, PlusCircle, PieChart, Tag, Wallet, Settings } from "lucide-react";
+import { Home, PlusCircle, PieChart, Tag, Wallet, Settings, Database } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +32,12 @@ const navigationItems = [
     icon: Wallet,
     href: "/payment-methods",
     testId: "tab-payment-methods"
+  },
+  {
+    title: "Backup",
+    icon: Database,
+    href: "/backup-restore",
+    testId: "tab-backup-restore"
   },
   {
     title: "Settings",
