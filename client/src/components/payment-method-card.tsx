@@ -111,6 +111,25 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
     return diffDays;
   };
 
+  const getNextDueDate = () => {
+    if (!paymentMethod.dueDate) return null;
+    
+    const today = new Date();
+    const currentDay = today.getDate();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    
+    // Create due date for current month
+    let dueDate = new Date(currentYear, currentMonth, paymentMethod.dueDate);
+    
+    // If the due date has already passed this month, calculate for next month
+    if (currentDay > paymentMethod.dueDate) {
+      dueDate = new Date(currentYear, currentMonth + 1, paymentMethod.dueDate);
+    }
+    
+    return dueDate;
+  };
+
   const getDueDateDisplay = () => {
     const daysLeft = calculateDaysUntilDue();
     if (daysLeft === null) return null;
@@ -121,6 +140,10 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
     if (daysLeft <= 3) return { text: `${daysLeft} days left`, color: "text-red-400" };
     if (daysLeft <= 7) return { text: `${daysLeft} days left`, color: "text-yellow-400" };
     return { text: `${daysLeft} days left`, color: "text-green-400" };
+  };
+
+  const formatDueDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
   const getBalanceColor = () => {
@@ -233,12 +256,12 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
               {formatCurrency(parseFloat(paymentMethod.creditLimit || "0"))}
             </span>
           </div>
-          {paymentMethod.dueDate && (
+          {paymentMethod.dueDate && getNextDueDate() && (
             <div className="flex justify-between items-center">
               <span className="text-sm text-white/70">Payment Due Date</span>
               <div className="flex items-center gap-2">
                 <span className="font-medium text-white/90" data-testid={`text-payment-method-due-date-${paymentMethod.id}`}>
-                  Day {paymentMethod.dueDate}
+                  {formatDueDate(getNextDueDate()!)}
                 </span>
                 {getDueDateDisplay() && (
                   <span className={`text-sm font-semibold ${getDueDateDisplay()?.color}`} data-testid={`text-payment-method-days-left-${paymentMethod.id}`}>
