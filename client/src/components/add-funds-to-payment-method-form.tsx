@@ -33,9 +33,20 @@ export function AddFundsToPaymentMethodForm({ paymentMethod, onClose, onSuccess 
   const { toast } = useToast();
   
   const addFunds = useAddFundsToPaymentMethod();
+  const isCreditCard = paymentMethod.type === "credit_card";
   const isDebitCard = paymentMethod.type === "debit_card";
-  const actionLabel = isDebitCard ? "Deposit" : "Add Funds";
-  const actionVerb = isDebitCard ? "Deposited" : "Added";
+  const actionLabel = 
+    isCreditCard ? "Make Payment" :
+    isDebitCard ? "Deposit" : 
+    "Add Funds";
+  const actionVerb = 
+    isCreditCard ? "Payment of" :
+    isDebitCard ? "Deposited" : 
+    "Added";
+  const actionVerbPresent = 
+    isCreditCard ? "Making Payment" :
+    isDebitCard ? "Depositing" : 
+    "Adding Funds";
 
   const form = useForm<AddFundsFormData>({
     resolver: zodResolver(addFundsSchema),
@@ -97,9 +108,11 @@ export function AddFundsToPaymentMethodForm({ paymentMethod, onClose, onSuccess 
           </div>
         </div>
         <p className="text-sm text-muted-foreground mt-2">
-          {isDebitCard 
-            ? "Deposit money to this payment method. This will create a history record and update the balance."
-            : "Add funds to this payment method. This will create a history record and update the balance."}
+          {isCreditCard
+            ? "Make a payment to reduce your credit card balance. This will create a history record and update the balance."
+            : isDebitCard 
+              ? "Deposit money to this payment method. This will create a history record and update the balance."
+              : "Add funds to this payment method. This will create a history record and update the balance."}
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -168,7 +181,7 @@ export function AddFundsToPaymentMethodForm({ paymentMethod, onClose, onSuccess 
                 {isSubmitting ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-background border-t-transparent rounded-full animate-ios-spinner"></div>
-                    {isDebitCard ? "Depositing..." : "Adding Funds..."}
+                    {actionVerbPresent}...
                   </div>
                 ) : (
                   <>

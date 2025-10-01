@@ -83,7 +83,10 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
     setShowAddFundsDialog(false);
   };
 
-  const addFundsLabel = paymentMethod.type === "debit_card" ? "Deposit" : "Add Funds";
+  const addFundsLabel = 
+    paymentMethod.type === "credit_card" ? "Make Payment" :
+    paymentMethod.type === "debit_card" ? "Deposit" : 
+    "Add Funds";
 
   const getBalanceColor = () => {
     const balance = parseFloat(paymentMethod.balance || "0");
@@ -337,11 +340,13 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
       <Dialog open={showAddFundsDialog} onOpenChange={setShowAddFundsDialog}>
         <DialogContent className="w-[95vw] max-w-md">
           <DialogHeader>
-            <DialogTitle>{addFundsLabel} to {paymentMethod.name}</DialogTitle>
+            <DialogTitle>{addFundsLabel} {paymentMethod.type === "credit_card" ? "for" : "to"} {paymentMethod.name}</DialogTitle>
             <DialogDescription>
-              {paymentMethod.type === "debit_card" 
-                ? "Deposit money to increase the balance for this payment method."
-                : "Add funds to increase the balance for this payment method."}
+              {paymentMethod.type === "credit_card" 
+                ? "Make a payment to reduce your credit card balance."
+                : paymentMethod.type === "debit_card" 
+                  ? "Deposit money to increase the balance for this payment method."
+                  : "Add funds to increase the balance for this payment method."}
             </DialogDescription>
           </DialogHeader>
           <AddFundsToPaymentMethodForm 
