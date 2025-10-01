@@ -83,6 +83,8 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
     setShowAddFundsDialog(false);
   };
 
+  const addFundsLabel = paymentMethod.type === "debit_card" ? "Deposit" : "Add Funds";
+
   const getBalanceColor = () => {
     const balance = parseFloat(paymentMethod.balance || "0");
     if (paymentMethod.type === "credit_card" && paymentMethod.creditLimit) {
@@ -140,7 +142,7 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => setShowAddFundsDialog(true)} data-testid={`button-add-funds-payment-method-${paymentMethod.id}`}>
               <Plus className="w-4 h-4 mr-2" />
-              Add Funds
+              {addFundsLabel}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setShowHistory(!showHistory)} data-testid={`button-view-history-payment-method-${paymentMethod.id}`}>
               <History className="w-4 h-4 mr-2" />
@@ -246,7 +248,7 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => setShowAddFundsDialog(true)} data-testid={`button-add-funds-payment-method-${paymentMethod.id}`}>
               <Plus className="w-4 h-4 mr-2" />
-              Add Funds
+              {addFundsLabel}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setShowHistory(!showHistory)} data-testid={`button-view-history-payment-method-${paymentMethod.id}`}>
               <History className="w-4 h-4 mr-2" />
@@ -335,9 +337,11 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
       <Dialog open={showAddFundsDialog} onOpenChange={setShowAddFundsDialog}>
         <DialogContent className="w-[95vw] max-w-md">
           <DialogHeader>
-            <DialogTitle>Add Funds to {paymentMethod.name}</DialogTitle>
+            <DialogTitle>{addFundsLabel} to {paymentMethod.name}</DialogTitle>
             <DialogDescription>
-              Add funds to increase the balance for this payment method.
+              {paymentMethod.type === "debit_card" 
+                ? "Deposit money to increase the balance for this payment method."
+                : "Add funds to increase the balance for this payment method."}
             </DialogDescription>
           </DialogHeader>
           <AddFundsToPaymentMethodForm 
