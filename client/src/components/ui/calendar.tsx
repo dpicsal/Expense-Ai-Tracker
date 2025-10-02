@@ -27,8 +27,8 @@ function Calendar({
           buttonVariants({ variant: "outline" }),
           "h-9 w-9 bg-transparent p-0 hover-elevate active-elevate-2"
         ),
-        nav_button_previous: "absolute left-1",
-        nav_button_next: "absolute right-1",
+        nav_button_previous: "absolute left-0",
+        nav_button_next: "absolute right-0",
         table: "w-full border-collapse space-y-1",
         head_row: "flex",
         head_cell:
