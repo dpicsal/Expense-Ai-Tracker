@@ -205,7 +205,7 @@ export default function Expenses() {
       <Card className="border-0 shadow-md">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg md:text-xl font-semibold">
-            Expense History ({expenses.length})
+            Expense History
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -231,6 +231,7 @@ export default function Expenses() {
               expenses={expenses}
               onEdit={handleEditExpense}
               onDelete={handleDeleteExpense}
+              showCount={true}
             />
           )}
         </CardContent>
