@@ -51,7 +51,7 @@ export function AddFundsToPaymentMethodForm({ paymentMethod, onClose, onSuccess 
   const form = useForm<AddFundsFormData>({
     resolver: zodResolver(addFundsSchema),
     defaultValues: {
-      amount: 0,
+      amount: "" as any,
       description: "",
     },
   });
@@ -71,7 +71,7 @@ export function AddFundsToPaymentMethodForm({ paymentMethod, onClose, onSuccess 
       });
       
       form.reset({
-        amount: 0,
+        amount: "" as any,
         description: "",
       });
       onSuccess?.();
@@ -136,6 +136,7 @@ export function AddFundsToPaymentMethodForm({ paymentMethod, onClose, onSuccess 
                         className="pl-12"
                         inputMode="decimal"
                         data-testid="input-add-funds-payment-method-amount"
+                        onChange={(e) => field.onChange(e.target.value === "" ? "" : parseFloat(e.target.value))}
                       />
                     </div>
                   </FormControl>
