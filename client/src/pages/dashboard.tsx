@@ -341,11 +341,22 @@ export default function Dashboard() {
                 <div className="animate-pulse-glow">Loading expenses...</div>
               </div>
             </div>
+          ) : expenses.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <div className="flex flex-col items-center gap-3">
+                <Plus className="w-12 h-12 opacity-50" />
+                <div>
+                  <p className="text-lg font-medium">No expenses yet</p>
+                  <p className="text-sm">Start tracking by adding expenses to categories</p>
+                </div>
+              </div>
+            </div>
           ) : (
             <ExpenseList
               expenses={expenses.slice(0, 5)}
               onEdit={handleEditExpense}
               onDelete={handleDeleteExpense}
+              showFilters={false}
             />
           )}
         </CardContent>
