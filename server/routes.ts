@@ -11,10 +11,14 @@ import {
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Get all expenses
+  // Get all expenses with optional date range filtering
   app.get("/api/expenses", async (req, res) => {
     try {
-      const expenses = await storage.getAllExpenses();
+      const { startDate, endDate } = req.query;
+      const expenses = await storage.getAllExpenses(
+        startDate ? new Date(startDate as string) : undefined,
+        endDate ? new Date(endDate as string) : undefined
+      );
       res.json(expenses);
     } catch (error) {
       console.error("Error fetching expenses:", error);
