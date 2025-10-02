@@ -356,7 +356,6 @@ export default function Dashboard() {
               expenses={expenses.slice(0, 5)}
               onEdit={handleEditExpense}
               onDelete={handleDeleteExpense}
-              showFilters={false}
             />
           )}
         </CardContent>
