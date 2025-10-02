@@ -65,6 +65,12 @@ export function PaymentReminders() {
 
   const urgentReminders = reminders.filter(r => r.urgency === "overdue" || r.urgency === "urgent");
 
+  // Check if any credit cards have a balance that needs to be paid
+  const cardsWithBalance = creditCards.filter(card => {
+    const balance = parseFloat(card.balance || "0");
+    return balance > 0;
+  });
+
   if (isLoading) {
     return (
       <Card data-testid="card-payment-reminders" className="shadow-ios-sm">
@@ -78,26 +84,9 @@ export function PaymentReminders() {
     );
   }
 
-  if (creditCards.length === 0) {
-    return (
-      <Card data-testid="card-payment-reminders" className="shadow-ios-sm">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-muted-foreground">Payment Reminders</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-2">
-          <div className="flex flex-col items-center justify-center text-center">
-            <p className="text-sm text-muted-foreground mb-3">
-              No credit cards added
-            </p>
-            <Link href="/payment-methods">
-              <Button variant="outline" size="sm" data-testid="button-add-card">
-                Add Credit Card
-              </Button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-    );
+  // Only show the component if there are credit cards with balance that need payment
+  if (creditCards.length === 0 || cardsWithBalance.length === 0) {
+    return null;
   }
 
   const getUrgencyIcon = (urgency: "overdue" | "urgent" | "soon" | "safe") => {
