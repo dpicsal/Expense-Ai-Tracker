@@ -82,12 +82,12 @@ export default function Categories() {
 
   return (
     <div className={isMobile ? 'space-y-6' : 'space-y-8'}>
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 pb-2">
         <div className="space-y-2">
-          <h1 className={`${isMobile ? 'text-3xl' : 'text-4xl'} font-bold tracking-tight dark:text-white/95`}>
+          <h1 className={`${isMobile ? 'text-3xl' : 'text-5xl'} font-extrabold tracking-tight dark:text-transparent dark:bg-gradient-to-r dark:from-[hsl(45,90%,70%)] dark:via-[hsl(45,90%,60%)] dark:to-[hsl(45,80%,55%)] dark:bg-clip-text dark:drop-shadow-[0_2px_12px_rgba(217,179,84,0.3)]`}>
             Categories
           </h1>
-          <p className={`${isMobile ? 'text-sm' : 'text-base'} text-muted-foreground font-medium`}>
+          <p className={`${isMobile ? 'text-sm' : 'text-base'} dark:text-[hsl(45,20%,75%)] text-muted-foreground font-medium`}>
             Manage your expense categories and analyze spending patterns
           </p>
         </div>
@@ -148,28 +148,29 @@ export default function Categories() {
             const isExpanded = expandedHistories.has(category);
             
             return (
-              <Card key={category} className="border dark:border-white/5 dark:bg-gradient-to-br dark:from-[hsl(220,10%,28%)] dark:to-[hsl(220,12%,22%)] bg-gradient-to-r from-card to-card/50 shadow-lg dark:shadow-xl transition-all duration-300 hover:shadow-2xl dark:hover:border-white/10 overflow-hidden relative" data-testid={`category-card-${category}`}>
-                <div className="absolute inset-0 dark:bg-gradient-to-br dark:from-white/[0.02] dark:to-transparent pointer-events-none"></div>
+              <Card key={category} className="border dark:border-[hsl(45,50%,50%)]/30 dark:bg-gradient-to-br dark:from-[hsl(240,15%,14%)] dark:to-[hsl(240,18%,11%)] bg-gradient-to-r from-card to-card/50 shadow-xl dark:shadow-2xl transition-all duration-500 hover:shadow-2xl dark:hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7),_0_10px_20px_-8px_rgba(217,179,84,0.3)] dark:hover:border-[hsl(45,70%,60%)]/50 overflow-hidden relative backdrop-blur-sm" data-testid={`category-card-${category}`}>
+                <div className="absolute inset-0 dark:bg-gradient-to-br dark:from-[hsl(45,90%,55%)]/[0.03] dark:via-transparent dark:to-[hsl(270,60%,45%)]/[0.02] pointer-events-none"></div>
+                <div className="absolute top-0 right-0 w-32 h-32 dark:bg-[hsl(45,90%,55%)]/[0.05] blur-3xl rounded-full pointer-events-none"></div>
                 <CardContent className={`${isMobile ? 'p-4' : 'p-6'} relative z-10`}>
                   <div className="flex items-center justify-between mb-5">
                     <div className="flex items-center gap-3">
                       <Badge 
-                        className={`${color} shadow-sm`}
+                        className={`${color} shadow-md dark:shadow-[hsl(45,90%,55%)]/20 dark:border-[hsl(45,60%,55%)]/30 backdrop-blur-sm`}
                         data-testid={`category-badge-${category}`}
                       >
                         {category}
                       </Badge>
-                      <span className="text-sm text-muted-foreground font-medium">
+                      <span className="text-sm dark:text-[hsl(45,20%,70%)] text-muted-foreground font-medium">
                         {count} transaction{count !== 1 ? 's' : ''}
                       </span>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="text-right">
-                        <div className="text-xl font-bold tabular-nums dark:text-white/95" data-testid={`category-total-${category}`}>
+                        <div className="text-2xl font-extrabold tabular-nums dark:text-[hsl(45,90%,75%)] dark:drop-shadow-[0_2px_8px_rgba(217,179,84,0.3)]" data-testid={`category-total-${category}`}>
                           AED {total.toFixed(2)}
                         </div>
                         {allocatedFunds > 0 && (
-                          <div className="text-xs text-muted-foreground font-medium mt-0.5" data-testid={`category-remaining-${category}`}>
+                          <div className="text-xs dark:text-[hsl(45,20%,65%)] text-muted-foreground font-semibold mt-1" data-testid={`category-remaining-${category}`}>
                             {remaining >= 0 ? `AED ${remaining.toFixed(2)} remaining` : `AED ${Math.abs(remaining).toFixed(2)} overspent`}
                           </div>
                         )}
@@ -179,15 +180,16 @@ export default function Categories() {
                   
                   {/* Fund Information */}
                   {allocatedFunds > 0 && (
-                    <div className="mb-4 p-4 rounded-xl dark:bg-white/[0.03] bg-muted/50 border dark:border-white/5 border-border/30 backdrop-blur-sm">
-                      <div className="flex items-center justify-between text-sm">
+                    <div className="mb-4 p-4 rounded-xl dark:bg-gradient-to-r dark:from-[hsl(45,90%,55%)]/[0.08] dark:to-[hsl(270,60%,45%)]/[0.05] bg-muted/50 border dark:border-[hsl(45,60%,55%)]/20 border-border/30 backdrop-blur-sm shadow-lg relative overflow-hidden">
+                      <div className="absolute inset-0 dark:bg-gradient-to-br dark:from-white/[0.02] dark:to-transparent pointer-events-none"></div>
+                      <div className="flex items-center justify-between text-sm relative z-10">
                         <div className="flex items-center gap-2">
-                          <div className="p-1.5 rounded-lg dark:bg-primary/10 bg-primary/5">
-                            <Wallet className="h-4 w-4 text-primary" />
+                          <div className="p-2 rounded-lg dark:bg-[hsl(45,90%,55%)]/20 bg-primary/5 shadow-md">
+                            <Wallet className="h-4 w-4 text-primary drop-shadow-sm" />
                           </div>
-                          <span className="font-medium">Available Fund</span>
+                          <span className="font-semibold dark:text-[hsl(45,30%,85%)]">Available Fund</span>
                         </div>
-                        <span className="font-semibold tabular-nums text-base" data-testid={`category-allocated-${category}`}>
+                        <span className="font-bold tabular-nums text-base dark:text-[hsl(45,90%,65%)] drop-shadow-sm" data-testid={`category-allocated-${category}`}>
                           AED {allocatedFunds.toFixed(2)}
                         </span>
                       </div>
