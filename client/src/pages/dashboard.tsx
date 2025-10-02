@@ -127,30 +127,33 @@ export default function Dashboard() {
       </div>
 
 
-      {/* Summary Card */}
-      <div className={`max-w-sm`}>
-        <Card className={`border-0 shadow-ios-sm bg-gradient-to-br from-card/95 to-card/80 backdrop-blur-md stagger-fade-in ${isMobile ? 'min-h-[7rem]' : ''}`}>
-          <CardHeader className={`flex flex-row items-center justify-between space-y-0 ${isMobile ? 'pb-2 px-4 pt-4' : 'pb-3'}`}>
-            <CardTitle className={`text-sm font-medium text-muted-foreground ${isMobile ? 'text-xs' : ''}`}>Total Expenses</CardTitle>
-            <div className={`${isMobile ? 'p-1.5' : 'p-2'} rounded-xl bg-primary/10 shadow-sm`}>
-              <DollarSign className={`${isMobile ? 'h-3.5 w-3.5' : 'h-4 w-4'} text-primary`} />
-            </div>
-          </CardHeader>
-          <CardContent className={isMobile ? 'px-4 pb-4' : ''}>
-            <div className={`${isMobile ? 'text-xl' : 'text-2xl md:text-3xl'} font-bold tabular-nums tracking-tight`} data-testid="total-expenses">
-              {formatCurrency(totalExpenses)}
-            </div>
-            <p className={`${isMobile ? 'text-xs mt-1' : 'text-sm mt-2'} text-muted-foreground flex items-center gap-1`}>
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary"></span>
-              Across {expenses.length} transactions
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Summary Cards Row */}
+      <div className="flex flex-col md:flex-row gap-4 sm:gap-5 lg:gap-6">
+        {/* Total Expenses Card */}
+        <div className="flex-1 max-w-sm">
+          <Card className={`border-0 shadow-ios-sm bg-gradient-to-br from-card/95 to-card/80 backdrop-blur-md stagger-fade-in ${isMobile ? 'min-h-[7rem]' : ''}`}>
+            <CardHeader className={`flex flex-row items-center justify-between space-y-0 ${isMobile ? 'pb-2 px-4 pt-4' : 'pb-3'}`}>
+              <CardTitle className={`text-sm font-medium text-muted-foreground ${isMobile ? 'text-xs' : ''}`}>Total Expenses</CardTitle>
+              <div className={`${isMobile ? 'p-1.5' : 'p-2'} rounded-xl bg-primary/10 shadow-sm`}>
+                <DollarSign className={`${isMobile ? 'h-3.5 w-3.5' : 'h-4 w-4'} text-primary`} />
+              </div>
+            </CardHeader>
+            <CardContent className={isMobile ? 'px-4 pb-4' : ''}>
+              <div className={`${isMobile ? 'text-xl' : 'text-2xl md:text-3xl'} font-bold tabular-nums tracking-tight`} data-testid="total-expenses">
+                {formatCurrency(totalExpenses)}
+              </div>
+              <p className={`${isMobile ? 'text-xs mt-1' : 'text-sm mt-2'} text-muted-foreground flex items-center gap-1`}>
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary"></span>
+                Across {expenses.length} transactions
+              </p>
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* Payment Reminders */}
-      <div className="max-w-sm">
-        <PaymentReminders />
+        {/* Payment Reminders */}
+        <div className="flex-1 max-w-sm">
+          <PaymentReminders />
+        </div>
       </div>
 
       {/* Categories Section */}
