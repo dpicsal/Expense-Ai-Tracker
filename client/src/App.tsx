@@ -50,16 +50,16 @@ function App() {
         <TooltipProvider>
           <ThemeProvider>
             <div className="flex flex-col h-screen w-full bg-background overflow-hidden">
-              <header className="flex items-center justify-between gap-3 border-b border-border/20 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 sticky top-0 z-40 px-4 py-3 min-h-[3.5rem]">
+              <header className="flex items-center justify-between gap-3 border-b border-border/40 ios-frosted-glass sticky top-0 z-40 px-4 py-3 safe-area-top min-h-[3.5rem]">
                 <div className="min-w-0 flex items-center">
                   <h1 className="font-semibold text-lg text-foreground truncate">ExpenseTracker</h1>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <ThemeToggle />
                 </div>
               </header>
-              <main className="flex-1 overflow-auto bg-muted/20">
-                <div className="container mx-auto max-w-7xl px-4 py-6 pb-24">
+              <main className="flex-1 overflow-auto bg-muted/30 overscroll-behavior-none">
+                <div className="container mx-auto max-w-7xl px-3 py-4 pb-24">
                   <Router />
                 </div>
               </main>
