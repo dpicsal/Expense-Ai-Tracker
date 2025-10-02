@@ -18,7 +18,7 @@ export function FundHistory({ category }: FundHistoryProps) {
 
   if (isLoading) {
     return (
-      <Card className="border-0 shadow-md">
+      <Card className="shadow-md">
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-2 text-lg">
             <History className="h-5 w-5" />
@@ -39,7 +39,7 @@ export function FundHistory({ category }: FundHistoryProps) {
 
   if (error) {
     return (
-      <Card className="border-0 shadow-md">
+      <Card className="shadow-md">
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-2 text-lg">
             <History className="h-5 w-5" />
@@ -59,7 +59,7 @@ export function FundHistory({ category }: FundHistoryProps) {
   }
 
   return (
-    <Card className="border-0 shadow-md">
+    <Card className="shadow-md">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg">

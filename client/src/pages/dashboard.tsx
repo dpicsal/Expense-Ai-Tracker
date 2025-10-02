@@ -131,7 +131,7 @@ export default function Dashboard() {
       <div className="flex flex-col md:flex-row gap-4 sm:gap-5 lg:gap-6">
         {/* Total Expenses Card */}
         <div className="flex-1 max-w-sm">
-          <Card className={`border-0 shadow-ios-sm bg-gradient-to-br from-card/95 to-card/80 backdrop-blur-md stagger-fade-in ${isMobile ? 'min-h-[7rem]' : ''}`}>
+          <Card className={`shadow-ios-sm bg-gradient-to-br from-card/95 to-card/80 backdrop-blur-md stagger-fade-in ${isMobile ? 'min-h-[7rem]' : ''}`}>
             <CardHeader className={`flex flex-row items-center justify-between space-y-0 ${isMobile ? 'pb-2 px-4 pt-4' : 'pb-3'}`}>
               <CardTitle className={`text-sm font-medium text-muted-foreground ${isMobile ? 'text-xs' : ''}`}>Total Expenses</CardTitle>
               <div className={`${isMobile ? 'p-1.5' : 'p-2'} rounded-xl bg-primary/10 shadow-sm`}>
@@ -157,7 +157,7 @@ export default function Dashboard() {
       </div>
 
       {/* Categories Section */}
-      <Card className="border-0 shadow-md">
+      <Card className="shadow-md">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg md:text-xl font-semibold">Categories</CardTitle>
         </CardHeader>
@@ -187,7 +187,7 @@ export default function Dashboard() {
                 return (
                   <Card 
                     key={category.id} 
-                    className={`${category.color} border-0 shadow-ios-sm backdrop-blur-md hover-elevate transition-all duration-200 cursor-pointer`}
+                    className={`${category.color} shadow-ios-sm backdrop-blur-md hover-elevate transition-all duration-200 cursor-pointer`}
                     onClick={() => handleCategoryClick(category.name)}
                     data-testid={`card-category-${category.id}`}
                   >
@@ -246,7 +246,7 @@ export default function Dashboard() {
       </Card>
 
       {/* Recent Expenses */}
-      <Card className="border-0 shadow-md">
+      <Card className="shadow-md">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between gap-2">
             <CardTitle className="text-lg md:text-xl font-semibold">Recent Expenses</CardTitle>
