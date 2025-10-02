@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Link, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -9,6 +9,10 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
+import { PullToRefreshIndicator } from "@/components/pull-to-refresh-indicator";
+import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import Dashboard from "@/pages/dashboard";
 import AddExpense from "@/pages/add-expense";
 import Expenses from "@/pages/expenses";
@@ -35,6 +39,59 @@ function Router() {
   );
 }
 
+function MobileApp() {
+  const [location] = useLocation();
+  
+  const handleRefresh = async () => {
+    await queryClient.invalidateQueries();
+    await new Promise(resolve => setTimeout(resolve, 500));
+  };
+
+  const { pullDistance, isRefreshing } = usePullToRefresh({
+    onRefresh: handleRefresh,
+    enabled: true,
+  });
+
+  return (
+    <div className="flex flex-col h-screen w-full bg-background overflow-hidden">
+      <PullToRefreshIndicator 
+        pullDistance={pullDistance} 
+        isRefreshing={isRefreshing} 
+      />
+      
+      <header className="flex items-center justify-between gap-3 border-b border-border/40 ios-frosted-glass sticky top-0 z-40 px-4 py-3 safe-area-top min-h-[3.5rem]">
+        <div className="min-w-0 flex items-center">
+          <h1 className="font-semibold text-lg text-foreground truncate">ExpenseTracker</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+        </div>
+      </header>
+      
+      <main className="flex-1 overflow-auto bg-muted/30 overscroll-behavior-none">
+        <div className="container mx-auto max-w-7xl px-3 py-4 pb-24">
+          <Router />
+        </div>
+      </main>
+      
+      {/* Floating Action Button for quick expense entry - hide on add page */}
+      {location !== "/add" && (
+        <Link href="/add" asChild>
+          <Button 
+            size="icon"
+            className="fixed bottom-20 right-4 h-14 w-14 rounded-full shadow-lg z-40 ios-fab bg-primary hover:bg-primary"
+            data-testid="button-fab-add-expense"
+          >
+            <Plus className="h-6 w-6 text-primary-foreground" />
+          </Button>
+        </Link>
+      )}
+      
+      <BottomNavigation />
+    </div>
+  );
+}
+
 function App() {
   const isMobile = useIsMobile();
   
@@ -49,22 +106,7 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <ThemeProvider>
-            <div className="flex flex-col h-screen w-full bg-background overflow-hidden">
-              <header className="flex items-center justify-between gap-3 border-b border-border/40 ios-frosted-glass sticky top-0 z-40 px-4 py-3 safe-area-top min-h-[3.5rem]">
-                <div className="min-w-0 flex items-center">
-                  <h1 className="font-semibold text-lg text-foreground truncate">ExpenseTracker</h1>
-                </div>
-                <div className="flex items-center gap-2">
-                  <ThemeToggle />
-                </div>
-              </header>
-              <main className="flex-1 overflow-auto bg-muted/30 overscroll-behavior-none">
-                <div className="container mx-auto max-w-7xl px-3 py-4 pb-24">
-                  <Router />
-                </div>
-              </main>
-              <BottomNavigation />
-            </div>
+            <MobileApp />
             <Toaster />
           </ThemeProvider>
         </TooltipProvider>
