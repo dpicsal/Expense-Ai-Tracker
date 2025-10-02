@@ -5,22 +5,22 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 transition-all duration-200 active:scale-[0.96]" +
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-40 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 transition-all duration-300 active:scale-[0.97] tracking-wide" +
   " hover-elevate active-elevate-2",
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground border border-primary-border shadow-sm hover:shadow-md",
+          "bg-primary text-primary-foreground border border-primary-border shadow-md hover:shadow-lg dark:shadow-primary/20 dark:hover:shadow-primary/30",
         destructive:
-          "bg-destructive text-destructive-foreground border border-destructive-border shadow-sm hover:shadow-md",
+          "bg-destructive text-destructive-foreground border border-destructive-border shadow-md hover:shadow-lg dark:shadow-destructive/20 dark:hover:shadow-destructive/30",
         outline:
           // Shows the background color of whatever card / sidebar / accent background it is inside of.
           // Inherits the current text color.
-          " border [border-color:var(--button-outline)] bg-background/60 backdrop-blur-sm shadow-sm hover:shadow-md active:shadow-sm ",
-        secondary: "border bg-secondary text-secondary-foreground border border-secondary-border shadow-sm hover:shadow-md ",
+          " border [border-color:var(--button-outline)] bg-background/60 backdrop-blur-sm shadow-sm hover:shadow-md active:shadow-sm dark:hover:border-white/20",
+        secondary: "border bg-secondary text-secondary-foreground border border-secondary-border shadow-sm hover:shadow-md dark:bg-white/5 dark:hover:bg-white/8",
         // Add a transparent border so that when someone toggles a border on later, it doesn't shift layout/size.
-        ghost: "border border-transparent hover:bg-accent/50 rounded-lg",
+        ghost: "border border-transparent hover:bg-accent/50 rounded-lg dark:hover:bg-white/5",
       },
       // Heights are set as "min" heights, because sometimes Ai will place large amount of content
       // inside buttons. With a min-height they will look appropriate with small amounts of content,
