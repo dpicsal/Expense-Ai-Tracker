@@ -12,10 +12,11 @@ interface ExpenseListProps {
   onEdit?: (expense: Expense) => void;
   onDelete?: (id: string) => void;
   showFilters?: boolean;
+  maxItems?: number;
 }
 
 
-export function ExpenseList({ expenses, onEdit, onDelete, showFilters = true }: ExpenseListProps) {
+export function ExpenseList({ expenses, onEdit, onDelete, showFilters = true, maxItems }: ExpenseListProps) {
   const { data: categories = [] } = useCategories();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
@@ -23,7 +24,7 @@ export function ExpenseList({ expenses, onEdit, onDelete, showFilters = true }: 
   // Create filter options with "All Categories" plus dynamic categories
   const categoryOptions = ["All Categories", ...categories.map(cat => cat.name.trim())];
 
-  const filteredExpenses = showFilters 
+  let filteredExpenses = showFilters 
     ? expenses.filter(expense => {
         const matchesSearch = expense.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                              expense.category.trim().toLowerCase().includes(searchTerm.toLowerCase());
@@ -31,6 +32,11 @@ export function ExpenseList({ expenses, onEdit, onDelete, showFilters = true }: 
         return matchesSearch && matchesCategory;
       })
     : expenses;
+  
+  // Apply maxItems limit only if no filters are active
+  if (maxItems && selectedCategory === "All Categories" && searchTerm === "") {
+    filteredExpenses = filteredExpenses.slice(0, maxItems);
+  }
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
