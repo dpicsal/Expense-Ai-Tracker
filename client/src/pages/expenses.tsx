@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Calendar as CalendarIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ExpenseForm } from "@/components/expense-form";
 import { ExpenseList } from "@/components/expense-list";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -9,15 +11,19 @@ import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useExpenses, useUpdateExpense, useDeleteExpense, useCreateExpense } from "@/hooks/use-expenses";
 import { type Expense, type InsertExpense } from "@shared/schema";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 export default function Expenses() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [isAddExpenseDialogOpen, setIsAddExpenseDialogOpen] = useState(false);
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
-  const { data: expenses = [], isLoading } = useExpenses();
+  const { data: expenses = [], isLoading } = useExpenses(startDate, endDate);
   const updateExpense = useUpdateExpense();
   const deleteExpense = useDeleteExpense();
   const createExpense = useCreateExpense();
@@ -83,6 +89,13 @@ export default function Expenses() {
     }
   };
 
+  const clearDateFilters = () => {
+    setStartDate(undefined);
+    setEndDate(undefined);
+  };
+
+  const hasDateFilters = startDate || endDate;
+
   return (
     <div className={`${isMobile ? 'space-y-6' : 'space-y-8'} animate-fade-in-up`}>
       {/* Header */}
@@ -104,6 +117,89 @@ export default function Expenses() {
           Add Expense
         </Button>
       </div>
+
+      {/* Date Range Filter */}
+      <Card className="border-0 shadow-md">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg md:text-xl font-semibold">Date Range Filter</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+            <div className="flex flex-col sm:flex-row gap-3 flex-1">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full sm:w-[240px] justify-start text-left font-normal",
+                      !startDate && "text-muted-foreground"
+                    )}
+                    data-testid="button-start-date"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {startDate ? format(startDate, "PPP") : "Start date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={setStartDate}
+                    initialFocus
+                    data-testid="calendar-start-date"
+                  />
+                </PopoverContent>
+              </Popover>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full sm:w-[240px] justify-start text-left font-normal",
+                      !endDate && "text-muted-foreground"
+                    )}
+                    data-testid="button-end-date"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? format(endDate, "PPP") : "End date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={endDate}
+                    onSelect={setEndDate}
+                    initialFocus
+                    disabled={(date) => startDate ? date < startDate : false}
+                    data-testid="calendar-end-date"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {hasDateFilters && (
+              <Button
+                variant="outline"
+                onClick={clearDateFilters}
+                className="gap-2"
+                data-testid="button-clear-dates"
+              >
+                <X className="h-4 w-4" />
+                Clear
+              </Button>
+            )}
+          </div>
+
+          {hasDateFilters && (
+            <div className="mt-3 text-sm text-muted-foreground" data-testid="text-date-range-info">
+              Showing expenses {startDate && `from ${format(startDate, "PPP")}`}
+              {startDate && endDate && " "}
+              {endDate && `to ${format(endDate, "PPP")}`}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* All Expenses */}
       <Card className="border-0 shadow-md">
