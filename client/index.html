@@ -2,9 +2,38 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    
+    <!-- Standard Mobile Viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
+    
+    <!-- SEO & Description -->
     <title>Expense Tracker - Manage Your Finances</title>
     <meta name="description" content="Track your expenses, manage categories, and visualize your spending patterns with our intuitive expense tracker application." />
+    
+    <!-- PWA Primary Color -->
+    <meta name="theme-color" content="#007AFF" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1c1c1e" media="(prefers-color-scheme: dark)" />
+    
+    <!-- iOS Safari Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="ExpenseTracker" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    
+    <!-- iOS Splash Screen Color -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    
+    <!-- Disable automatic detection of possible phone numbers -->
+    <meta name="format-detection" content="telephone=no" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Favicon & Icons -->
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
