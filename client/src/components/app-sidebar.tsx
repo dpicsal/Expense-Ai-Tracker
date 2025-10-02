@@ -85,7 +85,7 @@ export function AppSidebar() {
                       className={`h-12 px-3 rounded-xl font-medium transition-all duration-150 border ${
                         isActive 
                           ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-800 dark:border-primary shadow-sm' 
-                          : 'text-slate-600 dark:text-slate-400 hover-elevate border-transparent'
+                          : 'text-slate-600 dark:text-slate-400 hover-elevate border-border/30 bg-transparent hover:bg-card/20 hover:border-border/50'
                       }`}
                       data-testid={`nav-${item.title.toLowerCase().replace(' ', '-')}`}
                     >
