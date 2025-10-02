@@ -75,6 +75,7 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
                       {...field}
                       value={field.value || ""}
                       onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      className="[&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield]"
                       data-testid="input-amount"
                     />
                   </FormControl>
