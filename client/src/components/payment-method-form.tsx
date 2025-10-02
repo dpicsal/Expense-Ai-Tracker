@@ -138,30 +138,6 @@ export function PaymentMethodForm({ paymentMethod, onSuccess }: PaymentMethodFor
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="balance"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                {isCreditCard ? "Current Balance" : "Initial Balance"}
-              </FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
-                  {...field}
-                  value={field.value ?? ""}
-                  onChange={(e) => field.onChange(e.target.value)}
-                  data-testid="input-payment-method-balance"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
         {isCreditCard && (
           <>
             <FormField
