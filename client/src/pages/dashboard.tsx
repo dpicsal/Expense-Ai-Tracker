@@ -19,6 +19,7 @@ export default function Dashboard() {
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [isAddExpenseDialogOpen, setIsAddExpenseDialogOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [recentExpensesFilter, setRecentExpensesFilter] = useState<string>("");
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
@@ -353,9 +354,10 @@ export default function Dashboard() {
             </div>
           ) : (
             <ExpenseList
-              expenses={expenses.slice(0, 5)}
+              expenses={expenses}
               onEdit={handleEditExpense}
               onDelete={handleDeleteExpense}
+              maxItems={5}
             />
           )}
         </CardContent>
