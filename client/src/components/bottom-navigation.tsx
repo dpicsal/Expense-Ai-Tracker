@@ -59,12 +59,12 @@ export function BottomNavigation() {
             const Icon = item.icon;
             
             return (
-              <Link key={item.href} href={item.href} asChild>
-                <button
+              <Link key={item.href} href={item.href}>
+                <div
                   className={cn(
                     "flex flex-col items-center justify-center min-w-0 flex-1 px-2 py-1.5 rounded-xl transition-all duration-200",
                     "min-h-[3.5rem]",
-                    "active:scale-95 ios-transition",
+                    "active:scale-95 ios-transition cursor-pointer",
                     isActive 
                       ? "bg-primary/15 text-primary" 
                       : "text-muted-foreground active:bg-muted/50",
@@ -86,7 +86,7 @@ export function BottomNavigation() {
                   >
                     {item.title}
                   </span>
-                </button>
+                </div>
               </Link>
             );
           })}

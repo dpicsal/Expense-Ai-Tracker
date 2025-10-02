@@ -41,6 +41,7 @@ function Router() {
 
 function MobileApp() {
   const [location] = useLocation();
+  const isMobile = useIsMobile();
   
   const handleRefresh = async () => {
     await queryClient.invalidateQueries();
@@ -49,7 +50,7 @@ function MobileApp() {
 
   const { pullDistance, isRefreshing } = usePullToRefresh({
     onRefresh: handleRefresh,
-    enabled: true,
+    enabled: isMobile,
   });
 
   return (
@@ -76,14 +77,13 @@ function MobileApp() {
       
       {/* Floating Action Button for quick expense entry - hide on add page */}
       {location !== "/add" && (
-        <Link href="/add" asChild>
-          <Button 
-            size="icon"
-            className="fixed bottom-20 right-4 h-14 w-14 rounded-full shadow-lg z-40 ios-fab bg-primary hover:bg-primary"
+        <Link href="/add">
+          <div 
+            className="fixed bottom-20 right-4 h-14 w-14 rounded-full shadow-lg z-40 ios-fab bg-primary flex items-center justify-center cursor-pointer"
             data-testid="button-fab-add-expense"
           >
             <Plus className="h-6 w-6 text-primary-foreground" />
-          </Button>
+          </div>
         </Link>
       )}
       
