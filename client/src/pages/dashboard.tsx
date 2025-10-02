@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExpenseForm } from "@/components/expense-form";
 import { ExpenseList } from "@/components/expense-list";
+import { PaymentReminders } from "@/components/payment-reminders";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -229,6 +230,8 @@ export default function Dashboard() {
         </Card>
       </div>
 
+      {/* Payment Reminders */}
+      <PaymentReminders />
 
       {/* Categories Section */}
       <Card className="border-0 shadow-md">
