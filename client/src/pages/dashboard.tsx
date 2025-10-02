@@ -149,7 +149,9 @@ export default function Dashboard() {
       </div>
 
       {/* Payment Reminders */}
-      <PaymentReminders />
+      <div className="max-w-sm">
+        <PaymentReminders />
+      </div>
 
       {/* Categories Section */}
       <Card className="border-0 shadow-md">
