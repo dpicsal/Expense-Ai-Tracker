@@ -5,7 +5,7 @@ import {
   type PaymentMethodFundHistory, type InsertPaymentMethodFundHistory
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, and, gte, lte } from "drizzle-orm";
 
 // Decimal conversion helpers to standardize handling between numbers and DB strings
 function toDecimalString(value: number | string): string {
@@ -24,7 +24,7 @@ function toNumber(value: string | number): number {
 
 export interface IStorage {
   // Legacy expense management (keeping for backward compatibility)
-  getAllExpenses(): Promise<Expense[]>;
+  getAllExpenses(startDate?: Date, endDate?: Date): Promise<Expense[]>;
   getExpense(id: string): Promise<Expense | undefined>;
   createExpense(expense: InsertExpense): Promise<Expense>;
   updateExpense(id: string, expense: Partial<InsertExpense>): Promise<Expense | undefined>;
@@ -71,7 +71,24 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
-  async getAllExpenses(): Promise<Expense[]> {
+  async getAllExpenses(startDate?: Date, endDate?: Date): Promise<Expense[]> {
+    const conditions = [];
+    
+    if (startDate) {
+      conditions.push(gte(expenses.date, startDate));
+    }
+    
+    if (endDate) {
+      // Add one day to endDate to include the entire end date
+      const endOfDay = new Date(endDate);
+      endOfDay.setHours(23, 59, 59, 999);
+      conditions.push(lte(expenses.date, endOfDay));
+    }
+    
+    if (conditions.length > 0) {
+      return await db.select().from(expenses).where(and(...conditions)).orderBy(desc(expenses.date));
+    }
+    
     return await db.select().from(expenses).orderBy(desc(expenses.date));
   }
 
