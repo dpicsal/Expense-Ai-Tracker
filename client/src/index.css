@@ -147,54 +147,54 @@
   --elevate-1: rgba(255,255,255, .04);
   --elevate-2: rgba(255,255,255, .09);
 
-  /* Modern fintech dark mode colors */
-  --background: 0 0% 4%; /* Very dark background like modern fintech apps */
+  /* Modern fintech dark mode colors - matched to reference image */
+  --background: 220 13% 10%; /* Dark blue-gray background */
 
   --foreground: 0 0% 98%; /* Crisp white text */
 
-  --border: 0 0% 13%; /* Subtle dark borders */
+  --border: 220 10% 18%; /* Subtle blue-gray borders */
 
-  --card: 0 0% 10%; /* Dark cards with contrast */
+  --card: 220 11% 17%; /* Dark blue-gray cards */
 
   --card-foreground: 0 0% 98%;
 
-  --card-border: 0 0% 18%; /* Subtle card borders */
+  --card-border: 220 9% 22%; /* Subtle card borders */
 
-  --sidebar: 0 0% 6%; /* Dark sidebar */
+  --sidebar: 220 13% 9%; /* Dark sidebar */
 
   --sidebar-foreground: 0 0% 98%;
 
-  --sidebar-border: 0 0% 13%;
+  --sidebar-border: 220 10% 16%;
 
-  --sidebar-primary: 12 100% 62%; /* Orange coral accent for sidebar */
+  --sidebar-primary: 9 100% 64%; /* Orange-red accent for sidebar */
 
   --sidebar-primary-foreground: 0 0% 100%; /* White text on orange */
 
-  --sidebar-accent: 0 0% 12%; /* Dark accent */
+  --sidebar-accent: 220 11% 16%; /* Dark accent */
 
   --sidebar-accent-foreground: 0 0% 85%;
 
-  --sidebar-ring: 12 100% 62%;
+  --sidebar-ring: 9 100% 64%;
 
-  --popover: 0 0% 8%;
+  --popover: 220 12% 15%;
 
   --popover-foreground: 0 0% 98%;
 
-  --popover-border: 0 0% 16%;
+  --popover-border: 220 10% 20%;
 
-  --primary: 12 100% 62%; /* Orange coral primary accent */
+  --primary: 9 100% 64%; /* Orange-red primary accent */
 
   --primary-foreground: 0 0% 100%; /* White text on orange */
 
-  --secondary: 0 0% 12%; /* Dark secondary */
+  --secondary: 220 11% 16%; /* Dark secondary */
 
   --secondary-foreground: 0 0% 85%;
 
-  --muted: 0 0% 12%; /* Dark muted areas */
+  --muted: 220 11% 16%; /* Dark muted areas */
 
-  --muted-foreground: 0 0% 65%;
+  --muted-foreground: 0 0% 60%;
 
-  --accent: 0 0% 14%; /* Dark accent surfaces */
+  --accent: 220 11% 18%; /* Dark accent surfaces */
 
   --accent-foreground: 0 0% 85%;
 
@@ -202,11 +202,11 @@
 
   --destructive-foreground: 0 0% 100%; /* White text on red */
 
-  --input: 0 0% 15%; /* Dark input backgrounds */
-  --ring: 12 100% 62%;
-  --chart-1: 12 100% 62%; /* Orange primary */
+  --input: 220 11% 19%; /* Dark input backgrounds */
+  --ring: 9 100% 64%;
+  --chart-1: 9 100% 64%; /* Orange-red primary */
   --chart-2: 45 93% 58%; /* Gold/yellow */
-  --chart-3: 210 14% 45%; /* Gray */
+  --chart-3: 220 8% 45%; /* Blue-gray */
   --chart-4: 280 100% 75%; /* Purple */
   --chart-5: 142 76% 60%; /* Green */
 
