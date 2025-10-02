@@ -46,7 +46,7 @@ export function ExpenseCharts({ expenses }: ExpenseChartsProps) {
   return (
     <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
       {/* Category Distribution */}
-      <Card className="border-0 shadow-ios-sm bg-card/95 backdrop-blur-md" data-testid="chart-category-distribution">
+      <Card className="shadow-ios-sm bg-card/95 backdrop-blur-md" data-testid="chart-category-distribution">
         <CardHeader className="pb-3 sm:pb-4">
           <CardTitle className="text-lg sm:text-xl font-semibold">Spending by Category</CardTitle>
           <p className="text-xs sm:text-sm text-muted-foreground">Breakdown of your expenses by category</p>
@@ -95,7 +95,7 @@ export function ExpenseCharts({ expenses }: ExpenseChartsProps) {
       </Card>
 
       {/* Monthly Spending */}
-      <Card className="border-0 shadow-ios-sm bg-card/95 backdrop-blur-md" data-testid="chart-monthly-spending">
+      <Card className="shadow-ios-sm bg-card/95 backdrop-blur-md" data-testid="chart-monthly-spending">
         <CardHeader className="pb-3 sm:pb-4">
           <CardTitle className="text-lg sm:text-xl font-semibold">Monthly Spending</CardTitle>
           <p className="text-xs sm:text-sm text-muted-foreground">Track your spending trends over time</p>
@@ -146,7 +146,7 @@ export function ExpenseCharts({ expenses }: ExpenseChartsProps) {
       </Card>
 
       {/* Summary Stats */}
-      <Card className="md:col-span-2 border-0 shadow-ios-sm bg-gradient-to-br from-primary/8 to-primary/12 backdrop-blur-md" data-testid="summary-stats">
+      <Card className="md:col-span-2 shadow-ios-sm bg-gradient-to-br from-primary/8 to-primary/12 backdrop-blur-md" data-testid="summary-stats">
         <CardHeader className="pb-3 sm:pb-4">
           <CardTitle className="text-lg sm:text-xl font-semibold">Summary Statistics</CardTitle>
           <p className="text-xs sm:text-sm text-muted-foreground">Key metrics about your spending habits</p>

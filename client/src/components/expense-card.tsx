@@ -42,7 +42,7 @@ export function ExpenseCard({ expense, onEdit, onDelete }: ExpenseCardProps) {
   };
 
   return (
-    <Card className="border-0 shadow-ios-sm bg-card/95 backdrop-blur-md transition-all duration-300 ios-transition" data-testid={`expense-card-${expense.id}`}>
+    <Card className="shadow-ios-sm bg-card/95 backdrop-blur-md transition-all duration-300 ios-transition" data-testid={`expense-card-${expense.id}`}>
       <CardContent className="p-4 sm:p-6">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">

@@ -215,7 +215,7 @@ export default function Settings() {
       </div>
 
       {/* App Preferences */}
-      <Card className="border-0 shadow-md">
+      <Card className="shadow-md">
         <CardHeader className={isMobile ? 'pb-3 px-4 pt-4' : 'pb-4'}>
           <div className="flex items-center gap-3">
             <div className={`${isMobile ? 'p-1.5' : 'p-2'} rounded-lg bg-green-100 dark:bg-green-900`}>
@@ -262,7 +262,7 @@ export default function Settings() {
           setIsDialogOpen(open);
           if (!open) setEditingCategory(null);
         }}>
-          <Card className="border-0 shadow-md">
+          <Card className="shadow-md">
             <CardHeader className="pb-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex items-center gap-3">
@@ -414,7 +414,7 @@ export default function Settings() {
       )}
 
       {!isMobile && (
-        <Card className="border-0 shadow-md">
+        <Card className="shadow-md">
           <CardHeader className="pb-4">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900">

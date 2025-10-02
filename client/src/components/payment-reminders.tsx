@@ -67,7 +67,7 @@ export function PaymentReminders() {
 
   if (isLoading) {
     return (
-      <Card data-testid="card-payment-reminders" className="border-0 shadow-ios-sm">
+      <Card data-testid="card-payment-reminders" className="shadow-ios-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">Payment Reminders</CardTitle>
         </CardHeader>
@@ -80,7 +80,7 @@ export function PaymentReminders() {
 
   if (creditCards.length === 0) {
     return (
-      <Card data-testid="card-payment-reminders" className="border-0 shadow-ios-sm">
+      <Card data-testid="card-payment-reminders" className="shadow-ios-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">Payment Reminders</CardTitle>
         </CardHeader>
@@ -142,7 +142,7 @@ export function PaymentReminders() {
   };
 
   return (
-    <Card data-testid="card-payment-reminders" className="border-0 shadow-ios-sm">
+    <Card data-testid="card-payment-reminders" className="shadow-ios-sm">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div className="flex items-center gap-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">Payment Reminders</CardTitle>

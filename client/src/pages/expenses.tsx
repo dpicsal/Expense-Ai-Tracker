@@ -119,7 +119,7 @@ export default function Expenses() {
       </div>
 
       {/* Date Range Filter */}
-      <Card className="border-0 shadow-md">
+      <Card className="shadow-md">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg md:text-xl font-semibold">Date Range Filter</CardTitle>
         </CardHeader>
@@ -202,7 +202,7 @@ export default function Expenses() {
       </Card>
 
       {/* All Expenses */}
-      <Card className="border-0 shadow-md">
+      <Card className="shadow-md">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg md:text-xl font-semibold">
             Expense History

@@ -79,7 +79,7 @@ export function AddFundsForm({ category, onClose, onSuccess }: AddFundsFormProps
   };
 
   return (
-    <Card className="border-0 shadow-lg">
+    <Card className="shadow-lg">
       <CardHeader className="pb-4">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-primary/10">
