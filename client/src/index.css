@@ -166,15 +166,15 @@
 
   --sidebar-border: 220 10% 16%;
 
-  --sidebar-primary: 9 100% 64%; /* Orange-red accent for sidebar */
+  --sidebar-primary: 217 91% 60%; /* Premium blue accent for sidebar */
 
-  --sidebar-primary-foreground: 0 0% 100%; /* White text on orange */
+  --sidebar-primary-foreground: 0 0% 100%; /* White text on blue */
 
   --sidebar-accent: 220 11% 16%; /* Dark accent */
 
   --sidebar-accent-foreground: 0 0% 85%;
 
-  --sidebar-ring: 9 100% 64%;
+  --sidebar-ring: 217 91% 60%;
 
   --popover: 220 12% 15%;
 
@@ -182,9 +182,9 @@
 
   --popover-border: 220 10% 20%;
 
-  --primary: 9 100% 64%; /* Orange-red primary accent */
+  --primary: 217 91% 60%; /* Premium blue primary accent */
 
-  --primary-foreground: 0 0% 100%; /* White text on orange */
+  --primary-foreground: 0 0% 100%; /* White text on blue */
 
   --secondary: 220 11% 16%; /* Dark secondary */
 
@@ -203,8 +203,8 @@
   --destructive-foreground: 0 0% 100%; /* White text on red */
 
   --input: 220 11% 19%; /* Dark input backgrounds */
-  --ring: 9 100% 64%;
-  --chart-1: 9 100% 64%; /* Orange-red primary */
+  --ring: 217 91% 60%;
+  --chart-1: 217 91% 60%; /* Premium blue primary */
   --chart-2: 45 93% 58%; /* Gold/yellow */
   --chart-3: 220 8% 45%; /* Blue-gray */
   --chart-4: 280 100% 75%; /* Purple */
