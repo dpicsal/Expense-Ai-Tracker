@@ -11,6 +11,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Dashboard from "@/pages/dashboard";
 import AddExpense from "@/pages/add-expense";
+import Expenses from "@/pages/expenses";
 import Analytics from "@/pages/analytics";
 import Categories from "@/pages/categories";
 import PaymentMethods from "@/pages/payment-methods";
@@ -23,6 +24,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Dashboard} />
       <Route path="/add" component={AddExpense} />
+      <Route path="/expenses" component={Expenses} />
       <Route path="/analytics" component={Analytics} />
       <Route path="/categories" component={Categories} />
       <Route path="/payment-methods" component={PaymentMethods} />
