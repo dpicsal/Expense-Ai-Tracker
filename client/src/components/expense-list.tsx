@@ -13,10 +13,11 @@ interface ExpenseListProps {
   onDelete?: (id: string) => void;
   showFilters?: boolean;
   maxItems?: number;
+  showCount?: boolean;
 }
 
 
-export function ExpenseList({ expenses, onEdit, onDelete, showFilters = true, maxItems }: ExpenseListProps) {
+export function ExpenseList({ expenses, onEdit, onDelete, showFilters = true, maxItems, showCount = false }: ExpenseListProps) {
   const { data: categories = [] } = useCategories();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
@@ -50,6 +51,13 @@ export function ExpenseList({ expenses, onEdit, onDelete, showFilters = true, ma
 
   return (
     <div className="space-y-6">
+      {/* Count Display */}
+      {showCount && (
+        <div className="text-sm font-medium text-foreground">
+          Showing {filteredExpenses.length} {filteredExpenses.length === 1 ? 'expense' : 'expenses'}
+        </div>
+      )}
+      
       {/* Search and Filter Controls */}
       {showFilters && (
       <div className="flex flex-col sm:flex-row gap-4 p-4 bg-muted/50 rounded-lg border border-border/50">
