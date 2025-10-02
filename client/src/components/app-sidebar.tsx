@@ -82,10 +82,10 @@ export function AppSidebar() {
                     <SidebarMenuButton 
                       asChild 
                       isActive={isActive}
-                      className={`h-12 px-3 rounded-xl font-medium transition-all duration-150 ${
+                      className={`h-12 px-3 rounded-xl font-medium transition-all duration-150 border ${
                         isActive 
-                          ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' 
-                          : 'text-slate-600 dark:text-slate-400 hover-elevate'
+                          ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-800 dark:border-primary shadow-sm' 
+                          : 'text-slate-600 dark:text-slate-400 hover-elevate border-transparent'
                       }`}
                       data-testid={`nav-${item.title.toLowerCase().replace(' ', '-')}`}
                     >
@@ -104,7 +104,7 @@ export function AppSidebar() {
 
       {/* Simple Footer */}
       <SidebarFooter className="px-4 pb-4">
-        <div className="flex items-center gap-3 p-2 rounded-xl hover-elevate transition-colors cursor-pointer" data-testid="card-account-summary">
+        <div className="flex items-center gap-3 p-2 rounded-xl hover-elevate transition-colors cursor-pointer border border-border/50 bg-card/30" data-testid="card-account-summary">
           <Avatar className="h-8 w-8">
             <AvatarFallback className="bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white text-sm font-medium">
               U
