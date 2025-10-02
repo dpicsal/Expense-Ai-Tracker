@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus } from "lucide-react";
+import { Plus, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAddFundsToPaymentMethod } from "@/hooks/use-payment-method-fund-history";
 import { type PaymentMethod, insertPaymentMethodFundHistorySchema } from "@shared/schema";
@@ -89,7 +91,31 @@ export function AddFundsToPaymentMethodForm({ paymentMethod, onClose, onSuccess 
   };
 
   return (
-    <div className="space-y-6">
+    <Card className="border-0 shadow-lg">
+      <CardHeader className="pb-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-primary/10">
+            <DollarSign className="h-5 w-5 text-primary" />
+          </div>
+          <div className="flex-1">
+            <CardTitle className="text-xl">{actionLabel}</CardTitle>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-sm text-muted-foreground">to</span>
+              <Badge variant="outline" data-testid={`payment-method-badge-${paymentMethod.name}`}>
+                {paymentMethod.name}
+              </Badge>
+            </div>
+          </div>
+        </div>
+        <p className="text-sm text-muted-foreground mt-2">
+          {isCreditCard
+            ? "Make a payment to reduce your credit card balance. This will create a history record and update the balance."
+            : isDebitCard 
+              ? "Deposit money to this payment method. This will create a history record and update the balance."
+              : "Add funds to this payment method. This will create a history record and update the balance."}
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
             <FormField
@@ -168,6 +194,7 @@ export function AddFundsToPaymentMethodForm({ paymentMethod, onClose, onSuccess 
             </div>
           </form>
         </Form>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
