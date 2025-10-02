@@ -83,11 +83,11 @@ export default function Categories() {
   return (
     <div className={isMobile ? 'space-y-6' : 'space-y-8'}>
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className={`${isMobile ? 'text-2xl' : 'text-4xl'} font-semibold tracking-tight text-foreground`}>
+        <div className="space-y-2">
+          <h1 className={`${isMobile ? 'text-3xl' : 'text-4xl'} font-bold tracking-tight dark:text-white/95`}>
             Categories
           </h1>
-          <p className={`${isMobile ? 'text-base' : 'text-lg'} text-muted-foreground`}>
+          <p className={`${isMobile ? 'text-sm' : 'text-base'} text-muted-foreground font-medium`}>
             Manage your expense categories and analyze spending patterns
           </p>
         </div>
@@ -148,27 +148,28 @@ export default function Categories() {
             const isExpanded = expandedHistories.has(category);
             
             return (
-              <Card key={category} className="border-0 shadow-md dark:bg-[hsl(220,9%,30%)] bg-gradient-to-r from-card to-card/50 transition-all duration-200" data-testid={`category-card-${category}`}>
-                <CardContent className={isMobile ? 'p-4' : 'p-6'}>
-                  <div className="flex items-center justify-between mb-4">
+              <Card key={category} className="border dark:border-white/5 dark:bg-gradient-to-br dark:from-[hsl(220,10%,28%)] dark:to-[hsl(220,12%,22%)] bg-gradient-to-r from-card to-card/50 shadow-lg dark:shadow-xl transition-all duration-300 hover:shadow-2xl dark:hover:border-white/10 overflow-hidden relative" data-testid={`category-card-${category}`}>
+                <div className="absolute inset-0 dark:bg-gradient-to-br dark:from-white/[0.02] dark:to-transparent pointer-events-none"></div>
+                <CardContent className={`${isMobile ? 'p-4' : 'p-6'} relative z-10`}>
+                  <div className="flex items-center justify-between mb-5">
                     <div className="flex items-center gap-3">
                       <Badge 
-                        className={color}
+                        className={`${color} shadow-sm`}
                         data-testid={`category-badge-${category}`}
                       >
                         {category}
                       </Badge>
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-sm text-muted-foreground font-medium">
                         {count} transaction{count !== 1 ? 's' : ''}
                       </span>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="text-right">
-                        <div className="text-lg font-semibold tabular-nums" data-testid={`category-total-${category}`}>
+                        <div className="text-xl font-bold tabular-nums dark:text-white/95" data-testid={`category-total-${category}`}>
                           AED {total.toFixed(2)}
                         </div>
                         {allocatedFunds > 0 && (
-                          <div className="text-xs text-muted-foreground" data-testid={`category-remaining-${category}`}>
+                          <div className="text-xs text-muted-foreground font-medium mt-0.5" data-testid={`category-remaining-${category}`}>
                             {remaining >= 0 ? `AED ${remaining.toFixed(2)} remaining` : `AED ${Math.abs(remaining).toFixed(2)} overspent`}
                           </div>
                         )}
@@ -178,13 +179,15 @@ export default function Categories() {
                   
                   {/* Fund Information */}
                   {allocatedFunds > 0 && (
-                    <div className="mb-4 p-3 rounded-lg bg-muted/50 border border-border/30">
+                    <div className="mb-4 p-4 rounded-xl dark:bg-white/[0.03] bg-muted/50 border dark:border-white/5 border-border/30 backdrop-blur-sm">
                       <div className="flex items-center justify-between text-sm">
                         <div className="flex items-center gap-2">
-                          <Wallet className="h-4 w-4 text-primary" />
+                          <div className="p-1.5 rounded-lg dark:bg-primary/10 bg-primary/5">
+                            <Wallet className="h-4 w-4 text-primary" />
+                          </div>
                           <span className="font-medium">Available Fund</span>
                         </div>
-                        <span className="font-semibold tabular-nums" data-testid={`category-allocated-${category}`}>
+                        <span className="font-semibold tabular-nums text-base" data-testid={`category-allocated-${category}`}>
                           AED {allocatedFunds.toFixed(2)}
                         </span>
                       </div>
@@ -192,18 +195,18 @@ export default function Categories() {
                   )}
                   
                   <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span>Percentage of allocated funds spent</span>
-                      <span className="tabular-nums">{percentage.toFixed(1)}%</span>
+                    <div className="flex justify-between text-sm items-center">
+                      <span className="text-muted-foreground font-medium">Allocated Funds Spent</span>
+                      <span className="tabular-nums font-bold dark:text-white/90">{percentage.toFixed(1)}%</span>
                     </div>
                     <Progress 
                       value={Math.min(percentage, 100)} 
-                      className="h-2"
+                      className="h-2.5 dark:bg-white/5"
                       data-testid={`category-progress-${category}`}
                     />
                     
                     {/* Action Buttons */}
-                    <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-2 pt-2`}>
+                    <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-3 pt-3`}>
                       <Dialog open={addFundsDialogOpen === category} onOpenChange={(open) => setAddFundsDialogOpen(open ? category : null)}>
                         <DialogTrigger asChild>
                           <Button 
