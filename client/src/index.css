@@ -4,7 +4,7 @@
 
 /* iOS Safe Area Support */
 .safe-area-bottom {
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
 }
 
 .safe-area-top {
@@ -14,6 +14,68 @@
 /* iOS-style transitions */
 .ios-transition {
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* iOS-specific touch optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Prevent 300ms tap delay on mobile */
+  * {
+    touch-action: manipulation;
+  }
+  
+  /* Prevent text selection on interactive elements for better touch feel */
+  button, a, [role="button"], [role="tab"] {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Smooth momentum scrolling on iOS */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* iOS-style frosted glass effect for headers and navigation */
+.ios-frosted-glass {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+
+.dark .ios-frosted-glass {
+  background: rgba(28, 28, 30, 0.72);
+}
+
+/* iOS-style card shadow */
+.ios-card-shadow {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.dark .ios-card-shadow {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* iOS-style floating action button */
+.ios-fab {
+  box-shadow: 0 8px 24px rgba(0, 122, 255, 0.3);
+  transform: scale(1);
+  transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.ios-fab:active {
+  transform: scale(0.95);
+}
+
+/* iOS-style list separator */
+.ios-list-separator {
+  height: 0.5px;
+  background: rgba(60, 60, 67, 0.36);
+  margin-left: 1rem;
+}
+
+.dark .ios-list-separator {
+  background: rgba(84, 84, 88, 0.65);
 }
 
 /* LIGHT MODE */
