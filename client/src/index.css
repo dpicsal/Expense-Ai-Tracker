@@ -30,8 +30,8 @@
     -webkit-tap-highlight-color: transparent;
   }
   
-  /* Smooth momentum scrolling on iOS */
-  * {
+  /* Smooth momentum scrolling on iOS - only on scrollable containers */
+  main, [role="dialog"], [role="menu"], .overflow-auto, .overflow-scroll {
     -webkit-overflow-scrolling: touch;
   }
 }
