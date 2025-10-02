@@ -130,7 +130,7 @@ export default function Dashboard() {
       {/* Summary Cards Row */}
       <div className="flex flex-col md:flex-row gap-4 sm:gap-5 lg:gap-6">
         {/* Total Expenses Card */}
-        <div className="flex-1 max-w-sm">
+        <div className="flex-1 w-full md:max-w-sm">
           <Card className={`shadow-ios-sm bg-gradient-to-br from-card/95 to-card/80 backdrop-blur-md stagger-fade-in ${isMobile ? 'min-h-[7rem]' : ''}`}>
             <CardHeader className={`flex flex-row items-center justify-between space-y-0 ${isMobile ? 'pb-2 px-4 pt-4' : 'pb-3'}`}>
               <CardTitle className={`text-sm font-medium text-muted-foreground ${isMobile ? 'text-xs' : ''}`}>Total Expenses</CardTitle>
@@ -151,7 +151,7 @@ export default function Dashboard() {
         </div>
 
         {/* Payment Reminders */}
-        <div className="flex-1 max-w-sm">
+        <div className="flex-1 w-full md:max-w-sm">
           <PaymentReminders />
         </div>
       </div>
