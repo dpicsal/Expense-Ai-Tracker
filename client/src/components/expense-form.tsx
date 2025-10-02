@@ -12,7 +12,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { insertExpenseSchema, type InsertExpense } from "@shared/schema";
 import { useCategories } from "@/hooks/use-categories";
@@ -51,15 +50,9 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle data-testid="expense-form-title">
-          {isEditing ? "Edit Expense" : "Add New Expense"}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+    <div className="w-full">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 sm:space-y-6">
             <FormField
               control={form.control}
               name="amount"
@@ -219,7 +212,6 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
             </div>
           </form>
         </Form>
-      </CardContent>
-    </Card>
+      </div>
   );
 }
