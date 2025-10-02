@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { usePaymentMethods } from "@/hooks/use-payment-methods";
+import { AddFundsToPaymentMethodForm } from "@/components/add-funds-to-payment-method-form";
 import { type PaymentMethod } from "@shared/schema";
 import { CreditCard, AlertCircle, Clock, CheckCircle } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
@@ -16,6 +19,18 @@ interface PaymentReminderData {
 
 export function PaymentReminders() {
   const { data: paymentMethods = [], isLoading } = usePaymentMethods();
+  const [selectedCard, setSelectedCard] = useState<PaymentMethod | null>(null);
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+
+  const handlePayClick = (card: PaymentMethod) => {
+    setSelectedCard(card);
+    setIsPaymentDialogOpen(true);
+  };
+
+  const handleClosePayment = () => {
+    setIsPaymentDialogOpen(false);
+    setSelectedCard(null);
+  };
 
   const calculateDaysUntilDue = (dueDate: number): number => {
     const today = new Date();
@@ -201,21 +216,39 @@ export function PaymentReminders() {
                       </div>
                     </div>
                   </div>
-                  <Link href="/payment-methods">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      data-testid={`button-pay-${reminder.paymentMethod.id}`}
-                    >
-                      Pay
-                    </Button>
-                  </Link>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handlePayClick(reminder.paymentMethod)}
+                    data-testid={`button-pay-${reminder.paymentMethod.id}`}
+                  >
+                    Pay
+                  </Button>
                 </div>
               );
             })}
           </div>
         )}
       </CardContent>
+
+      {/* Payment Dialog */}
+      <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Make Payment for {selectedCard?.name}</DialogTitle>
+            <DialogDescription>
+              Make a payment to reduce your credit card balance.
+            </DialogDescription>
+          </DialogHeader>
+          {selectedCard && (
+            <AddFundsToPaymentMethodForm
+              paymentMethod={selectedCard}
+              onClose={handleClosePayment}
+              onSuccess={handleClosePayment}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
