@@ -11,10 +11,11 @@ interface ExpenseListProps {
   expenses: Expense[];
   onEdit?: (expense: Expense) => void;
   onDelete?: (id: string) => void;
+  showFilters?: boolean;
 }
 
 
-export function ExpenseList({ expenses, onEdit, onDelete }: ExpenseListProps) {
+export function ExpenseList({ expenses, onEdit, onDelete, showFilters = true }: ExpenseListProps) {
   const { data: categories = [] } = useCategories();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
@@ -22,12 +23,14 @@ export function ExpenseList({ expenses, onEdit, onDelete }: ExpenseListProps) {
   // Create filter options with "All Categories" plus dynamic categories
   const categoryOptions = ["All Categories", ...categories.map(cat => cat.name.trim())];
 
-  const filteredExpenses = expenses.filter(expense => {
-    const matchesSearch = expense.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         expense.category.trim().toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "All Categories" || expense.category.trim() === selectedCategory.trim();
-    return matchesSearch && matchesCategory;
-  });
+  const filteredExpenses = showFilters 
+    ? expenses.filter(expense => {
+        const matchesSearch = expense.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                             expense.category.trim().toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesCategory = selectedCategory === "All Categories" || expense.category.trim() === selectedCategory.trim();
+        return matchesSearch && matchesCategory;
+      })
+    : expenses;
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -42,6 +45,7 @@ export function ExpenseList({ expenses, onEdit, onDelete }: ExpenseListProps) {
   return (
     <div className="space-y-6">
       {/* Search and Filter Controls */}
+      {showFilters && (
       <div className="flex flex-col sm:flex-row gap-4 p-4 bg-muted/50 rounded-lg border border-border/50">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -67,6 +71,7 @@ export function ExpenseList({ expenses, onEdit, onDelete }: ExpenseListProps) {
           </SelectContent>
         </Select>
       </div>
+      )}
 
       {/* Expense List */}
       {filteredExpenses.length === 0 ? (
@@ -75,7 +80,11 @@ export function ExpenseList({ expenses, onEdit, onDelete }: ExpenseListProps) {
             <Search className="h-8 w-8 text-muted-foreground" />
           </div>
           <h3 className="text-lg font-medium mb-2">No expenses found</h3>
-          <p className="text-muted-foreground">Try adjusting your search or filters to find what you're looking for.</p>
+          <p className="text-muted-foreground">
+            {showFilters 
+              ? "Try adjusting your search or filters to find what you're looking for."
+              : "No expenses to display."}
+          </p>
         </div>
       ) : (
         <div className="grid gap-3" data-testid="expense-list">
