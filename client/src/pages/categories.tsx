@@ -148,7 +148,7 @@ export default function Categories() {
             const isExpanded = expandedHistories.has(category);
             
             return (
-              <Card key={category} className="border-0 shadow-md bg-gradient-to-r from-card to-card/50 transition-all duration-200" data-testid={`category-card-${category}`}>
+              <Card key={category} className="border-0 shadow-md dark:bg-[hsl(220,9%,30%)] bg-gradient-to-r from-card to-card/50 transition-all duration-200" data-testid={`category-card-${category}`}>
                 <CardContent className={isMobile ? 'p-4' : 'p-6'}>
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
