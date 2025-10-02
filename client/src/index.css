@@ -147,77 +147,77 @@
   --elevate-1: rgba(255,255,255, .04);
   --elevate-2: rgba(255,255,255, .09);
 
-  /* Modern fintech dark mode colors - matched to reference image */
-  --background: 220 13% 10%; /* Dark blue-gray background */
+  /* Royal VIP dark mode colors - Luxurious and elegant */
+  --background: 240 20% 8%; /* Deep royal navy background */
 
-  --foreground: 0 0% 98%; /* Crisp white text */
+  --foreground: 45 15% 95%; /* Warm off-white text */
 
-  --border: 220 10% 18%; /* Subtle blue-gray borders */
+  --border: 45 40% 45%; /* Subtle gold borders */
 
-  --card: 220 11% 17%; /* Dark blue-gray cards */
+  --card: 240 15% 12%; /* Rich deep navy cards */
 
-  --card-foreground: 0 0% 98%;
+  --card-foreground: 45 15% 95%;
 
-  --card-border: 220 9% 22%; /* Subtle card borders */
+  --card-border: 45 50% 50%; /* Golden card borders */
 
-  --sidebar: 220 13% 9%; /* Dark sidebar */
+  --sidebar: 240 20% 7%; /* Deep royal sidebar */
 
-  --sidebar-foreground: 0 0% 98%;
+  --sidebar-foreground: 45 15% 95%;
 
-  --sidebar-border: 220 10% 16%;
+  --sidebar-border: 45 35% 40%;
 
-  --sidebar-primary: 217 91% 60%; /* Premium blue accent for sidebar */
+  --sidebar-primary: 45 90% 55%; /* Luxurious gold accent */
 
-  --sidebar-primary-foreground: 0 0% 100%; /* White text on blue */
+  --sidebar-primary-foreground: 240 20% 10%; /* Dark text on gold */
 
-  --sidebar-accent: 220 11% 16%; /* Dark accent */
+  --sidebar-accent: 240 15% 14%; /* Rich accent */
 
-  --sidebar-accent-foreground: 0 0% 85%;
+  --sidebar-accent-foreground: 45 20% 85%;
 
-  --sidebar-ring: 217 91% 60%;
+  --sidebar-ring: 45 90% 55%;
 
-  --popover: 220 12% 15%;
+  --popover: 240 18% 11%;
 
-  --popover-foreground: 0 0% 98%;
+  --popover-foreground: 45 15% 95%;
 
-  --popover-border: 220 10% 20%;
+  --popover-border: 45 40% 45%;
 
-  --primary: 217 91% 60%; /* Premium blue primary accent */
+  --primary: 45 90% 55%; /* Royal gold primary accent */
 
-  --primary-foreground: 0 0% 100%; /* White text on blue */
+  --primary-foreground: 240 20% 10%; /* Dark text on gold */
 
-  --secondary: 220 11% 16%; /* Dark secondary */
+  --secondary: 240 15% 14%; /* Deep secondary */
 
-  --secondary-foreground: 0 0% 85%;
+  --secondary-foreground: 45 20% 85%;
 
-  --muted: 220 11% 16%; /* Dark muted areas */
+  --muted: 240 12% 15%; /* Rich muted areas */
 
-  --muted-foreground: 0 0% 60%;
+  --muted-foreground: 45 10% 55%;
 
-  --accent: 220 11% 18%; /* Dark accent surfaces */
+  --accent: 270 60% 45%; /* Royal purple accent */
 
-  --accent-foreground: 0 0% 85%;
+  --accent-foreground: 45 15% 95%;
 
-  --destructive: 0 84% 60%; /* Red for errors */
+  --destructive: 0 70% 50%; /* Deep red for errors */
 
   --destructive-foreground: 0 0% 100%; /* White text on red */
 
-  --input: 220 11% 19%; /* Dark input backgrounds */
-  --ring: 217 91% 60%;
-  --chart-1: 217 91% 60%; /* Premium blue primary */
-  --chart-2: 45 93% 58%; /* Gold/yellow */
-  --chart-3: 220 8% 45%; /* Blue-gray */
-  --chart-4: 280 100% 75%; /* Purple */
-  --chart-5: 142 76% 60%; /* Green */
+  --input: 240 15% 13%; /* Deep input backgrounds */
+  --ring: 45 90% 55%;
+  --chart-1: 45 90% 55%; /* Royal gold */
+  --chart-2: 270 60% 60%; /* Royal purple */
+  --chart-3: 200 70% 50%; /* Royal blue */
+  --chart-4: 340 70% 55%; /* Royal rose */
+  --chart-5: 160 50% 45%; /* Emerald green */
 
-  --shadow-2xs: 0px 1px 2px 0px hsl(0 0% 0% / 0.20);
-  --shadow-xs: 0px 1px 3px 0px hsl(0 0% 0% / 0.25), 0px 1px 2px 0px hsl(0 0% 0% / 0.15);
-  --shadow-sm: 0px 1px 3px 0px hsl(0 0% 0% / 0.30), 0px 1px 2px 0px hsl(0 0% 0% / 0.20);
-  --shadow: 0px 4px 6px -1px hsl(0 0% 0% / 0.30), 0px 2px 4px -1px hsl(0 0% 0% / 0.18);
-  --shadow-md: 0px 10px 15px -3px hsl(0 0% 0% / 0.30), 0px 4px 6px -2px hsl(0 0% 0% / 0.15);
-  --shadow-lg: 0px 20px 25px -5px hsl(0 0% 0% / 0.30), 0px 10px 10px -5px hsl(0 0% 0% / 0.12);
-  --shadow-xl: 0px 25px 50px -12px hsl(0 0% 0% / 0.50);
-  --shadow-2xl: 0px 50px 100px -20px hsl(0 0% 0% / 0.60);
+  --shadow-2xs: 0px 1px 2px 0px hsl(0 0% 0% / 0.30), 0px 0px 1px 0px hsl(45 90% 55% / 0.05);
+  --shadow-xs: 0px 1px 3px 0px hsl(0 0% 0% / 0.40), 0px 1px 2px 0px hsl(45 90% 55% / 0.08);
+  --shadow-sm: 0px 2px 4px 0px hsl(0 0% 0% / 0.50), 0px 1px 3px 0px hsl(45 90% 55% / 0.10);
+  --shadow: 0px 4px 8px -1px hsl(0 0% 0% / 0.50), 0px 2px 4px -1px hsl(45 90% 55% / 0.12);
+  --shadow-md: 0px 10px 20px -3px hsl(0 0% 0% / 0.50), 0px 4px 8px -2px hsl(45 90% 55% / 0.15);
+  --shadow-lg: 0px 20px 30px -5px hsl(0 0% 0% / 0.50), 0px 10px 15px -5px hsl(45 90% 55% / 0.18);
+  --shadow-xl: 0px 30px 60px -12px hsl(0 0% 0% / 0.60), 0px 15px 30px -10px hsl(45 90% 55% / 0.20);
+  --shadow-2xl: 0px 50px 100px -20px hsl(0 0% 0% / 0.70), 0px 20px 40px -15px hsl(45 90% 55% / 0.25);
 
 }
 
