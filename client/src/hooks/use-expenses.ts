@@ -32,7 +32,9 @@ export function useCreateExpense() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/expenses"] });
+      queryClient.invalidateQueries({ 
+        predicate: (query) => query.queryKey[0] === "/api/expenses"
+      });
       queryClient.invalidateQueries({ queryKey: ["/api/payment-methods"] });
       queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
     },
@@ -48,7 +50,9 @@ export function useUpdateExpense() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/expenses"] });
+      queryClient.invalidateQueries({ 
+        predicate: (query) => query.queryKey[0] === "/api/expenses"
+      });
       queryClient.invalidateQueries({ queryKey: ["/api/payment-methods"] });
       queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
     },
@@ -64,7 +68,9 @@ export function useDeleteExpense() {
       return true;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/expenses"] });
+      queryClient.invalidateQueries({ 
+        predicate: (query) => query.queryKey[0] === "/api/expenses"
+      });
       queryClient.invalidateQueries({ queryKey: ["/api/payment-methods"] });
       queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
     },
