@@ -155,6 +155,7 @@ export function PaymentMethodForm({ paymentMethod, onSuccess }: PaymentMethodFor
                       value={field.value ?? ""}
                       onChange={(e) => field.onChange(e.target.value)}
                       data-testid="input-payment-method-credit-limit"
+                      className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                   </FormControl>
                   <FormMessage />
@@ -177,6 +178,7 @@ export function PaymentMethodForm({ paymentMethod, onSuccess }: PaymentMethodFor
                       value={field.value ?? ""}
                       onChange={(e) => field.onChange(e.target.value)}
                       data-testid="input-payment-method-due-date"
+                      className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                   </FormControl>
                   <div className="text-[0.8rem] text-muted-foreground">
