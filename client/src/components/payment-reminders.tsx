@@ -67,18 +67,12 @@ export function PaymentReminders() {
 
   if (isLoading) {
     return (
-      <Card data-testid="card-payment-reminders">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <CardTitle className="text-lg font-semibold">Payment Reminders</CardTitle>
-          </div>
+      <Card data-testid="card-payment-reminders" className="border-0 shadow-ios-sm">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Payment Reminders</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {[1, 2].map((i) => (
-              <div key={i} className="animate-pulse h-16 bg-muted rounded-lg" />
-            ))}
-          </div>
+          <div className="animate-pulse h-12 bg-muted rounded-lg" />
         </CardContent>
       </Card>
     );
@@ -86,17 +80,14 @@ export function PaymentReminders() {
 
   if (creditCards.length === 0) {
     return (
-      <Card data-testid="card-payment-reminders">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <CardTitle className="text-lg font-semibold">Payment Reminders</CardTitle>
-          </div>
+      <Card data-testid="card-payment-reminders" className="border-0 shadow-ios-sm">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Payment Reminders</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center justify-center py-6 text-center">
-            <CreditCard className="h-12 w-12 text-muted-foreground mb-3" />
+        <CardContent className="pt-2">
+          <div className="flex flex-col items-center justify-center text-center">
             <p className="text-sm text-muted-foreground mb-3">
-              No credit cards added yet
+              No credit cards added
             </p>
             <Link href="/payment-methods">
               <Button variant="outline" size="sm" data-testid="button-add-card">
@@ -151,31 +142,25 @@ export function PaymentReminders() {
   };
 
   return (
-    <Card data-testid="card-payment-reminders">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between gap-2 flex-wrap">
-          <div className="flex items-center gap-2">
-            <CardTitle className="text-lg font-semibold">Payment Reminders</CardTitle>
-            {urgentReminders.length > 0 && (
-              <Badge variant="destructive" className="h-5" data-testid="badge-urgent-count">
-                {urgentReminders.length}
-              </Badge>
-            )}
-          </div>
-          <Link href="/payment-methods">
-            <Button variant="ghost" size="sm" data-testid="button-view-all">
-              View All Cards
-            </Button>
-          </Link>
+    <Card data-testid="card-payment-reminders" className="border-0 shadow-ios-sm">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <div className="flex items-center gap-2">
+          <CardTitle className="text-sm font-medium text-muted-foreground">Payment Reminders</CardTitle>
+          {urgentReminders.length > 0 && (
+            <Badge variant="destructive" className="h-5" data-testid="badge-urgent-count">
+              {urgentReminders.length}
+            </Badge>
+          )}
         </div>
-        <p className="text-sm text-muted-foreground mt-1">
-          Never miss a payment
-        </p>
+        <Link href="/payment-methods">
+          <Button variant="ghost" size="sm" data-testid="button-view-all">
+            View All
+          </Button>
+        </Link>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-2">
         {reminders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-6 text-center">
-            <CheckCircle className="h-12 w-12 text-muted-foreground mb-3" />
+          <div className="flex flex-col items-center justify-center text-center">
             <p className="text-sm text-muted-foreground">
               No upcoming payment reminders
             </p>
