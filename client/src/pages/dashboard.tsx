@@ -330,7 +330,7 @@ export default function Dashboard() {
               asChild
               data-testid="button-view-all-expenses"
             >
-              <Link href="/analytics">View All</Link>
+              <Link href="/expenses">View All</Link>
             </Button>
           </div>
         </CardHeader>
