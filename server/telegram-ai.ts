@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import OpenAI from "openai";
 import type { IStorage } from './storage';
 import type { InsertExpense, InsertPaymentMethod, InsertCategory } from "@shared/schema";
 import { sendTelegramMessage, createInlineKeyboard, createMainMenu } from './telegram-bot';
@@ -27,6 +28,32 @@ async function getGeminiAI(storage: IStorage): Promise<GoogleGenAI | null> {
   }
   
   return new GoogleGenAI({ apiKey: envApiKey });
+}
+
+async function getOpenAIClient(storage: IStorage): Promise<OpenAI | null> {
+  const config = await storage.getOpenAIConfig();
+  
+  if (config) {
+    if (!config.isEnabled) {
+      console.log('[Telegram AI] OpenAI is disabled in settings');
+      return null;
+    }
+    
+    if (!config.apiKey) {
+      console.error('[Telegram AI] OpenAI is enabled but no API key configured in settings');
+      return null;
+    }
+    
+    return new OpenAI({ apiKey: config.apiKey });
+  }
+  
+  const envApiKey = process.env.OPENAI_API_KEY;
+  if (!envApiKey) {
+    console.warn('[Telegram AI] No OpenAI config found and OPENAI_API_KEY environment variable not set');
+    return null;
+  }
+  
+  return new OpenAI({ apiKey: envApiKey });
 }
 
 interface Intent {
@@ -242,9 +269,72 @@ Analyze user messages and extract their intent with high precision. Be context-a
 
 Return JSON only with the extracted intent and parameters.`;
 
+  const responseSchema = {
+    type: "object" as const,
+    properties: {
+      action: { 
+        type: "string" as const,
+        enum: [
+          "add_expense", "view_expenses", "view_summary", "delete_expense",
+          "view_categories", "create_category", "update_category", "delete_category",
+          "set_budget", "add_funds_to_category", "reset_category",
+          "view_payment_methods", "create_payment_method", "update_payment_method", 
+          "delete_payment_method", "add_funds_to_payment_method", "pay_credit_card",
+          "view_analytics", "export_data", "backup_data", "help", "greeting", "menu", 
+          "confirm_action", "cancel_action", "unknown"
+        ]
+      },
+      amount: { type: "number" as const },
+      category: { type: "string" as const },
+      description: { type: "string" as const },
+      date: { type: "string" as const },
+      paymentMethod: { type: "string" as const },
+      budgetAmount: { type: "number" as const },
+      allocatedFunds: { type: "number" as const },
+      categoryName: { type: "string" as const },
+      categoryColor: { type: "string" as const },
+      categoryIcon: { type: "string" as const },
+      paymentMethodName: { type: "string" as const },
+      paymentMethodType: { type: "string" as const, enum: ["cash", "credit_card", "debit_card", "bank_transfer", "digital_wallet"] },
+      creditLimit: { type: "number" as const },
+      dueDate: { type: "number" as const },
+      fromPaymentMethod: { type: "string" as const },
+      toPaymentMethod: { type: "string" as const },
+      startDate: { type: "string" as const },
+      endDate: { type: "string" as const },
+      period: { type: "string" as const }
+    },
+    required: ["action"]
+  };
+
+  // Try OpenAI first
+  const openai = await getOpenAIClient(storage);
+  if (openai) {
+    try {
+      console.log('[Telegram AI] Using OpenAI for intent extraction');
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: message }
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.3
+      });
+
+      const rawJson = response.choices[0]?.message?.content;
+      if (rawJson) {
+        return JSON.parse(rawJson) as Intent;
+      }
+    } catch (error) {
+      console.error('[Telegram AI] OpenAI failed, falling back to Gemini:', error);
+    }
+  }
+
+  // Fallback to Gemini
   const ai = await getGeminiAI(storage);
   if (!ai) {
-    console.error('[Telegram AI] Failed to get Gemini AI instance in extractIntent');
+    console.error('[Telegram AI] No AI service available for intent extraction');
     return { action: 'unknown' };
   }
 
@@ -253,43 +343,7 @@ Return JSON only with the extracted intent and parameters.`;
     config: {
       systemInstruction: systemPrompt,
       responseMimeType: "application/json",
-      responseSchema: {
-        type: "object",
-        properties: {
-          action: { 
-            type: "string",
-            enum: [
-              "add_expense", "view_expenses", "view_summary", "delete_expense",
-              "view_categories", "create_category", "update_category", "delete_category",
-              "set_budget", "add_funds_to_category", "reset_category",
-              "view_payment_methods", "create_payment_method", "update_payment_method", 
-              "delete_payment_method", "add_funds_to_payment_method", "pay_credit_card",
-              "view_analytics", "export_data", "backup_data", "help", "greeting", "menu", 
-              "confirm_action", "cancel_action", "unknown"
-            ]
-          },
-          amount: { type: "number" },
-          category: { type: "string" },
-          description: { type: "string" },
-          date: { type: "string" },
-          paymentMethod: { type: "string" },
-          budgetAmount: { type: "number" },
-          allocatedFunds: { type: "number" },
-          categoryName: { type: "string" },
-          categoryColor: { type: "string" },
-          categoryIcon: { type: "string" },
-          paymentMethodName: { type: "string" },
-          paymentMethodType: { type: "string", enum: ["cash", "credit_card", "debit_card", "bank_transfer", "digital_wallet"] },
-          creditLimit: { type: "number" },
-          dueDate: { type: "number" },
-          fromPaymentMethod: { type: "string" },
-          toPaymentMethod: { type: "string" },
-          startDate: { type: "string" },
-          endDate: { type: "string" },
-          period: { type: "string" }
-        },
-        required: ["action"]
-      }
+      responseSchema
     },
     contents: message
   });
@@ -849,17 +903,6 @@ export async function processReceiptPhoto(
   storage: IStorage
 ): Promise<void> {
   try {
-    const ai = await getGeminiAI(storage);
-    
-    if (!ai) {
-      await sendTelegramMessage(
-        chatId,
-        '❌ AI service is not configured. Please enable Gemini AI in settings.',
-        createMainMenu()
-      );
-      return;
-    }
-
     await sendTelegramMessage(chatId, '🔍 Analyzing receipt...');
 
     const systemPrompt = `You are a receipt OCR assistant. Extract structured data from receipt images.
@@ -874,25 +917,93 @@ Analyze the receipt and return JSON with:
 
 Return only valid JSON, no markdown.`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      config: {
-        systemInstruction: systemPrompt,
-        responseMimeType: "application/json"
-      },
-      contents: [
-        {
-          inlineData: {
-            mimeType: 'image/jpeg',
-            data: base64Image
-          }
-        },
-        'Extract receipt data from this image.'
-      ]
-    });
+    let receiptData: ReceiptData | null = null;
 
-    const rawJson = response.text;
-    if (!rawJson) {
+    // Try OpenAI Vision first
+    const openai = await getOpenAIClient(storage);
+    if (openai) {
+      try {
+        console.log('[Telegram AI] Using OpenAI Vision for receipt processing');
+        const response = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [
+            { 
+              role: "system", 
+              content: systemPrompt 
+            },
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: "Extract receipt data from this image."
+                },
+                {
+                  type: "image_url",
+                  image_url: {
+                    url: `data:image/jpeg;base64,${base64Image}`
+                  }
+                }
+              ]
+            }
+          ],
+          response_format: { type: "json_object" },
+          temperature: 0.3
+        });
+
+        const rawJson = response.choices[0]?.message?.content;
+        if (rawJson) {
+          receiptData = JSON.parse(rawJson);
+        }
+      } catch (error) {
+        console.error('[Telegram AI] OpenAI Vision failed, falling back to Gemini:', error);
+      }
+    }
+
+    // Fallback to Gemini Vision
+    if (!receiptData) {
+      const ai = await getGeminiAI(storage);
+      
+      if (!ai) {
+        await sendTelegramMessage(
+          chatId,
+          '❌ AI service is not configured. Please enable OpenAI or Gemini AI in settings.',
+          createMainMenu()
+        );
+        return;
+      }
+
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        config: {
+          systemInstruction: systemPrompt,
+          responseMimeType: "application/json"
+        },
+        contents: [
+          {
+            inlineData: {
+              mimeType: 'image/jpeg',
+              data: base64Image
+            }
+          },
+          'Extract receipt data from this image.'
+        ]
+      });
+
+      const rawJson = response.text;
+      if (!rawJson) {
+        await sendTelegramMessage(
+          chatId,
+          '❌ Failed to analyze receipt. Please try again.',
+          createMainMenu()
+        );
+        return;
+      }
+      
+      receiptData = JSON.parse(rawJson);
+    }
+
+    if (!receiptData) {
       await sendTelegramMessage(
         chatId,
         '❌ Failed to analyze receipt. Please try again.',
@@ -900,8 +1011,6 @@ Return only valid JSON, no markdown.`;
       );
       return;
     }
-    
-    const receiptData: ReceiptData = JSON.parse(rawJson);
 
     if (receiptData.confidence === 'low' || !receiptData.amount) {
       await sendTelegramMessage(
