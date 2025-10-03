@@ -18,6 +18,7 @@ import { useAppSettings } from "@/hooks/use-app-settings";
 import { useExpenses } from "@/hooks/use-expenses";
 import { useTelegramBotConfig, useUpdateTelegramBotConfig, useDeleteTelegramBotConfig } from "@/hooks/use-telegram-bot-config";
 import { useWhatsappBotConfig, useUpdateWhatsappBotConfig, useDeleteWhatsappBotConfig, useWhatsappWebhookUrl } from "@/hooks/use-whatsapp-bot-config";
+import { useGeminiConfig, useUpdateGeminiConfig, useDeleteGeminiConfig } from "@/hooks/use-gemini-config";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ExcelJS from "exceljs";
 import { CategoryForm } from "@/components/category-form";
@@ -43,6 +44,9 @@ export default function Settings() {
   const [whatsappIsEnabled, setWhatsappIsEnabled] = useState(false);
   const [copiedWebhookUrl, setCopiedWebhookUrl] = useState(false);
   
+  const [geminiApiKey, setGeminiApiKey] = useState("");
+  const [geminiIsEnabled, setGeminiIsEnabled] = useState(false);
+  
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
@@ -58,6 +62,10 @@ export default function Settings() {
   const { data: whatsappWebhookData } = useWhatsappWebhookUrl();
   const updateWhatsappConfig = useUpdateWhatsappBotConfig();
   const deleteWhatsappConfig = useDeleteWhatsappBotConfig();
+  
+  const { data: geminiConfig, isLoading: isGeminiConfigLoading } = useGeminiConfig();
+  const updateGeminiConfig = useUpdateGeminiConfig();
+  const deleteGeminiConfig = useDeleteGeminiConfig();
 
   useEffect(() => {
     if (telegramConfig) {
@@ -79,6 +87,13 @@ export default function Settings() {
       setWhatsappIsEnabled(whatsappConfig.isEnabled || false);
     }
   }, [whatsappConfig]);
+
+  useEffect(() => {
+    if (geminiConfig) {
+      setGeminiApiKey(geminiConfig.apiKey || "");
+      setGeminiIsEnabled(geminiConfig.isEnabled || false);
+    }
+  }, [geminiConfig]);
 
   const handleAddCategory = () => {
     setEditingCategory(null);
@@ -354,6 +369,43 @@ export default function Settings() {
           variant: "destructive",
         });
       }
+    }
+  };
+
+  const handleSaveGeminiConfig = async () => {
+    try {
+      await updateGeminiConfig.mutateAsync({
+        apiKey: geminiApiKey || undefined,
+        isEnabled: geminiIsEnabled,
+      });
+      toast({
+        title: "Success",
+        description: "Gemini AI configuration saved successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save Gemini AI configuration",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteGeminiConfig = async () => {
+    try {
+      await deleteGeminiConfig.mutateAsync();
+      setGeminiApiKey("");
+      setGeminiIsEnabled(false);
+      toast({
+        title: "Success",
+        description: "Gemini AI configuration deleted successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete Gemini AI configuration",
+        variant: "destructive",
+      });
     }
   };
 
@@ -748,6 +800,114 @@ export default function Settings() {
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
                       <AlertDialogAction
                         onClick={handleDeleteWhatsappConfig}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      {/* Gemini AI Configuration */}
+      <Card className="shadow-md">
+        <CardHeader className={isMobile ? 'pb-3 px-4 pt-4' : 'pb-4'}>
+          <div className="flex items-center gap-3">
+            <div className={`${isMobile ? 'p-1.5' : 'p-2'} rounded-lg bg-blue-100 dark:bg-blue-900`}>
+              <Bot className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-blue-600 dark:text-blue-400`} />
+            </div>
+            <div>
+              <CardTitle className={`${isMobile ? 'text-base' : 'text-lg md:text-xl'} font-semibold`}>Gemini AI Configuration</CardTitle>
+              <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground mt-1`}>Configure your Gemini AI settings for WhatsApp bot</p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isGeminiConfigLoading ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-ios-spinner"></div>
+                <div className="animate-pulse-glow">Loading configuration...</div>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 border border-border/50 rounded-lg bg-card/50">
+                <div className="space-y-1">
+                  <div className="font-medium text-foreground">Enable AI</div>
+                  <p className="text-sm text-muted-foreground">
+                    Use Gemini AI for intelligent responses
+                  </p>
+                </div>
+                <Switch
+                  checked={geminiIsEnabled}
+                  onCheckedChange={setGeminiIsEnabled}
+                  data-testid="switch-gemini-enabled"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="gemini-api-key">API Key</Label>
+                <Input
+                  id="gemini-api-key"
+                  type="password"
+                  placeholder="Enter your Gemini API key"
+                  value={geminiApiKey}
+                  onChange={(e) => setGeminiApiKey(e.target.value)}
+                  data-testid="input-gemini-api-key"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Get your API key from <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Google AI Studio</a>
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleSaveGeminiConfig}
+                  disabled={updateGeminiConfig.isPending}
+                  data-testid="button-save-gemini-config"
+                >
+                  {updateGeminiConfig.isPending ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Configuration
+                    </>
+                  )}
+                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="destructive"
+                      disabled={deleteGeminiConfig.isPending}
+                      data-testid="button-delete-gemini-config"
+                    >
+                      <Trash className="h-4 w-4 mr-2" />
+                      Delete Configuration
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Gemini AI Configuration</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete the Gemini AI configuration? 
+                        This action cannot be undone and will disable AI features.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDeleteGeminiConfig}
                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                       >
                         Delete
