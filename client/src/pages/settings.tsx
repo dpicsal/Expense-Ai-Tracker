@@ -17,6 +17,7 @@ import { useCategories, useDeleteCategory } from "@/hooks/use-categories";
 import { useAppSettings } from "@/hooks/use-app-settings";
 import { useExpenses } from "@/hooks/use-expenses";
 import { useTelegramBotConfig, useUpdateTelegramBotConfig, useDeleteTelegramBotConfig } from "@/hooks/use-telegram-bot-config";
+import { useWhatsappBotConfig, useUpdateWhatsappBotConfig, useDeleteWhatsappBotConfig } from "@/hooks/use-whatsapp-bot-config";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ExcelJS from "exceljs";
 import { CategoryForm } from "@/components/category-form";
@@ -32,6 +33,15 @@ export default function Settings() {
   const [telegramWebhookSecret, setTelegramWebhookSecret] = useState("");
   const [telegramChatWhitelist, setTelegramChatWhitelist] = useState("");
   const [telegramIsEnabled, setTelegramIsEnabled] = useState(false);
+  
+  const [whatsappAppId, setWhatsappAppId] = useState("");
+  const [whatsappAppSecret, setWhatsappAppSecret] = useState("");
+  const [whatsappAccessToken, setWhatsappAccessToken] = useState("");
+  const [whatsappPhoneNumberId, setWhatsappPhoneNumberId] = useState("");
+  const [whatsappVerifyToken, setWhatsappVerifyToken] = useState("");
+  const [whatsappChatWhitelist, setWhatsappChatWhitelist] = useState("");
+  const [whatsappIsEnabled, setWhatsappIsEnabled] = useState(false);
+  
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
@@ -42,6 +52,10 @@ export default function Settings() {
   const { data: telegramConfig, isLoading: isTelegramConfigLoading } = useTelegramBotConfig();
   const updateTelegramConfig = useUpdateTelegramBotConfig();
   const deleteTelegramConfig = useDeleteTelegramBotConfig();
+  
+  const { data: whatsappConfig, isLoading: isWhatsappConfigLoading } = useWhatsappBotConfig();
+  const updateWhatsappConfig = useUpdateWhatsappBotConfig();
+  const deleteWhatsappConfig = useDeleteWhatsappBotConfig();
 
   useEffect(() => {
     if (telegramConfig) {
@@ -51,6 +65,18 @@ export default function Settings() {
       setTelegramIsEnabled(telegramConfig.isEnabled || false);
     }
   }, [telegramConfig]);
+
+  useEffect(() => {
+    if (whatsappConfig) {
+      setWhatsappAppId(whatsappConfig.appId || "");
+      setWhatsappAppSecret(whatsappConfig.appSecret || "");
+      setWhatsappAccessToken(whatsappConfig.accessToken || "");
+      setWhatsappPhoneNumberId(whatsappConfig.phoneNumberId || "");
+      setWhatsappVerifyToken(whatsappConfig.verifyToken || "");
+      setWhatsappChatWhitelist(whatsappConfig.chatWhitelist?.join(", ") || "");
+      setWhatsappIsEnabled(whatsappConfig.isEnabled || false);
+    }
+  }, [whatsappConfig]);
 
   const handleAddCategory = () => {
     setEditingCategory(null);
@@ -262,6 +288,53 @@ export default function Settings() {
     }
   };
 
+  const handleSaveWhatsappConfig = async () => {
+    try {
+      await updateWhatsappConfig.mutateAsync({
+        appId: whatsappAppId || undefined,
+        appSecret: whatsappAppSecret || undefined,
+        accessToken: whatsappAccessToken || undefined,
+        phoneNumberId: whatsappPhoneNumberId || undefined,
+        verifyToken: whatsappVerifyToken || undefined,
+        chatWhitelist: whatsappChatWhitelist ? whatsappChatWhitelist.split(',').map(num => num.trim()).filter(Boolean) : [],
+        isEnabled: whatsappIsEnabled,
+      });
+      toast({
+        title: "Success",
+        description: "WhatsApp bot configuration saved successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save WhatsApp bot configuration",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteWhatsappConfig = async () => {
+    try {
+      await deleteWhatsappConfig.mutateAsync();
+      setWhatsappAppId("");
+      setWhatsappAppSecret("");
+      setWhatsappAccessToken("");
+      setWhatsappPhoneNumberId("");
+      setWhatsappVerifyToken("");
+      setWhatsappChatWhitelist("");
+      setWhatsappIsEnabled(false);
+      toast({
+        title: "Success",
+        description: "WhatsApp bot configuration deleted successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete WhatsApp bot configuration",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className={`${isMobile ? 'space-y-6' : 'space-y-8'} animate-fade-in-up`}>
       {/* Header */}
@@ -439,6 +512,189 @@ export default function Settings() {
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
                       <AlertDialogAction
                         onClick={handleDeleteTelegramConfig}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      {/* WhatsApp Bot Configuration */}
+      <Card className="shadow-md">
+        <CardHeader className={isMobile ? 'pb-3 px-4 pt-4' : 'pb-4'}>
+          <div className="flex items-center gap-3">
+            <div className={`${isMobile ? 'p-1.5' : 'p-2'} rounded-lg bg-green-100 dark:bg-green-900`}>
+              <Bot className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-green-600 dark:text-green-400`} />
+            </div>
+            <div>
+              <CardTitle className={`${isMobile ? 'text-base' : 'text-lg md:text-xl'} font-semibold`}>WhatsApp Bot Configuration</CardTitle>
+              <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground mt-1`}>Configure your WhatsApp bot settings</p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isWhatsappConfigLoading ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-ios-spinner"></div>
+                <div className="animate-pulse-glow">Loading configuration...</div>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 border border-border/50 rounded-lg bg-card/50">
+                <div className="space-y-1">
+                  <div className="font-medium text-foreground">Enable Bot</div>
+                  <p className="text-sm text-muted-foreground">
+                    Activate the WhatsApp bot integration
+                  </p>
+                </div>
+                <Switch
+                  checked={whatsappIsEnabled}
+                  onCheckedChange={setWhatsappIsEnabled}
+                  data-testid="switch-whatsapp-enabled"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="whatsapp-app-id">App ID</Label>
+                <Input
+                  id="whatsapp-app-id"
+                  type="text"
+                  placeholder="Enter your Meta App ID"
+                  value={whatsappAppId}
+                  onChange={(e) => setWhatsappAppId(e.target.value)}
+                  data-testid="input-whatsapp-app-id"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Your Meta/Facebook App ID from the Developer Portal
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="whatsapp-app-secret">App Secret</Label>
+                <Input
+                  id="whatsapp-app-secret"
+                  type="password"
+                  placeholder="Enter your Meta App Secret"
+                  value={whatsappAppSecret}
+                  onChange={(e) => setWhatsappAppSecret(e.target.value)}
+                  data-testid="input-whatsapp-app-secret"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Your Meta/Facebook App Secret for webhook signature verification
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="whatsapp-access-token">Access Token</Label>
+                <Input
+                  id="whatsapp-access-token"
+                  type="password"
+                  placeholder="Enter your WhatsApp Access Token"
+                  value={whatsappAccessToken}
+                  onChange={(e) => setWhatsappAccessToken(e.target.value)}
+                  data-testid="input-whatsapp-access-token"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Your WhatsApp API access token from Meta Business Manager
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="whatsapp-phone-number-id">Phone Number ID</Label>
+                <Input
+                  id="whatsapp-phone-number-id"
+                  type="text"
+                  placeholder="Enter your WhatsApp Phone Number ID"
+                  value={whatsappPhoneNumberId}
+                  onChange={(e) => setWhatsappPhoneNumberId(e.target.value)}
+                  data-testid="input-whatsapp-phone-number-id"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Your WhatsApp Business Phone Number ID from the API Setup
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="whatsapp-verify-token">Verify Token</Label>
+                <Input
+                  id="whatsapp-verify-token"
+                  type="text"
+                  placeholder="Enter webhook verify token"
+                  value={whatsappVerifyToken}
+                  onChange={(e) => setWhatsappVerifyToken(e.target.value)}
+                  data-testid="input-whatsapp-verify-token"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Custom token for webhook verification (you create this)
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="whatsapp-chat-whitelist">Phone Whitelist</Label>
+                <Input
+                  id="whatsapp-chat-whitelist"
+                  type="text"
+                  placeholder="Enter allowed phone numbers (comma-separated)"
+                  value={whatsappChatWhitelist}
+                  onChange={(e) => setWhatsappChatWhitelist(e.target.value)}
+                  data-testid="input-whatsapp-chat-whitelist"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Comma-separated list of allowed phone numbers (e.g., 971501234567, 971509876543)
+                </p>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <Button
+                  onClick={handleSaveWhatsappConfig}
+                  disabled={updateWhatsappConfig.isPending}
+                  data-testid="button-save-whatsapp-config"
+                >
+                  {updateWhatsappConfig.isPending ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Configuration
+                    </>
+                  )}
+                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="destructive"
+                      disabled={deleteWhatsappConfig.isPending}
+                      data-testid="button-delete-whatsapp-config"
+                    >
+                      <Trash className="h-4 w-4 mr-2" />
+                      Delete Configuration
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete WhatsApp Bot Configuration</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete the WhatsApp bot configuration? 
+                        This action cannot be undone and will disable the bot.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDeleteWhatsappConfig}
                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                       >
                         Delete

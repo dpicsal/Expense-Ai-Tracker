@@ -1,10 +1,13 @@
 import { 
   expenses, categories, fundHistory, paymentMethods, paymentMethodFundHistory, telegramBotConfigs, telegramUserStates,
+  whatsappBotConfigs, whatsappUserStates,
   type Expense, type InsertExpense, type Category, type InsertCategory,
   type FundHistory, type InsertFundHistory, type PaymentMethod, type InsertPaymentMethod,
   type PaymentMethodFundHistory, type InsertPaymentMethodFundHistory,
   type TelegramBotConfig, type InsertTelegramBotConfig,
-  type TelegramUserState, type InsertTelegramUserState
+  type TelegramUserState, type InsertTelegramUserState,
+  type WhatsappBotConfig, type InsertWhatsappBotConfig,
+  type WhatsappUserState, type InsertWhatsappUserState
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and, gte, lte } from "drizzle-orm";
@@ -80,6 +83,16 @@ export interface IStorage {
   getUserState(chatId: string): Promise<TelegramUserState | undefined>;
   setUserState(chatId: string, state: string | null, data?: any): Promise<void>;
   clearUserState(chatId: string): Promise<void>;
+
+  // WhatsApp Bot Config management
+  getWhatsappBotConfig(): Promise<WhatsappBotConfig | undefined>;
+  createOrUpdateWhatsappBotConfig(config: InsertWhatsappBotConfig): Promise<WhatsappBotConfig>;
+  deleteWhatsappBotConfig(): Promise<boolean>;
+  
+  // WhatsApp User State management
+  getWhatsappUserState(phoneNumber: string): Promise<WhatsappUserState | undefined>;
+  setWhatsappUserState(phoneNumber: string, state: string | null, data?: any): Promise<void>;
+  clearWhatsappUserState(phoneNumber: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -794,6 +807,68 @@ export class DatabaseStorage implements IStorage {
 
   async clearUserState(chatId: string): Promise<void> {
     await db.delete(telegramUserStates).where(eq(telegramUserStates.chatId, chatId));
+  }
+
+  async getWhatsappBotConfig(): Promise<WhatsappBotConfig | undefined> {
+    const [config] = await db.select().from(whatsappBotConfigs).limit(1);
+    return config || undefined;
+  }
+
+  async createOrUpdateWhatsappBotConfig(insertConfig: InsertWhatsappBotConfig): Promise<WhatsappBotConfig> {
+    const existing = await this.getWhatsappBotConfig();
+    
+    if (existing) {
+      const [updated] = await db
+        .update(whatsappBotConfigs)
+        .set({
+          ...insertConfig,
+          updatedAt: sql`NOW()`,
+        })
+        .where(eq(whatsappBotConfigs.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db
+        .insert(whatsappBotConfigs)
+        .values(insertConfig)
+        .returning();
+      return created;
+    }
+  }
+
+  async deleteWhatsappBotConfig(): Promise<boolean> {
+    const existing = await this.getWhatsappBotConfig();
+    if (!existing) return false;
+    
+    const result = await db.delete(whatsappBotConfigs).where(eq(whatsappBotConfigs.id, existing.id));
+    return (result.rowCount || 0) > 0;
+  }
+
+  async getWhatsappUserState(phoneNumber: string): Promise<WhatsappUserState | undefined> {
+    const [state] = await db.select().from(whatsappUserStates).where(eq(whatsappUserStates.phoneNumber, phoneNumber));
+    return state || undefined;
+  }
+
+  async setWhatsappUserState(phoneNumber: string, state: string | null, data?: any): Promise<void> {
+    const existing = await this.getWhatsappUserState(phoneNumber);
+    const stateData = {
+      phoneNumber,
+      state,
+      data: data ? JSON.stringify(data) : null,
+      updatedAt: sql`NOW()`,
+    };
+
+    if (existing) {
+      await db.update(whatsappUserStates)
+        .set(stateData)
+        .where(eq(whatsappUserStates.phoneNumber, phoneNumber));
+    } else {
+      await db.insert(whatsappUserStates).values(stateData);
+    }
+  }
+
+  async clearWhatsappUserState(phoneNumber: string): Promise<void> {
+    await db.delete(whatsappUserStates).where(eq(whatsappUserStates.phoneNumber, phoneNumber));
   }
 
 }
