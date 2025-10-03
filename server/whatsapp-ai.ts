@@ -34,7 +34,8 @@ interface Intent {
           'set_budget' | 'add_funds_to_category' | 'reset_category' |
           'view_payment_methods' | 'create_payment_method' | 'update_payment_method' | 
           'delete_payment_method' | 'add_funds_to_payment_method' | 'pay_credit_card' |
-          'view_analytics' | 'export_data' | 'backup_data' | 'help' | 'greeting' | 'menu' | 'unknown';
+          'view_analytics' | 'export_data' | 'backup_data' | 'help' | 'greeting' | 'menu' | 
+          'confirm_action' | 'cancel_action' | 'unknown';
   
   amount?: number;
   category?: string;
@@ -62,7 +63,7 @@ interface Intent {
   period?: string;
 }
 
-export async function processWhatsAppMessage(message: string, storage: IStorage, imageUrl?: string): Promise<string> {
+export async function processWhatsAppMessage(message: string, storage: IStorage, imageUrl?: string, userId?: string): Promise<string> {
   try {
     if (imageUrl) {
       return await handleReceiptImage(imageUrl, storage);
@@ -98,11 +99,26 @@ export async function processWhatsAppMessage(message: string, storage: IStorage,
       return "📋 *Menu Options*\n\nTap the button below to see the full menu!";
     }
     
+    const userState = userId ? await storage.getWhatsappUserState(userId) : null;
+    
+    if (userState?.state === 'awaiting_confirmation') {
+      const intent = await extractIntent(message, storage);
+      
+      if (intent.action === 'confirm_action' || lowerMessage.includes('yes') || lowerMessage.includes('confirm') || lowerMessage.includes('proceed')) {
+        const pendingAction = JSON.parse(userState.data || '{}');
+        await storage.clearWhatsappUserState(userId!);
+        return await executePendingAction(pendingAction, storage);
+      } else if (intent.action === 'cancel_action' || lowerMessage.includes('no') || lowerMessage.includes('cancel')) {
+        await storage.clearWhatsappUserState(userId!);
+        return "✅ Action cancelled. What else can I help you with?";
+      }
+    }
+    
     const intent = await extractIntent(message, storage);
     
     switch (intent.action) {
       case 'add_expense':
-        return await handleAddExpense(intent, storage);
+        return await handleAddExpense(intent, storage, userId);
       case 'view_expenses':
         return await handleViewExpenses(storage, intent);
       case 'view_summary':
@@ -113,7 +129,7 @@ export async function processWhatsAppMessage(message: string, storage: IStorage,
       case 'view_categories':
         return await handleViewCategories(storage);
       case 'create_category':
-        return await handleCreateCategory(intent, storage);
+        return await handleCreateCategory(intent, storage, userId);
       case 'update_category':
         return await handleUpdateCategory(intent, storage);
       case 'delete_category':
@@ -128,7 +144,7 @@ export async function processWhatsAppMessage(message: string, storage: IStorage,
       case 'view_payment_methods':
         return await handleViewPaymentMethods(storage);
       case 'create_payment_method':
-        return await handleCreatePaymentMethod(intent, storage);
+        return await handleCreatePaymentMethod(intent, storage, userId);
       case 'update_payment_method':
         return await handleUpdatePaymentMethod(intent, storage);
       case 'delete_payment_method':
@@ -151,7 +167,7 @@ export async function processWhatsAppMessage(message: string, storage: IStorage,
       case 'menu':
         return "📋 *Main Menu*\n\nTap the button below to see all available options, or just type what you need!";
       default:
-        return "I didn't understand that. Send 'help' or 'menu' to see everything I can do!";
+        return getConversationalUnknownResponse(message);
     }
   } catch (error) {
     console.error('[WhatsApp AI] Error processing message:', error);
@@ -168,6 +184,8 @@ Analyze user messages and extract their intent with high precision. Be context-a
 - greeting: "hello", "hi", "hey", "good morning", "how are you", "what's up"
 - menu: "menu", "show options", "what can you do", "help menu", "commands"
 - help: "help", "guide", "how to", "tutorial", "instructions"
+- confirm_action: "yes", "confirm", "proceed", "ok", "sure", "do it", "go ahead"
+- cancel_action: "no", "cancel", "stop", "nevermind", "don't do it"
 
 **EXPENSE MANAGEMENT:**
 - add_expense: "spent 50 AED on food", "paid 100 for lunch", "groceries 75 AED", "bought coffee 15", "dinner was 200 yesterday"
@@ -1113,4 +1131,128 @@ Return JSON format.`;
     console.error('[WhatsApp AI] Error processing receipt:', error);
     return "❌ Failed to process receipt image. Please try again or enter the expense manually.";
   }
+}
+
+async function executePendingAction(pendingAction: any, storage: IStorage): Promise<string> {
+  const { action, intent } = pendingAction;
+  
+  switch (action) {
+    case 'add_expense':
+      return await executeAddExpense(intent, storage);
+    case 'create_category':
+      return await executeCreateCategory(intent, storage);
+    case 'create_payment_method':
+      return await executeCreatePaymentMethod(intent, storage);
+    default:
+      return "❌ Could not execute the pending action.";
+  }
+}
+
+async function executeAddExpense(intent: Intent, storage: IStorage): Promise<string> {
+  const categoryName = intent.category || 'Uncategorized';
+  let category = await storage.getCategoryByName(categoryName);
+  
+  if (!category) {
+    category = await storage.createCategory({
+      name: categoryName,
+      color: 'bg-blue-500',
+      icon: 'Tag',
+      allocatedFunds: 0
+    });
+  }
+
+  const paymentMethodName = intent.paymentMethod || 'WhatsApp';
+  let paymentMethod = await storage.getPaymentMethodByName(paymentMethodName);
+  
+  if (!paymentMethod && paymentMethodName !== 'WhatsApp') {
+    paymentMethod = await storage.createPaymentMethod({
+      name: paymentMethodName,
+      type: 'cash',
+      balance: 0
+    });
+  }
+
+  const expense: InsertExpense = {
+    amount: intent.amount!,
+    category: categoryName,
+    paymentMethod: paymentMethodName,
+    description: intent.description || 'WhatsApp expense',
+    date: intent.date ? new Date(intent.date) : new Date()
+  };
+
+  await storage.createExpense(expense);
+
+  let response = `✅ *Expense Added Successfully!*\n\n`;
+  response += `💰 Amount: AED ${intent.amount!.toFixed(2)}\n`;
+  response += `📁 Category: ${categoryName}\n`;
+  response += `💳 Payment: ${paymentMethodName}\n`;
+  if (intent.description) {
+    response += `📝 Note: ${intent.description}\n`;
+  }
+  
+  return response;
+}
+
+async function executeCreateCategory(intent: Intent, storage: IStorage): Promise<string> {
+  const categoryName = intent.categoryName!;
+  
+  const newCategory: InsertCategory = {
+    name: categoryName,
+    color: intent.categoryColor || 'bg-blue-500',
+    icon: intent.categoryIcon || 'Tag',
+    budget: intent.budgetAmount ? intent.budgetAmount.toString() : undefined,
+    allocatedFunds: intent.allocatedFunds || 0
+  };
+
+  await storage.createCategory(newCategory);
+
+  let response = `✅ *Category Created Successfully!*\n\n`;
+  response += `📁 Name: ${categoryName}\n`;
+  if (intent.budgetAmount) {
+    response += `📊 Budget: AED ${intent.budgetAmount.toFixed(2)}\n`;
+  }
+  if (intent.allocatedFunds) {
+    response += `💵 Allocated: AED ${intent.allocatedFunds.toFixed(2)}\n`;
+  }
+  
+  return response;
+}
+
+async function executeCreatePaymentMethod(intent: Intent, storage: IStorage): Promise<string> {
+  const paymentMethodName = intent.paymentMethodName!;
+  const paymentMethodType = intent.paymentMethodType || 'cash';
+  
+  const newPaymentMethod: InsertPaymentMethod = {
+    name: paymentMethodName,
+    type: paymentMethodType,
+    balance: intent.amount || 0,
+    creditLimit: intent.creditLimit,
+    dueDate: intent.dueDate,
+    isActive: true
+  };
+
+  await storage.createPaymentMethod(newPaymentMethod);
+
+  let response = `✅ *Payment Method Created Successfully!*\n\n`;
+  response += `💳 Name: ${paymentMethodName}\n`;
+  response += `📝 Type: ${paymentMethodType.replace('_', ' ').toUpperCase()}\n`;
+  if (intent.amount) {
+    response += `💰 Balance: AED ${intent.amount.toFixed(2)}\n`;
+  }
+  if (intent.creditLimit) {
+    response += `📊 Credit Limit: AED ${intent.creditLimit.toFixed(2)}\n`;
+  }
+  
+  return response;
+}
+
+function getConversationalUnknownResponse(message: string): string {
+  const responses = [
+    "I'm not quite sure what you mean. Could you rephrase that? 🤔\n\nOr type 'help' to see what I can do!",
+    "Hmm, I didn't catch that. Can you try saying it differently? 💭\n\nType 'menu' to see all options!",
+    "I'm still learning! Could you explain what you need in a different way? 🤖\n\nOr say 'help' for guidance!",
+    "I'm not sure I understand. Maybe try asking in a different way? 🔍\n\nType 'menu' for quick actions!"
+  ];
+  
+  return responses[Math.floor(Math.random() * responses.length)];
 }
