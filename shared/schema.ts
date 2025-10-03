@@ -101,6 +101,15 @@ export const whatsappUserStates = pgTable("whatsapp_user_states", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// Gemini AI Configuration table
+export const geminiConfigs = pgTable("gemini_configs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  apiKey: text("api_key"),
+  isEnabled: boolean("is_enabled").default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const insertCategorySchema = createInsertSchema(categories).omit({
   id: true,
   createdAt: true,
@@ -182,6 +191,16 @@ export const insertWhatsappBotConfigSchema = createInsertSchema(whatsappBotConfi
   isEnabled: z.boolean().optional(),
 });
 
+// Gemini AI Config schemas
+export const insertGeminiConfigSchema = createInsertSchema(geminiConfigs).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  apiKey: z.string().optional(),
+  isEnabled: z.boolean().optional(),
+});
+
 // Type exports
 
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
@@ -210,3 +229,6 @@ export type WhatsappBotConfig = typeof whatsappBotConfigs.$inferSelect;
 
 export type WhatsappUserState = typeof whatsappUserStates.$inferSelect;
 export type InsertWhatsappUserState = typeof whatsappUserStates.$inferInsert;
+
+export type InsertGeminiConfig = z.infer<typeof insertGeminiConfigSchema>;
+export type GeminiConfig = typeof geminiConfigs.$inferSelect;
