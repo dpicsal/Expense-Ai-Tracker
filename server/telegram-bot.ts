@@ -18,6 +18,85 @@ interface InlineKeyboardButton {
 
 let botToken: string | null = null;
 
+function getWebhookUrl(): string | null {
+  const replitDomains = process.env.REPLIT_DOMAINS;
+  if (!replitDomains) {
+    console.error('[Telegram Bot] REPLIT_DOMAINS not found');
+    return null;
+  }
+  
+  const domains = replitDomains.split(',');
+  const primaryDomain = domains[0];
+  return `https://${primaryDomain}/api/integrations/telegram/webhook`;
+}
+
+export async function setWebhook(webhookSecret?: string): Promise<boolean> {
+  if (!botToken) {
+    console.log('[Telegram Bot] Cannot set webhook - bot not configured');
+    return false;
+  }
+
+  const webhookUrl = getWebhookUrl();
+  if (!webhookUrl) {
+    console.error('[Telegram Bot] Cannot set webhook - invalid webhook URL');
+    return false;
+  }
+
+  try {
+    const payload: { url: string; secret_token?: string } = {
+      url: webhookUrl,
+    };
+
+    if (webhookSecret) {
+      payload.secret_token = webhookSecret;
+    }
+
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/setWebhook`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('[Telegram Bot] Failed to set webhook:', errorData);
+      return false;
+    }
+
+    const data = await response.json();
+    console.log('[Telegram Bot] Webhook set successfully:', webhookUrl);
+    return data.ok;
+  } catch (error) {
+    console.error('[Telegram Bot] Error setting webhook:', error);
+    return false;
+  }
+}
+
+export async function getWebhookInfo(): Promise<any> {
+  if (!botToken) {
+    console.log('[Telegram Bot] Cannot get webhook info - bot not configured');
+    return null;
+  }
+
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/getWebhookInfo`);
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('[Telegram Bot] Failed to get webhook info:', errorData);
+      return null;
+    }
+
+    const data = await response.json();
+    return data.result;
+  } catch (error) {
+    console.error('[Telegram Bot] Error getting webhook info:', error);
+    return null;
+  }
+}
+
 export async function initializeTelegramBot(storage: IStorage) {
   try {
     const config = await storage.getTelegramBotConfig();
@@ -30,6 +109,13 @@ export async function initializeTelegramBot(storage: IStorage) {
 
     botToken = config.botToken;
     console.log('[Telegram Bot] Bot configured successfully');
+    
+    await setWebhook(config.webhookSecret || undefined);
+    
+    const webhookInfo = await getWebhookInfo();
+    if (webhookInfo) {
+      console.log('[Telegram Bot] Webhook info:', JSON.stringify(webhookInfo, null, 2));
+    }
   } catch (error) {
     console.error('[Telegram Bot] Failed to initialize bot:', error);
     botToken = null;
