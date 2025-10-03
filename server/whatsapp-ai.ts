@@ -31,10 +31,10 @@ async function getGeminiAI(storage: IStorage): Promise<GoogleGenAI | null> {
 interface Intent {
   action: 'add_expense' | 'view_expenses' | 'view_summary' | 'delete_expense' | 
           'view_categories' | 'create_category' | 'update_category' | 'delete_category' |
-          'set_budget' | 'add_funds_to_category' | 
+          'set_budget' | 'add_funds_to_category' | 'reset_category' |
           'view_payment_methods' | 'create_payment_method' | 'update_payment_method' | 
-          'delete_payment_method' | 'add_funds_to_payment_method' |
-          'view_analytics' | 'export_data' | 'help' | 'greeting' | 'menu' | 'unknown';
+          'delete_payment_method' | 'add_funds_to_payment_method' | 'pay_credit_card' |
+          'view_analytics' | 'export_data' | 'backup_data' | 'help' | 'greeting' | 'menu' | 'unknown';
   
   amount?: number;
   category?: string;
@@ -53,6 +53,9 @@ interface Intent {
   paymentMethodType?: 'cash' | 'credit_card' | 'debit_card' | 'bank_transfer' | 'digital_wallet';
   creditLimit?: number;
   dueDate?: number;
+  
+  fromPaymentMethod?: string;
+  toPaymentMethod?: string;
   
   startDate?: string;
   endDate?: string;
@@ -119,6 +122,8 @@ export async function processWhatsAppMessage(message: string, storage: IStorage,
         return await handleSetBudget(intent, storage);
       case 'add_funds_to_category':
         return await handleAddFundsToCategory(intent, storage);
+      case 'reset_category':
+        return await handleResetCategory(intent, storage);
       
       case 'view_payment_methods':
         return await handleViewPaymentMethods(storage);
@@ -130,10 +135,13 @@ export async function processWhatsAppMessage(message: string, storage: IStorage,
         return await handleDeletePaymentMethod(intent, storage);
       case 'add_funds_to_payment_method':
         return await handleAddFundsToPaymentMethod(intent, storage);
+      case 'pay_credit_card':
+        return await handlePayCreditCard(intent, storage);
       
       case 'view_analytics':
         return await handleViewAnalytics(storage, intent);
       case 'export_data':
+      case 'backup_data':
         return await handleExportData(storage);
       
       case 'help':
@@ -152,49 +160,67 @@ export async function processWhatsAppMessage(message: string, storage: IStorage,
 }
 
 async function extractIntent(message: string, storage: IStorage): Promise<Intent> {
-  const systemPrompt = `You are a smart expense tracking assistant for WhatsApp with comprehensive features.
+  const systemPrompt = `You are an intelligent expense tracking assistant with comprehensive financial management capabilities.
 
-Analyze user messages and extract their intent precisely. Be context-aware and intelligent.
+Analyze user messages and extract their intent with high precision. Be context-aware, understand natural language variations, and infer the user's goal.
 
-**CONVERSATIONAL:**
-- greeting: "hello", "hi", "hey", "good morning", "good afternoon", "good evening", "how are you"
-- menu: "menu", "show menu", "main menu", "options", "what can you do"
+**CONVERSATIONAL INTENTS:**
+- greeting: "hello", "hi", "hey", "good morning", "how are you", "what's up"
+- menu: "menu", "show options", "what can you do", "help menu", "commands"
+- help: "help", "guide", "how to", "tutorial", "instructions"
 
-**EXPENSE ACTIONS:**
-- add_expense: "spent 50 AED on food", "paid 100 for groceries", "lunch was 25"
-- view_expenses: "show expenses", "list my expenses", "what did I spend"
-- view_summary: "summary", "monthly report", "spending breakdown"
-- delete_expense: "delete last expense", "remove last one", "undo"
+**EXPENSE MANAGEMENT:**
+- add_expense: "spent 50 AED on food", "paid 100 for lunch", "groceries 75 AED", "bought coffee 15", "dinner was 200 yesterday"
+- view_expenses: "show expenses", "list spending", "what did I spend", "my expenses", "expense history"
+- view_summary: "summary", "monthly report", "spending breakdown", "how much did I spend", "total expenses"
+- delete_expense: "delete last expense", "remove last one", "undo", "cancel last entry"
 
-**CATEGORY ACTIONS:**
-- view_categories: "show categories", "list categories", "my categories"
-- create_category: "create category Food", "add category Transport"
-- update_category: "rename Food to Groceries", "change Food budget to 500"
-- delete_category: "delete category Food", "remove category"
-- set_budget: "set 500 AED budget for Food", "Food budget 500"
-- add_funds_to_category: "add 200 AED to Food", "allocate 100 to Transport"
+**CATEGORY MANAGEMENT:**
+- view_categories: "show categories", "list categories", "my categories", "category list"
+- create_category: "create category Food", "add category Transport", "new category Shopping"
+- update_category: "rename Food to Groceries", "change Food budget to 500", "update Transport budget"
+- delete_category: "delete category Food", "remove category Transport"
+- set_budget: "set 500 AED budget for Food", "Food budget 500", "budget 1000 for Shopping"
+- add_funds_to_category: "add 200 AED to Food", "allocate 100 to Transport", "fund category Shopping 500"
+- reset_category: "reset category Food", "clear Food expenses", "restart category Transport"
 
-**PAYMENT METHOD ACTIONS:**
-- view_payment_methods: "show payment methods", "list my cards", "my wallets"
-- create_payment_method: "add credit card Chase", "create cash wallet"
-- update_payment_method: "update Chase limit to 5000", "change cash balance"
+**PAYMENT METHOD MANAGEMENT:**
+- view_payment_methods: "show payment methods", "list cards", "my wallets", "payment accounts"
+- create_payment_method: "add credit card Chase", "create cash wallet", "new debit card ADCB with 1000 balance"
+- update_payment_method: "update Chase limit to 5000", "change cash balance to 500"
 - delete_payment_method: "delete Chase card", "remove cash wallet"
-- add_funds_to_payment_method: "add 500 AED to Chase", "deposit 200 to wallet"
+- add_funds_to_payment_method: "add 500 AED to Chase", "deposit 200 to wallet", "top up debit card 1000"
+- pay_credit_card: "pay credit card", "pay Chase 500", "clear credit card balance", "settle Chase card with cash"
 
-**ANALYTICS & DATA:**
-- view_analytics: "show analytics", "spending trends", "monthly analysis"
-- export_data: "export data", "download expenses", "backup data"
-- help: "help", "what can you do", "commands"
+**ANALYTICS & DATA MANAGEMENT:**
+- view_analytics: "show analytics", "spending trends", "charts", "monthly analysis", "category breakdown"
+- export_data: "export data", "download expenses", "send report"
+- backup_data: "backup", "save data", "create backup", "download backup"
 
-**EXTRACTION RULES:**
-For expenses: extract amount, category, description, date, paymentMethod
-For categories: extract categoryName, budgetAmount, allocatedFunds, categoryColor, categoryIcon
-For payment methods: extract paymentMethodName, paymentMethodType, creditLimit, dueDate, amount
-For date ranges: extract startDate, endDate, period
+**SMART EXTRACTION RULES:**
+1. For expenses: extract amount, category, description, date, paymentMethod
+   - Examples: "spent 50 on food" → amount=50, category="Food"
+   - "paid 100 for groceries with Chase" → amount=100, category="Groceries", paymentMethod="Chase"
 
-Be smart about context. "add 500 to Food" = add_funds_to_category, not add_expense.
+2. For categories: extract categoryName, budgetAmount, allocatedFunds, categoryColor, categoryIcon
+   - Examples: "create Food with 500 budget" → categoryName="Food", budgetAmount=500
 
-Return JSON only.`;
+3. For payment methods: extract paymentMethodName, paymentMethodType, creditLimit, dueDate, amount
+   - Examples: "add Chase credit card 5000 limit" → paymentMethodName="Chase", paymentMethodType="credit_card", creditLimit=5000
+
+4. For credit card payments: extract amount, toPaymentMethod (credit card), fromPaymentMethod (source)
+   - Examples: "pay Chase 500 from cash" → amount=500, toPaymentMethod="Chase", fromPaymentMethod="cash"
+
+5. For date ranges: extract startDate, endDate, period
+   - Examples: "expenses last week" → period="last_week"
+
+**CONTEXT AWARENESS:**
+- "add 500 to Food" → if Food is a category, use add_funds_to_category; if payment method, use add_funds_to_payment_method
+- "pay 500" → check if there's a credit card context, use pay_credit_card
+- "reset Food" → use reset_category to clear expenses but keep category
+- "clear expenses" → if category specified, use reset_category; otherwise ask for clarification
+
+Return JSON only with the extracted intent and parameters.`;
 
   const ai = await getGeminiAI(storage);
   if (!ai) {
@@ -215,10 +241,10 @@ Return JSON only.`;
             enum: [
               "add_expense", "view_expenses", "view_summary", "delete_expense",
               "view_categories", "create_category", "update_category", "delete_category",
-              "set_budget", "add_funds_to_category",
+              "set_budget", "add_funds_to_category", "reset_category",
               "view_payment_methods", "create_payment_method", "update_payment_method", 
-              "delete_payment_method", "add_funds_to_payment_method",
-              "view_analytics", "export_data", "help", "greeting", "menu", "unknown"
+              "delete_payment_method", "add_funds_to_payment_method", "pay_credit_card",
+              "view_analytics", "export_data", "backup_data", "help", "greeting", "menu", "unknown"
             ]
           },
           amount: { type: "number" },
@@ -235,6 +261,8 @@ Return JSON only.`;
           paymentMethodType: { type: "string", enum: ["cash", "credit_card", "debit_card", "bank_transfer", "digital_wallet"] },
           creditLimit: { type: "number" },
           dueDate: { type: "number" },
+          fromPaymentMethod: { type: "string" },
+          toPaymentMethod: { type: "string" },
           startDate: { type: "string" },
           endDate: { type: "string" },
           period: { type: "string" }
@@ -581,6 +609,24 @@ async function handleAddFundsToCategory(intent: Intent, storage: IStorage): Prom
   return `✅ Funds Added!\n\n📁 ${intent.categoryName}\n💵 Added: AED ${intent.amount.toFixed(2)}\n💰 New Balance: AED ${newBalance.toFixed(2)}`;
 }
 
+async function handleResetCategory(intent: Intent, storage: IStorage): Promise<string> {
+  if (!intent.categoryName) {
+    return "❌ Please specify which category to reset.\n\n💡 Example: 'Reset category Food'";
+  }
+
+  const category = await storage.getCategoryByName(intent.categoryName);
+  if (!category) {
+    return `❌ Category "${intent.categoryName}" not found.`;
+  }
+
+  const success = await storage.resetCategory(category.id);
+  if (success) {
+    return `✅ Category Reset!\n\n📁 ${intent.categoryName}\n🔄 All expenses cleared and funds reset to zero.\n💡 The category is still available for new expenses.`;
+  }
+  
+  return `❌ Failed to reset category "${intent.categoryName}".`;
+}
+
 // ============= PAYMENT METHOD HANDLERS =============
 
 async function handleViewPaymentMethods(storage: IStorage): Promise<string> {
@@ -715,6 +761,78 @@ async function handleAddFundsToPaymentMethod(intent: Intent, storage: IStorage):
   return `✅ Funds Added!\n\n💳 ${intent.paymentMethodName}\n💵 Added: AED ${intent.amount.toFixed(2)}\n💰 New Balance: AED ${newBalance.toFixed(2)}`;
 }
 
+async function handlePayCreditCard(intent: Intent, storage: IStorage): Promise<string> {
+  if (!intent.amount) {
+    return "❌ Please specify the payment amount.\n\n💡 Example: 'Pay credit card 500' or 'Pay Chase 500 from cash'";
+  }
+
+  const paymentMethods = await storage.getAllPaymentMethods();
+  const creditCards = paymentMethods.filter(pm => pm.type === 'credit_card');
+  
+  if (creditCards.length === 0) {
+    return "❌ No credit cards found. Please add a credit card first.";
+  }
+
+  let targetCard = creditCards[0];
+  
+  if (intent.toPaymentMethod) {
+    const foundCard = paymentMethods.find(pm => 
+      pm.name.toLowerCase().includes(intent.toPaymentMethod!.toLowerCase()) && 
+      pm.type === 'credit_card'
+    );
+    if (foundCard) {
+      targetCard = foundCard;
+    }
+  }
+
+  let sourcePayment = paymentMethods.find(pm => pm.type === 'cash');
+  
+  if (intent.fromPaymentMethod) {
+    const foundSource = paymentMethods.find(pm => 
+      pm.name.toLowerCase().includes(intent.fromPaymentMethod!.toLowerCase())
+    );
+    if (foundSource) {
+      sourcePayment = foundSource;
+    }
+  }
+
+  if (!sourcePayment) {
+    return "❌ No payment source found. Please specify a payment method (e.g., 'pay Chase 500 from cash').";
+  }
+
+  const sourceBalance = parseFloat(sourcePayment.balance || "0");
+  if (sourceBalance < intent.amount) {
+    return `❌ Insufficient funds in ${sourcePayment.name}.\n💰 Available: AED ${sourceBalance.toFixed(2)}\n💳 Required: AED ${intent.amount.toFixed(2)}`;
+  }
+
+  const currentCardBalance = parseFloat(targetCard.balance || "0");
+  const newCardBalance = Math.max(0, currentCardBalance - intent.amount);
+  const newSourceBalance = sourceBalance - intent.amount;
+
+  await storage.updatePaymentMethod(targetCard.id, { 
+    balance: newCardBalance 
+  });
+  
+  await storage.updatePaymentMethod(sourcePayment.id, { 
+    balance: newSourceBalance 
+  });
+
+  let response = `✅ Credit Card Payment Successful!\n\n`;
+  response += `💳 ${targetCard.name}\n`;
+  response += `💵 Paid: AED ${intent.amount.toFixed(2)}\n`;
+  response += `💰 New Balance: AED ${newCardBalance.toFixed(2)}\n\n`;
+  response += `📤 From: ${sourcePayment.name}\n`;
+  response += `💰 Remaining: AED ${newSourceBalance.toFixed(2)}`;
+
+  if (targetCard.creditLimit) {
+    const limit = parseFloat(targetCard.creditLimit.toString());
+    const available = limit - newCardBalance;
+    response += `\n\n📊 Available Credit: AED ${available.toFixed(2)}`;
+  }
+
+  return response;
+}
+
 // ============= ANALYTICS & DATA HANDLERS =============
 
 async function handleViewAnalytics(storage: IStorage, intent: Intent): Promise<string> {
@@ -763,20 +881,21 @@ async function handleExportData(storage: IStorage): Promise<string> {
 // ============= HELP & RECEIPT =============
 
 function getHelpMessage(): string {
-  return `🤖 *Smart Expense Tracker - Full Features*
+  return `🤖 *Smart Expense Tracker - Complete Guide*
 
-*💰 EXPENSES:*
+*💰 EXPENSE MANAGEMENT:*
 • "Spent 50 AED on food with Chase card"
 • "Paid 100 for groceries yesterday"
 • "Delete last expense"
 • "Show expenses this month"
 • "Summary" / "Monthly report"
 
-*📁 CATEGORIES:*
+*📁 CATEGORY MANAGEMENT:*
 • "Show categories"
 • "Create category Food"
 • "Set 500 AED budget for Food"
 • "Add 200 AED to Food category"
+• "Reset category Food" - Clear expenses but keep category
 • "Delete category Transport"
 
 *💳 PAYMENT METHODS:*
@@ -784,28 +903,32 @@ function getHelpMessage(): string {
 • "Create credit card Chase with 5000 limit"
 • "Add cash wallet with 200"
 • "Add 500 AED to Chase"
+• "Pay credit card 500" or "Pay Chase 500 from cash"
 • "Update Chase limit to 10000"
 • "Delete Chase card"
 
-*📊 ANALYTICS & DATA:*
+*📊 ANALYTICS & BACKUP:*
 • "Show analytics" / "Spending trends"
 • "Compare this month to last"
-• "Export data" - Get export instructions
+• "Export data" / "Backup data" - Get instructions
 
 *📸 RECEIPT SCANNING:*
-• Send receipt photo - Auto-extract expense!
+• Send receipt photo - Auto-extract expense details!
 
-*💡 SMART FEATURES:*
+*💡 INTELLIGENT FEATURES:*
 ✓ Natural language understanding
-✓ Auto-categorization
+✓ Auto-categorization & smart detection
 ✓ Budget tracking & alerts
+✓ Credit card payment automation
+✓ Category reset without deletion
 ✓ Credit limit monitoring
 ✓ Multi-payment method support
-✓ Date range queries
-✓ Interactive menus & buttons
+✓ Date range queries & trends
+✓ Interactive menus & quick buttons
+✓ Receipt OCR with AI vision
 
-📋 Type "menu" anytime to see interactive options!
-Just chat naturally - I understand context! 🚀`;
+📋 Type "menu" anytime for interactive options!
+💬 Just chat naturally - I understand context! 🚀`;
 }
 
 function getGreetingResponse(): string {
