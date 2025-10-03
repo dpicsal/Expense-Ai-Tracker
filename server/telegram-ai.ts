@@ -892,6 +892,15 @@ Return only valid JSON, no markdown.`;
     });
 
     const rawJson = response.text;
+    if (!rawJson) {
+      await sendTelegramMessage(
+        chatId,
+        '❌ Failed to analyze receipt. Please try again.',
+        createMainMenu()
+      );
+      return;
+    }
+    
     const receiptData: ReceiptData = JSON.parse(rawJson);
 
     if (receiptData.confidence === 'low' || !receiptData.amount) {

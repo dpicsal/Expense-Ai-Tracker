@@ -60,6 +60,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Create the expense using the new payment method ID approach
       const expense = await storage.createExpense(validatedData);
+      
+      // Send notification to Telegram
+      const { notifyTelegramExpenseCreated } = await import('./telegram-notifications');
+      notifyTelegramExpenseCreated(expense, storage).catch(err => {
+        console.error('Failed to send Telegram notification:', err);
+      });
+      
       res.status(201).json(expense);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -185,6 +192,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertCategorySchema.parse(req.body);
       const category = await storage.createCategory(validatedData);
+      
+      // Send notification to Telegram
+      const { notifyTelegramCategoryCreated } = await import('./telegram-notifications');
+      notifyTelegramCategoryCreated(category, storage).catch(err => {
+        console.error('Failed to send Telegram notification:', err);
+      });
+      
       res.status(201).json(category);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -387,6 +401,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertPaymentMethodSchema.parse(req.body);
       const paymentMethod = await storage.createPaymentMethod(validatedData);
+      
+      // Send notification to Telegram
+      const { notifyTelegramPaymentMethodCreated } = await import('./telegram-notifications');
+      notifyTelegramPaymentMethodCreated(paymentMethod, storage).catch(err => {
+        console.error('Failed to send Telegram notification:', err);
+      });
+      
       res.status(201).json(paymentMethod);
     } catch (error) {
       if (error instanceof z.ZodError) {
