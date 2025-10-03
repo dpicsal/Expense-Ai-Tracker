@@ -1053,10 +1053,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             await markMessageAsRead(messageId);
 
             // Process message with AI and send response
-            const { processWhatsAppMessage, getMainMenuButtons } = await import('./whatsapp-ai');
-            const { sendWhatsappButtons } = await import('./whatsapp-bot');
+            const { 
+              processWhatsAppMessage, 
+              getMainMenuButtons, 
+              getMainMenuData,
+              getCategoryMenuData,
+              getPaymentMenuData 
+            } = await import('./whatsapp-ai');
+            const { sendWhatsappButtons, sendWhatsappMenu } = await import('./whatsapp-bot');
             let aiResponse: string;
             let shouldSendButtons = false;
+            let shouldSendMenu = false;
+            let menuType = 'main';
             
             if (messageType === 'image') {
               const imageId = message.image?.id;
@@ -1098,25 +1106,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
             } else {
               console.log(`[WhatsApp Webhook] Message from ${from}: ${text}`);
               
-              // Check if this is a greeting or menu request
+              // Check message type for appropriate response
               const lowerText = text.toLowerCase().trim();
               const isGreeting = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening'].some(g => lowerText.includes(g));
-              const isMenuRequest = ['menu', 'options', 'show menu', 'main menu'].some(m => lowerText.includes(m));
+              const isFullMenuRequest = lowerText === 'menu' || lowerText.includes('full menu') || lowerText.includes('main menu');
+              const isCategoryMenu = lowerText === 'category_menu';
+              const isPaymentMenu = lowerText === 'payment_menu';
               
               aiResponse = await processWhatsAppMessage(text, storage);
               
-              // Send buttons after greeting or when explicitly requested
-              if (isGreeting || isMenuRequest) {
+              // Determine which menu/buttons to send
+              if (isGreeting) {
                 shouldSendButtons = true;
+              } else if (isFullMenuRequest) {
+                shouldSendMenu = true;
+                menuType = 'main';
+              } else if (isCategoryMenu) {
+                shouldSendMenu = true;
+                menuType = 'category';
+              } else if (isPaymentMenu) {
+                shouldSendMenu = true;
+                menuType = 'payment';
               }
             }
             
             await sendWhatsappMessage(from, aiResponse);
             
-            // Send buttons if needed
+            // Send appropriate interactive element
             if (shouldSendButtons) {
               const buttonsData = getMainMenuButtons();
               await sendWhatsappButtons(from, buttonsData.bodyText, buttonsData.buttons);
+            } else if (shouldSendMenu) {
+              let menuData;
+              if (menuType === 'category') {
+                menuData = getCategoryMenuData();
+              } else if (menuType === 'payment') {
+                menuData = getPaymentMenuData();
+              } else {
+                menuData = getMainMenuData();
+              }
+              await sendWhatsappMenu(from, menuData.bodyText, menuData.buttonText, menuData.sections);
             }
           }
         }
