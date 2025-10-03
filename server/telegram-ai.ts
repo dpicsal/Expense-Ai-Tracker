@@ -916,7 +916,7 @@ Return only valid JSON, no markdown.`;
       return;
     }
 
-    const categoryName = receiptData.category || 'Other';
+    const suggestedCategory = receiptData.category || 'Other';
     const paymentMethodName = 'Telegram';
     const description = receiptData.merchant 
       ? `${receiptData.merchant}${receiptData.items && receiptData.items.length > 0 ? ` - ${receiptData.items.slice(0, 2).join(', ')}` : ''}`
@@ -927,8 +927,6 @@ Return only valid JSON, no markdown.`;
       `📸 *Receipt Scanned!*\n\n` +
       `💰 Amount: AED ${receiptData.amount.toFixed(2)}\n` +
       (receiptData.merchant ? `🏪 Merchant: ${receiptData.merchant}\n` : '') +
-      `📁 Category: ${categoryName}\n` +
-      `💳 Payment: ${paymentMethodName}\n` +
       `📝 Description: ${description}\n` +
       `📅 Date: ${expenseDate.toLocaleDateString()}\n\n` +
       (receiptData.items && receiptData.items.length > 0 
@@ -947,9 +945,9 @@ Return only valid JSON, no markdown.`;
     await sendTelegramMessage(chatId, confirmMessage, confirmKeyboard);
 
     await storage.setUserState(chatId, 'awaiting_confirmation', {
-      action: 'add_expense',
+      action: 'add_expense_from_receipt',
       amount: receiptData.amount,
-      category: categoryName,
+      suggestedCategory: suggestedCategory,
       paymentMethod: paymentMethodName,
       description: description,
       date: expenseDate.toISOString()

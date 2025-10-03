@@ -21,7 +21,50 @@ export async function handleCallbackQuery(
       const pendingAction = JSON.parse(userState.data || '{}');
       
       try {
-        // Execute the pending AI action directly
+        // If this is from receipt scanning, ask for category selection
+        if (pendingAction.action === 'add_expense_from_receipt') {
+          const categories = await storage.getAllCategories();
+          
+          if (categories.length === 0) {
+            await sendTelegramMessage(
+              chatId,
+              '❌ No categories found. Please create a category first using the web app or by saying "Create category Food".',
+              createMainMenu()
+            );
+            await storage.clearUserState(chatId);
+            return;
+          }
+
+          // Update state to await category selection
+          await storage.setUserState(chatId, 'awaiting_receipt_category', pendingAction);
+
+          // Show category selection
+          const { createInlineKeyboard } = await import('./telegram-bot');
+          const categoryButtons = categories.slice(0, 12).map(cat => ({
+            text: `${cat.icon || '📁'} ${cat.name}`,
+            callback_data: `receipt_cat:${cat.id}`
+          }));
+
+          // Arrange buttons in rows of 2
+          const buttonRows: Array<Array<{text: string, callback_data: string}>> = [];
+          for (let i = 0; i < categoryButtons.length; i += 2) {
+            buttonRows.push(categoryButtons.slice(i, i + 2));
+          }
+
+          // Add cancel button
+          buttonRows.push([{ text: '❌ Cancel', callback_data: 'cancel_ai_action' }]);
+
+          const keyboard = createInlineKeyboard(buttonRows);
+
+          await sendTelegramMessage(
+            chatId,
+            `📁 *Select Category*\n\nChoose a category for this expense:`,
+            keyboard
+          );
+          return;
+        }
+
+        // For other actions, execute directly
         const { executePendingAction } = await import('./telegram-ai');
         await executePendingAction(chatId, pendingAction, storage);
         
@@ -635,6 +678,46 @@ async function handleSelectionCallback(chatId: string, callbackData: string, sto
       paymentMethodId: id,
       paymentMethodName: paymentMethod?.name || 'Unknown'
     });
+    return;
+  }
+
+  // Receipt category selection
+  if (action === 'receipt_cat') {
+    const userState = await storage.getUserState(chatId);
+    if (!userState || userState.state !== 'awaiting_receipt_category') {
+      await sendTelegramMessage(chatId, '❌ Session expired. Please start again.', createMainMenu());
+      return;
+    }
+
+    const receiptData = JSON.parse(userState.data || '{}');
+    const category = await storage.getCategory(id);
+
+    if (!category) {
+      await sendTelegramMessage(chatId, '❌ Category not found.', createMainMenu());
+      await storage.clearUserState(chatId);
+      return;
+    }
+
+    // Create the expense
+    const { executePendingAction } = await import('./telegram-ai');
+    const expenseData = {
+      ...receiptData,
+      action: 'add_expense',
+      category: category.name
+    };
+
+    try {
+      await executePendingAction(chatId, expenseData, storage);
+      await storage.clearUserState(chatId);
+    } catch (error) {
+      console.error('[Telegram Bot] Error creating expense from receipt:', error);
+      await sendTelegramMessage(
+        chatId,
+        '❌ Failed to create expense. Please try again.',
+        createMainMenu()
+      );
+      await storage.clearUserState(chatId);
+    }
     return;
   }
 }
