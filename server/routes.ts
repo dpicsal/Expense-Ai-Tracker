@@ -793,12 +793,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const totalCategories = allCategories.length;
           const totalPaymentMethods = allPaymentMethods.length;
           
+          const paymentMethodMap = new Map(allPaymentMethods.map(pm => [pm.id, pm.name]));
+          
           const recentExpenses = allExpenses.slice(0, 5);
           let recentList = '';
           if (recentExpenses.length > 0) {
-            recentList = recentExpenses.map(e => 
-              `• AED ${parseFloat(e.amount).toFixed(2)} - ${e.description}\n  ${e.category} via ${e.paymentMethod}`
-            ).join('\n\n');
+            recentList = recentExpenses.map(e => {
+              const paymentMethodName = paymentMethodMap.get(e.paymentMethod) || e.paymentMethod;
+              return `• AED ${parseFloat(e.amount).toFixed(2)} - ${e.description}\n  ${e.category} via ${paymentMethodName}`;
+            }).join('\n\n');
           } else {
             recentList = 'No expenses yet';
           }
@@ -1005,12 +1008,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const totalCategories = allCategories.length;
         const totalPaymentMethods = allPaymentMethods.length;
         
+        const paymentMethodMap = new Map(allPaymentMethods.map(pm => [pm.id, pm.name]));
+        
         const recentExpenses = allExpenses.slice(0, 5);
         let recentList = '';
         if (recentExpenses.length > 0) {
-          recentList = recentExpenses.map(e => 
-            `• AED ${parseFloat(e.amount).toFixed(2)} - ${e.description}\n  ${e.category} via ${e.paymentMethod}`
-          ).join('\n\n');
+          recentList = recentExpenses.map(e => {
+            const paymentMethodName = paymentMethodMap.get(e.paymentMethod) || e.paymentMethod;
+            return `• AED ${parseFloat(e.amount).toFixed(2)} - ${e.description}\n  ${e.category} via ${paymentMethodName}`;
+          }).join('\n\n');
         } else {
           recentList = 'No expenses yet';
         }
