@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Plus, Edit, Trash2, Settings as SettingsIcon, Download, FileSpreadsheet, Shield } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Edit, Trash2, Settings as SettingsIcon, Download, FileSpreadsheet, Shield, Bot, Save, Trash } from "lucide-react";
 import * as Icons from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,10 +10,13 @@ import { toZonedTime } from "date-fns-tz";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useCategories, useDeleteCategory } from "@/hooks/use-categories";
 import { useAppSettings } from "@/hooks/use-app-settings";
 import { useExpenses } from "@/hooks/use-expenses";
+import { useTelegramBotConfig, useUpdateTelegramBotConfig, useDeleteTelegramBotConfig } from "@/hooks/use-telegram-bot-config";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ExcelJS from "exceljs";
 import { CategoryForm } from "@/components/category-form";
@@ -25,6 +28,10 @@ export default function Settings() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [deletingCategory, setDeletingCategory] = useState<Category | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [telegramBotToken, setTelegramBotToken] = useState("");
+  const [telegramWebhookSecret, setTelegramWebhookSecret] = useState("");
+  const [telegramChatWhitelist, setTelegramChatWhitelist] = useState("");
+  const [telegramIsEnabled, setTelegramIsEnabled] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
@@ -32,6 +39,18 @@ export default function Settings() {
   const deleteCategory = useDeleteCategory();
   const { settings, updateSettings } = useAppSettings();
   const { data: expenses = [] } = useExpenses();
+  const { data: telegramConfig, isLoading: isTelegramConfigLoading } = useTelegramBotConfig();
+  const updateTelegramConfig = useUpdateTelegramBotConfig();
+  const deleteTelegramConfig = useDeleteTelegramBotConfig();
+
+  useEffect(() => {
+    if (telegramConfig) {
+      setTelegramBotToken(telegramConfig.botToken || "");
+      setTelegramWebhookSecret(telegramConfig.webhookSecret || "");
+      setTelegramChatWhitelist(telegramConfig.chatWhitelist?.join(", ") || "");
+      setTelegramIsEnabled(telegramConfig.isEnabled || false);
+    }
+  }, [telegramConfig]);
 
   const handleAddCategory = () => {
     setEditingCategory(null);
@@ -202,6 +221,47 @@ export default function Settings() {
     }
   };
 
+  const handleSaveTelegramConfig = async () => {
+    try {
+      await updateTelegramConfig.mutateAsync({
+        botToken: telegramBotToken || undefined,
+        webhookSecret: telegramWebhookSecret || undefined,
+        chatWhitelist: telegramChatWhitelist ? telegramChatWhitelist.split(',').map(id => id.trim()).filter(Boolean) : [],
+        isEnabled: telegramIsEnabled,
+      });
+      toast({
+        title: "Success",
+        description: "Telegram bot configuration saved successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save Telegram bot configuration",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteTelegramConfig = async () => {
+    try {
+      await deleteTelegramConfig.mutateAsync();
+      setTelegramBotToken("");
+      setTelegramWebhookSecret("");
+      setTelegramChatWhitelist("");
+      setTelegramIsEnabled(false);
+      toast({
+        title: "Success",
+        description: "Telegram bot configuration deleted successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete Telegram bot configuration",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className={`${isMobile ? 'space-y-6' : 'space-y-8'} animate-fade-in-up`}>
       {/* Header */}
@@ -251,6 +311,144 @@ export default function Settings() {
               />
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      {/* Telegram Bot Configuration */}
+      <Card className="shadow-md">
+        <CardHeader className={isMobile ? 'pb-3 px-4 pt-4' : 'pb-4'}>
+          <div className="flex items-center gap-3">
+            <div className={`${isMobile ? 'p-1.5' : 'p-2'} rounded-lg bg-purple-100 dark:bg-purple-900`}>
+              <Bot className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-purple-600 dark:text-purple-400`} />
+            </div>
+            <div>
+              <CardTitle className={`${isMobile ? 'text-base' : 'text-lg md:text-xl'} font-semibold`}>Telegram Bot Configuration</CardTitle>
+              <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground mt-1`}>Configure your Telegram bot settings</p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isTelegramConfigLoading ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-ios-spinner"></div>
+                <div className="animate-pulse-glow">Loading configuration...</div>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 border border-border/50 rounded-lg bg-card/50">
+                <div className="space-y-1">
+                  <div className="font-medium text-foreground">Enable Bot</div>
+                  <p className="text-sm text-muted-foreground">
+                    Activate the Telegram bot integration
+                  </p>
+                </div>
+                <Switch
+                  checked={telegramIsEnabled}
+                  onCheckedChange={setTelegramIsEnabled}
+                  data-testid="switch-telegram-enabled"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="bot-token">Bot Token</Label>
+                <Input
+                  id="bot-token"
+                  type="password"
+                  placeholder="Enter your Telegram bot token"
+                  value={telegramBotToken}
+                  onChange={(e) => setTelegramBotToken(e.target.value)}
+                  data-testid="input-bot-token"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Get your bot token from @BotFather on Telegram
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="webhook-secret">Webhook Secret</Label>
+                <Input
+                  id="webhook-secret"
+                  type="password"
+                  placeholder="Enter webhook secret (optional)"
+                  value={telegramWebhookSecret}
+                  onChange={(e) => setTelegramWebhookSecret(e.target.value)}
+                  data-testid="input-webhook-secret"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Optional secret token for webhook validation
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="chat-whitelist">Chat Whitelist</Label>
+                <Input
+                  id="chat-whitelist"
+                  type="text"
+                  placeholder="Enter allowed chat IDs (comma-separated)"
+                  value={telegramChatWhitelist}
+                  onChange={(e) => setTelegramChatWhitelist(e.target.value)}
+                  data-testid="input-chat-whitelist"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Comma-separated list of allowed chat IDs (e.g., 123456789, 987654321)
+                </p>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <Button
+                  onClick={handleSaveTelegramConfig}
+                  disabled={updateTelegramConfig.isPending}
+                  data-testid="button-save-telegram-config"
+                >
+                  {updateTelegramConfig.isPending ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Configuration
+                    </>
+                  )}
+                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="destructive"
+                      disabled={deleteTelegramConfig.isPending}
+                      data-testid="button-delete-telegram-config"
+                    >
+                      <Trash className="h-4 w-4 mr-2" />
+                      Delete Configuration
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Telegram Bot Configuration</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete the Telegram bot configuration? 
+                        This action cannot be undone and will disable the bot.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDeleteTelegramConfig}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
