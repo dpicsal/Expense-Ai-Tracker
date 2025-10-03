@@ -22,6 +22,28 @@ The backend follows a RESTful API design using Express.js with TypeScript. The s
 
 The API provides full CRUD operations for expenses with endpoints for creating, reading, updating, and deleting expense records. Data validation is implemented using Zod schemas shared between frontend and backend to ensure consistency.
 
+### Telegram Bot Integration
+The application includes a Telegram bot integration with AI-powered conversational capabilities. Users can interact with the bot using natural language to manage expenses, categories, and payment methods. The bot features:
+
+**Conversational AI Assistant (telegram-ai.ts)**
+- Natural language understanding powered by Google Gemini 2.5-flash
+- Intent extraction for expense tracking, category management, payment methods, analytics, and more
+- Confirmation dialogs for all actions before execution using inline keyboard buttons
+- Supports viewing expenses, summaries, categories, payment methods, and analytics
+- Auto-creates categories and payment methods as needed
+
+**Confirmation Workflow**
+- All AI-detected actions show a confirmation dialog with Yes/Cancel buttons
+- User state management tracks pending actions during confirmation
+- Confirmation handlers execute pending actions directly after user approval
+- Error handling and user feedback for failed operations
+
+**Integration Points**
+- Webhook handler in routes.ts processes incoming Telegram messages
+- Callback handler in telegram-bot-handlers.ts manages confirmation button interactions
+- State-based flow separation: AI handles new conversations, menu system handles button-based flows
+- Gemini AI configuration managed through settings with enable/disable toggle
+
 ### Data Storage
 The application uses PostgreSQL as the primary database with Drizzle ORM for type-safe database operations. The database connection is managed through Neon's serverless PostgreSQL service with WebSocket support for real-time capabilities.
 
@@ -62,3 +84,8 @@ Layout spacing follows Tailwind's unit system with consistent padding, margins, 
 - **Wouter**: Lightweight client-side routing
 - **Class Variance Authority**: Utility for managing component variants
 - **clsx**: Conditional className utility
+
+### AI & Messaging Services
+- **Google Gemini AI**: Natural language understanding and intent extraction for Telegram bot
+- **Telegram Bot API**: Messaging platform integration for expense tracking via chat
+- **Telegraf**: Telegram bot framework (available but not actively used in current implementation)
