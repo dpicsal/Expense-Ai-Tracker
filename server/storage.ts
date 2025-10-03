@@ -1,6 +1,6 @@
 import { 
   expenses, categories, fundHistory, paymentMethods, paymentMethodFundHistory, telegramBotConfigs, telegramUserStates,
-  whatsappBotConfigs, whatsappUserStates, geminiConfigs,
+  whatsappBotConfigs, whatsappUserStates, geminiConfigs, openaiConfigs,
   type Expense, type InsertExpense, type Category, type InsertCategory,
   type FundHistory, type InsertFundHistory, type PaymentMethod, type InsertPaymentMethod,
   type PaymentMethodFundHistory, type InsertPaymentMethodFundHistory,
@@ -8,7 +8,8 @@ import {
   type TelegramUserState, type InsertTelegramUserState,
   type WhatsappBotConfig, type InsertWhatsappBotConfig,
   type WhatsappUserState, type InsertWhatsappUserState,
-  type GeminiConfig, type InsertGeminiConfig
+  type GeminiConfig, type InsertGeminiConfig,
+  type OpenAIConfig, type InsertOpenAIConfig
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and, gte, lte } from "drizzle-orm";
@@ -100,6 +101,11 @@ export interface IStorage {
   getGeminiConfig(): Promise<GeminiConfig | undefined>;
   createOrUpdateGeminiConfig(config: InsertGeminiConfig): Promise<GeminiConfig>;
   deleteGeminiConfig(): Promise<boolean>;
+
+  // OpenAI Config management
+  getOpenAIConfig(): Promise<OpenAIConfig | undefined>;
+  createOrUpdateOpenAIConfig(config: InsertOpenAIConfig): Promise<OpenAIConfig>;
+  deleteOpenAIConfig(): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -915,6 +921,41 @@ export class DatabaseStorage implements IStorage {
     if (!existing) return false;
     
     const result = await db.delete(geminiConfigs).where(eq(geminiConfigs.id, existing.id));
+    return (result.rowCount || 0) > 0;
+  }
+
+  async getOpenAIConfig(): Promise<OpenAIConfig | undefined> {
+    const [config] = await db.select().from(openaiConfigs).limit(1);
+    return config || undefined;
+  }
+
+  async createOrUpdateOpenAIConfig(insertConfig: InsertOpenAIConfig): Promise<OpenAIConfig> {
+    const existing = await this.getOpenAIConfig();
+    
+    if (existing) {
+      const [updated] = await db
+        .update(openaiConfigs)
+        .set({
+          ...insertConfig,
+          updatedAt: sql`NOW()`,
+        })
+        .where(eq(openaiConfigs.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db
+        .insert(openaiConfigs)
+        .values(insertConfig)
+        .returning();
+      return created;
+    }
+  }
+
+  async deleteOpenAIConfig(): Promise<boolean> {
+    const existing = await this.getOpenAIConfig();
+    if (!existing) return false;
+    
+    const result = await db.delete(openaiConfigs).where(eq(openaiConfigs.id, existing.id));
     return (result.rowCount || 0) > 0;
   }
 
