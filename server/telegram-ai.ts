@@ -346,7 +346,7 @@ async function handleAddExpense(chatId: string, intent: Intent, storage: IStorag
   });
 }
 
-async function executePendingAction(chatId: string, action: any, storage: IStorage): Promise<void> {
+export async function executePendingAction(chatId: string, action: any, storage: IStorage): Promise<void> {
   if (action.action === 'add_expense') {
     let category = await storage.getCategoryByName(action.category);
     
