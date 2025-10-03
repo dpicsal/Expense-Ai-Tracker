@@ -118,6 +118,7 @@ export async function initializeWhatsappBot(storage: IStorage) {
     };
 
     console.log('[WhatsApp Bot] Bot configured successfully');
+    console.log('[WhatsApp Bot] Access token preview:', config.accessToken?.substring(0, 20) + '...');
     console.log('[WhatsApp Bot] Webhook URL:', getWebhookUrl());
   } catch (error) {
     console.error('[WhatsApp Bot] Failed to initialize bot:', error);
