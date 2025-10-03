@@ -65,6 +65,36 @@ export async function processWhatsAppMessage(message: string, storage: IStorage,
       return await handleReceiptImage(imageUrl, storage);
     }
     
+    const lowerMessage = message.toLowerCase().trim();
+    
+    if (lowerMessage === 'add_expense_guide') {
+      return "💰 *Add an Expense*\n\nJust tell me naturally!\n\n✅ Examples:\n• 'Spent 50 AED on groceries'\n• 'Paid 100 for lunch with Chase card'\n• 'Food 25 AED yesterday'\n\n💡 I'll auto-detect the amount, category, and payment method!";
+    }
+    
+    if (lowerMessage === 'create_category_guide') {
+      return "📁 *Create a Category*\n\nExamples:\n• 'Create category Food'\n• 'Add category Transport with 500 budget'\n\n💡 You can set budgets and allocate funds too!";
+    }
+    
+    if (lowerMessage === 'set_budget_guide') {
+      return "📊 *Set Category Budget*\n\nExamples:\n• 'Set 500 AED budget for Food'\n• 'Food budget 1000'\n\n💡 I'll track your spending and alert you!";
+    }
+    
+    if (lowerMessage === 'add_funds_category_guide') {
+      return "💵 *Add Funds to Category*\n\nExamples:\n• 'Add 500 AED to Food'\n• 'Allocate 200 to Transport'\n\n💡 Track allocated vs spent funds!";
+    }
+    
+    if (lowerMessage === 'create_payment_guide') {
+      return "💳 *Create Payment Method*\n\nExamples:\n• 'Create credit card Chase'\n• 'Add cash wallet with 200 AED'\n• 'Create Chase credit card with 5000 limit'\n\n💡 Track balances and credit limits!";
+    }
+    
+    if (lowerMessage === 'add_funds_payment_guide') {
+      return "💵 *Add Funds to Payment Method*\n\nExamples:\n• 'Add 500 AED to Chase'\n• 'Deposit 200 to my wallet'\n\n💡 Keep your balances up to date!";
+    }
+    
+    if (lowerMessage === 'category_menu' || lowerMessage === 'payment_menu') {
+      return "📋 *Menu Options*\n\nTap the button below to see the full menu!";
+    }
+    
     const intent = await extractIntent(message, storage);
     
     switch (intent.action) {
@@ -795,7 +825,7 @@ export function getMainMenuButtons() {
     bodyText: "Welcome to your Expense Tracker! 💰\n\nQuick actions:",
     buttons: [
       { id: "view_expenses", title: "📊 View Expenses" },
-      { id: "view_categories", title: "📂 Categories" },
+      { id: "menu", title: "📋 Full Menu" },
       { id: "help", title: "❓ Help" }
     ]
   };
@@ -803,16 +833,73 @@ export function getMainMenuButtons() {
 
 export function getMainMenuData() {
   return {
-    bodyText: "What would you like to do? Choose an option:",
-    buttonText: "📋 Menu",
+    bodyText: "📋 *Main Menu*\n\nSelect an action from the menu below:",
+    buttonText: "📋 Select Action",
+    sections: [
+      {
+        title: "💰 Expenses",
+        rows: [
+          { id: "add_expense_guide", title: "➕ Add Expense", description: "Log a new expense" },
+          { id: "view_expenses", title: "📊 View Expenses", description: "See all expenses" },
+          { id: "view_summary", title: "📈 Summary", description: "Monthly overview" },
+          { id: "delete_expense", title: "🗑️ Delete Last", description: "Remove last expense" }
+        ]
+      },
+      {
+        title: "📁 Categories",
+        rows: [
+          { id: "view_categories", title: "📂 View Categories", description: "List all categories" },
+          { id: "category_menu", title: "⚙️ Manage Categories", description: "Create, edit, or delete" }
+        ]
+      },
+      {
+        title: "💳 Payment Methods",
+        rows: [
+          { id: "view_payment_methods", title: "💳 View Methods", description: "List payment methods" },
+          { id: "payment_menu", title: "⚙️ Manage Methods", description: "Create, edit, or delete" }
+        ]
+      },
+      {
+        title: "📊 More",
+        rows: [
+          { id: "view_analytics", title: "📊 Analytics", description: "Spending trends" },
+          { id: "export_data", title: "📦 Export", description: "Download your data" },
+          { id: "help", title: "❓ Help", description: "Full feature list" }
+        ]
+      }
+    ]
+  };
+}
+
+export function getCategoryMenuData() {
+  return {
+    bodyText: "📁 *Category Management*\n\nWhat would you like to do?",
+    buttonText: "Select Option",
     sections: [
       {
         rows: [
-          { id: "view_expenses", title: "📊 View Expenses" },
-          { id: "view_categories", title: "📂 View Categories" },
-          { id: "view_summary", title: "📈 Summary" },
-          { id: "view_payment_methods", title: "💳 Payment Methods" },
-          { id: "help", title: "❓ Help & Features" }
+          { id: "create_category_guide", title: "➕ Create Category", description: "Add a new category" },
+          { id: "set_budget_guide", title: "💰 Set Budget", description: "Set category budget" },
+          { id: "add_funds_category_guide", title: "💵 Add Funds", description: "Allocate funds to category" },
+          { id: "view_categories", title: "📂 View Categories", description: "See all categories" },
+          { id: "menu", title: "↩️ Main Menu", description: "Back to main menu" }
+        ]
+      }
+    ]
+  };
+}
+
+export function getPaymentMenuData() {
+  return {
+    bodyText: "💳 *Payment Method Management*\n\nWhat would you like to do?",
+    buttonText: "Select Option",
+    sections: [
+      {
+        rows: [
+          { id: "create_payment_guide", title: "➕ Create Method", description: "Add payment method" },
+          { id: "add_funds_payment_guide", title: "💵 Add Funds", description: "Deposit to method" },
+          { id: "view_payment_methods", title: "💳 View Methods", description: "See all methods" },
+          { id: "menu", title: "↩️ Main Menu", description: "Back to main menu" }
         ]
       }
     ]
