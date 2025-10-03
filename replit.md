@@ -32,6 +32,20 @@ The application includes a Telegram bot integration with AI-powered conversation
 - Supports viewing expenses, summaries, categories, payment methods, and analytics
 - Auto-creates categories and payment methods as needed
 
+**Receipt Scanning (processReceiptPhoto)**
+- OCR capability using Gemini 1.5-flash Vision API
+- Automatically extracts expense data from receipt photos
+- Identifies amount, merchant, category, date, and line items
+- Provides confidence levels (high/medium/low) for extraction accuracy
+- Shows confirmation dialog with extracted data before creating expense
+- Gracefully handles unclear images with helpful feedback
+
+**Two-Way Synchronization (telegram-notifications.ts)**
+- Automatic notifications to whitelisted Telegram chats when data is created via web app
+- Sends formatted messages when expenses, categories, or payment methods are added
+- Markdown escaping ensures special characters in user data don't break messages
+- Non-blocking notification delivery with error logging
+
 **Confirmation Workflow**
 - All AI-detected actions show a confirmation dialog with Yes/Cancel buttons
 - User state management tracks pending actions during confirmation
@@ -39,9 +53,10 @@ The application includes a Telegram bot integration with AI-powered conversation
 - Error handling and user feedback for failed operations
 
 **Integration Points**
-- Webhook handler in routes.ts processes incoming Telegram messages
+- Webhook handler in routes.ts processes incoming Telegram messages and photos
 - Callback handler in telegram-bot-handlers.ts manages confirmation button interactions
 - State-based flow separation: AI handles new conversations, menu system handles button-based flows
+- POST endpoints in routes.ts trigger notifications after successful data creation
 - Gemini AI configuration managed through settings with enable/disable toggle
 
 ### Data Storage
