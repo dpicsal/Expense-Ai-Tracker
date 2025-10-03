@@ -722,17 +722,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // =============== TELEGRAM WEBHOOK ENDPOINT ===============
 
-  // Telegram webhook to receive expense commands
-  app.post("/api/integrations/telegram/webhook", async (req, res) => {
+  // Diagnostic endpoint to check webhook status
+  app.get("/api/integrations/telegram/webhook-status", async (req, res) => {
     try {
       const config = await storage.getTelegramBotConfig();
       
+      if (!config || !config.botToken) {
+        return res.json({ 
+          configured: false, 
+          message: "Bot token not configured" 
+        });
+      }
+
+      const response = await fetch(`https://api.telegram.org/bot${config.botToken}/getWebhookInfo`);
+      const webhookInfo = await response.json();
+      
+      res.json({
+        configured: true,
+        isEnabled: config.isEnabled,
+        webhookInfo: webhookInfo
+      });
+    } catch (error) {
+      console.error("Error checking webhook status:", error);
+      res.status(500).json({ error: "Failed to check webhook status" });
+    }
+  });
+
+  // Telegram webhook to receive expense commands
+  app.post("/api/integrations/telegram/webhook", async (req, res) => {
+    try {
+      console.log('[Telegram Webhook] Received update:', JSON.stringify(req.body, null, 2));
+      
+      const config = await storage.getTelegramBotConfig();
+      
       if (!config || !config.isEnabled) {
+        console.log('[Telegram Webhook] Bot is not enabled');
         return res.status(403).json({ error: "Telegram bot is not enabled" });
       }
 
       const secretToken = req.headers['x-telegram-bot-api-secret-token'];
       if (config.webhookSecret && secretToken !== config.webhookSecret) {
+        console.log('[Telegram Webhook] Invalid webhook secret');
         return res.status(403).json({ error: "Invalid webhook secret" });
       }
 

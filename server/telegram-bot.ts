@@ -46,6 +46,7 @@ export async function sendTelegramMessage(chatId: number | string, text: string,
     const message: TelegramMessage = {
       chat_id: chatId,
       text: text,
+      parse_mode: 'Markdown',
     };
 
     if (replyMarkup) {
