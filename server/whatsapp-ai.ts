@@ -5,17 +5,27 @@ import type { InsertExpense, InsertPaymentMethod, InsertCategory } from "@shared
 async function getGeminiAI(storage: IStorage): Promise<GoogleGenAI | null> {
   const config = await storage.getGeminiConfig();
   
-  let apiKey = config?.apiKey;
-  if (!apiKey || !config?.isEnabled) {
-    apiKey = process.env.GEMINI_API_KEY;
+  if (config) {
+    if (!config.isEnabled) {
+      console.log('[WhatsApp AI] Gemini AI is disabled in settings');
+      return null;
+    }
+    
+    if (!config.apiKey) {
+      console.error('[WhatsApp AI] Gemini AI is enabled but no API key configured in settings');
+      return null;
+    }
+    
+    return new GoogleGenAI({ apiKey: config.apiKey });
   }
   
-  if (!apiKey) {
-    console.error('[WhatsApp AI] No Gemini API key configured');
+  const envApiKey = process.env.GEMINI_API_KEY;
+  if (!envApiKey) {
+    console.warn('[WhatsApp AI] No Gemini config found and GEMINI_API_KEY environment variable not set');
     return null;
   }
   
-  return new GoogleGenAI({ apiKey });
+  return new GoogleGenAI({ apiKey: envApiKey });
 }
 
 interface Intent {
