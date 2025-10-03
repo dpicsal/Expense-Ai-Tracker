@@ -19,6 +19,7 @@ import { useExpenses } from "@/hooks/use-expenses";
 import { useTelegramBotConfig, useUpdateTelegramBotConfig, useDeleteTelegramBotConfig } from "@/hooks/use-telegram-bot-config";
 import { useWhatsappBotConfig, useUpdateWhatsappBotConfig, useDeleteWhatsappBotConfig, useWhatsappWebhookUrl } from "@/hooks/use-whatsapp-bot-config";
 import { useGeminiConfig, useUpdateGeminiConfig, useDeleteGeminiConfig } from "@/hooks/use-gemini-config";
+import { useOpenAIConfig, useUpdateOpenAIConfig, useDeleteOpenAIConfig } from "@/hooks/use-openai-config";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ExcelJS from "exceljs";
 import { CategoryForm } from "@/components/category-form";
@@ -47,6 +48,9 @@ export default function Settings() {
   const [geminiApiKey, setGeminiApiKey] = useState("");
   const [geminiIsEnabled, setGeminiIsEnabled] = useState(false);
   
+  const [openaiApiKey, setOpenaiApiKey] = useState("");
+  const [openaiIsEnabled, setOpenaiIsEnabled] = useState(false);
+  
   const { toast } = useToast();
   const isMobile = useIsMobile();
   
@@ -66,6 +70,10 @@ export default function Settings() {
   const { data: geminiConfig, isLoading: isGeminiConfigLoading } = useGeminiConfig();
   const updateGeminiConfig = useUpdateGeminiConfig();
   const deleteGeminiConfig = useDeleteGeminiConfig();
+  
+  const { data: openaiConfig, isLoading: isOpenAIConfigLoading } = useOpenAIConfig();
+  const updateOpenAIConfig = useUpdateOpenAIConfig();
+  const deleteOpenAIConfig = useDeleteOpenAIConfig();
 
   useEffect(() => {
     if (telegramConfig) {
@@ -94,6 +102,13 @@ export default function Settings() {
       setGeminiIsEnabled(geminiConfig.isEnabled || false);
     }
   }, [geminiConfig]);
+
+  useEffect(() => {
+    if (openaiConfig) {
+      setOpenaiApiKey(openaiConfig.apiKey || "");
+      setOpenaiIsEnabled(openaiConfig.isEnabled || false);
+    }
+  }, [openaiConfig]);
 
   const handleAddCategory = () => {
     setEditingCategory(null);
@@ -404,6 +419,43 @@ export default function Settings() {
       toast({
         title: "Error",
         description: "Failed to delete Gemini AI configuration",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSaveOpenAIConfig = async () => {
+    try {
+      await updateOpenAIConfig.mutateAsync({
+        apiKey: openaiApiKey || undefined,
+        isEnabled: openaiIsEnabled,
+      });
+      toast({
+        title: "Success",
+        description: "OpenAI configuration saved successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save OpenAI configuration",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteOpenAIConfig = async () => {
+    try {
+      await deleteOpenAIConfig.mutateAsync();
+      setOpenaiApiKey("");
+      setOpenaiIsEnabled(false);
+      toast({
+        title: "Success",
+        description: "OpenAI configuration deleted successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete OpenAI configuration",
         variant: "destructive",
       });
     }
@@ -908,6 +960,114 @@ export default function Settings() {
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
                       <AlertDialogAction
                         onClick={handleDeleteGeminiConfig}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Separator />
+
+      {/* OpenAI Configuration */}
+      <Card className="shadow-md">
+        <CardHeader className={isMobile ? 'pb-3 px-4 pt-4' : 'pb-4'}>
+          <div className="flex items-center gap-3">
+            <div className={`${isMobile ? 'p-1.5' : 'p-2'} rounded-lg bg-emerald-100 dark:bg-emerald-900`}>
+              <Bot className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-emerald-600 dark:text-emerald-400`} />
+            </div>
+            <div>
+              <CardTitle className={`${isMobile ? 'text-base' : 'text-lg md:text-xl'} font-semibold`}>OpenAI Configuration</CardTitle>
+              <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground mt-1`}>Configure your OpenAI settings for AI-powered features</p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isOpenAIConfigLoading ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-ios-spinner"></div>
+                <div className="animate-pulse-glow">Loading configuration...</div>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-4 border border-border/50 rounded-lg bg-card/50">
+                <div className="space-y-1">
+                  <div className="font-medium text-foreground">Enable OpenAI</div>
+                  <p className="text-sm text-muted-foreground">
+                    Use OpenAI for intelligent responses and features
+                  </p>
+                </div>
+                <Switch
+                  checked={openaiIsEnabled}
+                  onCheckedChange={setOpenaiIsEnabled}
+                  data-testid="switch-openai-enabled"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="openai-api-key">API Key</Label>
+                <Input
+                  id="openai-api-key"
+                  type="password"
+                  placeholder="Enter your OpenAI API key"
+                  value={openaiApiKey}
+                  onChange={(e) => setOpenaiApiKey(e.target.value)}
+                  data-testid="input-openai-api-key"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">OpenAI Platform</a>
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleSaveOpenAIConfig}
+                  disabled={updateOpenAIConfig.isPending}
+                  data-testid="button-save-openai-config"
+                >
+                  {updateOpenAIConfig.isPending ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Configuration
+                    </>
+                  )}
+                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="destructive"
+                      disabled={deleteOpenAIConfig.isPending}
+                      data-testid="button-delete-openai-config"
+                    >
+                      <Trash className="h-4 w-4 mr-2" />
+                      Delete Configuration
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete OpenAI Configuration</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete the OpenAI configuration? 
+                        This action cannot be undone and will disable OpenAI features.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDeleteOpenAIConfig}
                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                       >
                         Delete
