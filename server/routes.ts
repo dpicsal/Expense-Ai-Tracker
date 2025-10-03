@@ -5,7 +5,7 @@ import { db } from "./db";
 import { 
   insertExpenseSchema, insertCategorySchema, 
   insertFundHistorySchema, insertPaymentMethodSchema,
-  insertPaymentMethodFundHistorySchema,
+  insertPaymentMethodFundHistorySchema, insertTelegramBotConfigSchema,
   expenses, categories, fundHistory, paymentMethods, paymentMethodFundHistory
 } from "@shared/schema";
 import { z } from "zod";
@@ -658,6 +658,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error restoring backup:", error);
       res.status(500).json({ error: "Failed to restore backup" });
+    }
+  });
+
+  // =============== TELEGRAM BOT SETTINGS ROUTES ===============
+
+  // Get Telegram bot configuration
+  app.get("/api/settings/telegram-bot", async (req, res) => {
+    try {
+      const config = await storage.getTelegramBotConfig();
+      if (!config) {
+        return res.json({
+          isEnabled: false,
+          botToken: null,
+          webhookSecret: null,
+          chatWhitelist: []
+        });
+      }
+      res.json(config);
+    } catch (error) {
+      console.error("Error fetching Telegram bot config:", error);
+      res.status(500).json({ error: "Failed to fetch Telegram bot configuration" });
+    }
+  });
+
+  // Create or update Telegram bot configuration
+  app.put("/api/settings/telegram-bot", async (req, res) => {
+    try {
+      const validatedData = insertTelegramBotConfigSchema.parse(req.body);
+      const config = await storage.createOrUpdateTelegramBotConfig(validatedData);
+      res.json(config);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
+      console.error("Error updating Telegram bot config:", error);
+      res.status(500).json({ error: "Failed to update Telegram bot configuration" });
+    }
+  });
+
+  // Delete Telegram bot configuration
+  app.delete("/api/settings/telegram-bot", async (req, res) => {
+    try {
+      const success = await storage.deleteTelegramBotConfig();
+      if (!success) {
+        return res.status(404).json({ error: "Telegram bot configuration not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting Telegram bot config:", error);
+      res.status(500).json({ error: "Failed to delete Telegram bot configuration" });
     }
   });
 
