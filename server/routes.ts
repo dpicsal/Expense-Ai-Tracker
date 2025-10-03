@@ -842,8 +842,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const imageBuffer = await imageResponse.arrayBuffer();
             const base64Image = Buffer.from(imageBuffer).toString('base64');
             
-            // Process receipt image - this feature is for receipt scanning, not conversational AI
-            await sendTelegramMessage(chatId, "📸 Processing receipt... (Receipt scanning coming soon!)", createMainMenu());
+            // Process receipt image using Gemini Vision API
+            const { processReceiptPhoto } = await import('./telegram-ai');
+            await processReceiptPhoto(chatId, base64Image, storage);
           } else {
             await sendTelegramMessage(chatId, '❌ Failed to download image. Please try again.');
           }
