@@ -8,6 +8,12 @@ export function useWhatsappBotConfig() {
   });
 }
 
+export function useWhatsappWebhookUrl() {
+  return useQuery<{ webhookUrl: string }>({
+    queryKey: ["/api/settings/whatsapp-bot/webhook-url"],
+  });
+}
+
 export function useUpdateWhatsappBotConfig() {
   const queryClient = useQueryClient();
 

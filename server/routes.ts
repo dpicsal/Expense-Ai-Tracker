@@ -19,7 +19,8 @@ import {
   sendWhatsappMessage,
   verifyWebhookSignature,
   getVerifyToken,
-  markMessageAsRead
+  markMessageAsRead,
+  getWhatsappWebhookUrl
 } from "./whatsapp-bot";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -892,6 +893,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting WhatsApp bot config:", error);
       res.status(500).json({ error: "Failed to delete WhatsApp bot configuration" });
+    }
+  });
+
+  // Get WhatsApp webhook URL
+  app.get("/api/settings/whatsapp-bot/webhook-url", async (req, res) => {
+    try {
+      const webhookUrl = getWhatsappWebhookUrl();
+      if (!webhookUrl) {
+        return res.status(500).json({ error: "Unable to generate webhook URL" });
+      }
+      res.json({ webhookUrl });
+    } catch (error) {
+      console.error("Error fetching WhatsApp webhook URL:", error);
+      res.status(500).json({ error: "Failed to fetch webhook URL" });
     }
   });
 
