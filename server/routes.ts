@@ -981,7 +981,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const from = message.from;
             const messageId = message.id;
             const messageType = message.type;
-            const text = message.text?.body || '';
+            let text = message.text?.body || '';
+
+            // Handle interactive message responses (button/list selections)
+            if (messageType === 'interactive') {
+              const interactiveType = message.interactive?.type;
+              if (interactiveType === 'button_reply') {
+                text = message.interactive?.button_reply?.id || '';
+              } else if (interactiveType === 'list_reply') {
+                text = message.interactive?.list_reply?.id || '';
+              }
+              console.log('[WhatsApp Webhook] Interactive message received, mapped to:', text);
+            }
 
             // Check whitelist
             const chatWhitelist = config.chatWhitelist || [];
@@ -994,8 +1005,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             await markMessageAsRead(messageId);
 
             // Process message with AI and send response
-            const { processWhatsAppMessage } = await import('./whatsapp-ai');
+            const { processWhatsAppMessage, getMainMenuButtons } = await import('./whatsapp-ai');
+            const { sendWhatsappButtons } = await import('./whatsapp-bot');
             let aiResponse: string;
+            let shouldSendButtons = false;
             
             if (messageType === 'image') {
               const imageId = message.image?.id;
@@ -1036,10 +1049,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
               }
             } else {
               console.log(`[WhatsApp Webhook] Message from ${from}: ${text}`);
+              
+              // Check if this is a greeting or menu request
+              const lowerText = text.toLowerCase().trim();
+              const isGreeting = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening'].some(g => lowerText.includes(g));
+              const isMenuRequest = ['menu', 'options', 'show menu', 'main menu'].some(m => lowerText.includes(m));
+              
               aiResponse = await processWhatsAppMessage(text, storage);
+              
+              // Send buttons after greeting or when explicitly requested
+              if (isGreeting || isMenuRequest) {
+                shouldSendButtons = true;
+              }
             }
             
             await sendWhatsappMessage(from, aiResponse);
+            
+            // Send buttons if needed
+            if (shouldSendButtons) {
+              const buttonsData = getMainMenuButtons();
+              await sendWhatsappButtons(from, buttonsData.bodyText, buttonsData.buttons);
+            }
           }
         }
       }
