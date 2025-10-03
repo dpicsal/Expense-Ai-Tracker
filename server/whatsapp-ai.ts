@@ -104,7 +104,7 @@ Analyze user messages and extract their intent precisely. Be context-aware and i
 - greeting: "hello", "hi", "hey", "good morning", "good afternoon", "good evening", "how are you"
 
 **EXPENSE ACTIONS:**
-- add_expense: "spent $50 on food", "paid 100 for groceries", "lunch was 25"
+- add_expense: "spent 50 AED on food", "paid 100 for groceries", "lunch was 25"
 - view_expenses: "show expenses", "list my expenses", "what did I spend"
 - view_summary: "summary", "monthly report", "spending breakdown"
 - delete_expense: "delete last expense", "remove last one", "undo"
@@ -114,15 +114,15 @@ Analyze user messages and extract their intent precisely. Be context-aware and i
 - create_category: "create category Food", "add category Transport"
 - update_category: "rename Food to Groceries", "change Food budget to 500"
 - delete_category: "delete category Food", "remove category"
-- set_budget: "set $500 budget for Food", "Food budget 500"
-- add_funds_to_category: "add $200 to Food", "allocate 100 to Transport"
+- set_budget: "set 500 AED budget for Food", "Food budget 500"
+- add_funds_to_category: "add 200 AED to Food", "allocate 100 to Transport"
 
 **PAYMENT METHOD ACTIONS:**
 - view_payment_methods: "show payment methods", "list my cards", "my wallets"
 - create_payment_method: "add credit card Chase", "create cash wallet"
 - update_payment_method: "update Chase limit to 5000", "change cash balance"
 - delete_payment_method: "delete Chase card", "remove cash wallet"
-- add_funds_to_payment_method: "add $500 to Chase", "deposit 200 to wallet"
+- add_funds_to_payment_method: "add 500 AED to Chase", "deposit 200 to wallet"
 
 **ANALYTICS & DATA:**
 - view_analytics: "show analytics", "spending trends", "monthly analysis"
@@ -194,7 +194,7 @@ Return JSON only.`;
 
 async function handleAddExpense(intent: Intent, storage: IStorage): Promise<string> {
   if (!intent.amount) {
-    return "❌ I couldn't find an amount. Please specify how much you spent.\n\n💡 Example: 'I spent $50 on groceries'";
+    return "❌ I couldn't find an amount. Please specify how much you spent.\n\n💡 Example: 'I spent 50 AED on groceries'";
   }
 
   const categoryName = intent.category || 'Uncategorized';
@@ -227,7 +227,7 @@ async function handleAddExpense(intent: Intent, storage: IStorage): Promise<stri
   await storage.createExpense(expense);
 
   let response = `✅ Expense Added Successfully!\n\n`;
-  response += `💰 Amount: $${intent.amount.toFixed(2)}\n`;
+  response += `💰 Amount: AED ${intent.amount.toFixed(2)}\n`;
   response += `📁 Category: ${categoryName}\n`;
   response += `💳 Payment: ${paymentMethodName}\n`;
   if (intent.description) {
@@ -242,7 +242,7 @@ async function handleAddExpense(intent: Intent, storage: IStorage): Promise<stri
     
     const budgetLimit = parseFloat(category.budget);
     const percentage = (categoryTotal / budgetLimit) * 100;
-    response += `\n📊 ${categoryName} Budget: $${categoryTotal.toFixed(2)} / $${budgetLimit.toFixed(2)} (${percentage.toFixed(0)}%)`;
+    response += `\n📊 ${categoryName} Budget: AED ${categoryTotal.toFixed(2)} / AED ${budgetLimit.toFixed(2)} (${percentage.toFixed(0)}%)`;
     
     if (percentage >= 100) {
       response += `\n⚠️ BUDGET EXCEEDED!`;
@@ -277,7 +277,7 @@ async function handleViewExpenses(storage: IStorage, intent: Intent): Promise<st
   const recentExpenses = expenses.slice(0, 15);
   for (const expense of recentExpenses) {
     const date = new Date(expense.date).toLocaleDateString();
-    response += `💰 $${parseFloat(expense.amount.toString()).toFixed(2)}\n`;
+    response += `💰 AED ${parseFloat(expense.amount.toString()).toFixed(2)}\n`;
     response += `📁 ${expense.category} | 💳 ${expense.paymentMethod}\n`;
     if (expense.description && expense.description !== 'WhatsApp expense') {
       response += `📝 ${expense.description}\n`;
@@ -290,7 +290,7 @@ async function handleViewExpenses(storage: IStorage, intent: Intent): Promise<st
   }
 
   const total = expenses.reduce((sum, exp) => sum + parseFloat(exp.amount.toString()), 0);
-  response += `💵 Total: $${total.toFixed(2)}`;
+  response += `💵 Total: AED ${total.toFixed(2)}`;
 
   return response;
 }
@@ -325,7 +325,7 @@ async function handleViewSummary(storage: IStorage, intent: Intent): Promise<str
   }
 
   let response = `📈 *Spending Summary*\n\n`;
-  response += `💰 Total Spent: $${total.toFixed(2)}\n`;
+  response += `💰 Total Spent: AED ${total.toFixed(2)}\n`;
   response += `📝 Total Expenses: ${expenses.length}\n`;
   response += `📅 Period: ${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}\n\n`;
   
@@ -334,7 +334,7 @@ async function handleViewSummary(storage: IStorage, intent: Intent): Promise<str
     const sorted = Array.from(categoryTotals.entries()).sort((a, b) => b[1] - a[1]);
     for (const [category, amount] of sorted.slice(0, 8)) {
       const percentage = (amount / total) * 100;
-      response += `• ${category}: $${amount.toFixed(2)} (${percentage.toFixed(0)}%)\n`;
+      response += `• ${category}: AED ${amount.toFixed(2)} (${percentage.toFixed(0)}%)\n`;
     }
     response += `\n`;
   }
@@ -344,7 +344,7 @@ async function handleViewSummary(storage: IStorage, intent: Intent): Promise<str
     const sorted = Array.from(paymentMethodTotals.entries()).sort((a, b) => b[1] - a[1]);
     for (const [method, amount] of sorted) {
       const percentage = (amount / total) * 100;
-      response += `• ${method}: $${amount.toFixed(2)} (${percentage.toFixed(0)}%)\n`;
+      response += `• ${method}: AED ${amount.toFixed(2)} (${percentage.toFixed(0)}%)\n`;
     }
   }
 
@@ -362,7 +362,7 @@ async function handleDeleteExpense(storage: IStorage): Promise<string> {
   const success = await storage.deleteExpense(lastExpense.id);
   
   if (success) {
-    return `✅ Deleted expense:\n💰 $${parseFloat(lastExpense.amount.toString()).toFixed(2)}\n📁 ${lastExpense.category}\n📝 ${lastExpense.description}`;
+    return `✅ Deleted expense:\n💰 AED ${parseFloat(lastExpense.amount.toString()).toFixed(2)}\n📁 ${lastExpense.category}\n📝 ${lastExpense.description}`;
   }
   
   return "❌ Failed to delete expense.";
@@ -386,17 +386,17 @@ async function handleViewCategories(storage: IStorage): Promise<string> {
     const allocated = category.allocatedFunds ? parseFloat(category.allocatedFunds.toString()) : 0;
     
     response += `📁 *${category.name}*\n`;
-    response += `💰 Spent: $${total.toFixed(2)}`;
+    response += `💰 Spent: AED ${total.toFixed(2)}`;
     
     if (allocated > 0) {
       const available = allocated - total;
-      response += ` | 💵 Available: $${available.toFixed(2)}`;
+      response += ` | 💵 Available: AED ${available.toFixed(2)}`;
     }
     
     if (category.budget && parseFloat(category.budget) > 0) {
       const budget = parseFloat(category.budget);
       const percentage = (total / budget) * 100;
-      response += `\n📊 Budget: $${budget.toFixed(2)} (${percentage.toFixed(0)}% used)`;
+      response += `\n📊 Budget: AED ${budget.toFixed(2)} (${percentage.toFixed(0)}% used)`;
       
       if (percentage >= 100) {
         response += ` ⚠️`;
@@ -430,10 +430,10 @@ async function handleCreateCategory(intent: Intent, storage: IStorage): Promise<
 
   let response = `✅ Category Created!\n\n📁 ${intent.categoryName}`;
   if (intent.budgetAmount) {
-    response += `\n📊 Budget: $${intent.budgetAmount.toFixed(2)}`;
+    response += `\n📊 Budget: AED ${intent.budgetAmount.toFixed(2)}`;
   }
   if (intent.allocatedFunds) {
-    response += `\n💵 Allocated: $${intent.allocatedFunds.toFixed(2)}`;
+    response += `\n💵 Allocated: AED ${intent.allocatedFunds.toFixed(2)}`;
   }
 
   return response;
@@ -461,10 +461,10 @@ async function handleUpdateCategory(intent: Intent, storage: IStorage): Promise<
 
   let response = `✅ Category Updated!\n\n📁 ${intent.categoryName}`;
   if (intent.budgetAmount !== undefined) {
-    response += `\n📊 New Budget: $${intent.budgetAmount.toFixed(2)}`;
+    response += `\n📊 New Budget: AED ${intent.budgetAmount.toFixed(2)}`;
   }
   if (intent.allocatedFunds !== undefined) {
-    response += `\n💵 Allocated Funds: $${intent.allocatedFunds.toFixed(2)}`;
+    response += `\n💵 Allocated Funds: AED ${intent.allocatedFunds.toFixed(2)}`;
   }
 
   return response;
@@ -486,7 +486,7 @@ async function handleDeleteCategory(intent: Intent, storage: IStorage): Promise<
 
 async function handleSetBudget(intent: Intent, storage: IStorage): Promise<string> {
   if (!intent.category || !intent.budgetAmount) {
-    return "❌ Please specify category and budget amount.\n\n💡 Example: 'Set $500 budget for Food'";
+    return "❌ Please specify category and budget amount.\n\n💡 Example: 'Set 500 AED budget for Food'";
   }
 
   let category = await storage.getCategoryByName(intent.category);
@@ -497,12 +497,12 @@ async function handleSetBudget(intent: Intent, storage: IStorage): Promise<strin
 
   await storage.updateCategory(category.id, { budget: intent.budgetAmount.toString() });
   
-  return `✅ Budget Set!\n📁 ${intent.category}\n📊 Budget: $${intent.budgetAmount.toFixed(2)}`;
+  return `✅ Budget Set!\n📁 ${intent.category}\n📊 Budget: AED ${intent.budgetAmount.toFixed(2)}`;
 }
 
 async function handleAddFundsToCategory(intent: Intent, storage: IStorage): Promise<string> {
   if (!intent.categoryName || !intent.amount) {
-    return "❌ Please specify category and amount.\n\n💡 Example: 'Add $500 to Food'";
+    return "❌ Please specify category and amount.\n\n💡 Example: 'Add 500 AED to Food'";
   }
 
   const category = await storage.getCategoryByName(intent.categoryName);
@@ -515,7 +515,7 @@ async function handleAddFundsToCategory(intent: Intent, storage: IStorage): Prom
   const updated = await storage.getCategory(category.id);
   const newBalance = updated?.allocatedFunds ? parseFloat(updated.allocatedFunds.toString()) : 0;
 
-  return `✅ Funds Added!\n\n📁 ${intent.categoryName}\n💵 Added: $${intent.amount.toFixed(2)}\n💰 New Balance: $${newBalance.toFixed(2)}`;
+  return `✅ Funds Added!\n\n📁 ${intent.categoryName}\n💵 Added: AED ${intent.amount.toFixed(2)}\n💰 New Balance: AED ${newBalance.toFixed(2)}`;
 }
 
 // ============= PAYMENT METHOD HANDLERS =============
@@ -530,19 +530,19 @@ async function handleViewPaymentMethods(storage: IStorage): Promise<string> {
   const totalBalance = paymentMethods.reduce((sum, pm) => sum + parseFloat(pm.balance || "0"), 0);
 
   let response = `💳 *Payment Methods* (${paymentMethods.length})\n`;
-  response += `💰 Total Balance: $${totalBalance.toFixed(2)}\n\n`;
+  response += `💰 Total Balance: AED ${totalBalance.toFixed(2)}\n\n`;
   
   for (const pm of paymentMethods) {
     const balance = parseFloat(pm.balance || "0");
     const typeEmoji = pm.type === 'credit_card' ? '💳' : pm.type === 'debit_card' ? '💳' : pm.type === 'cash' ? '💵' : '🏦';
     
     response += `${typeEmoji} *${pm.name}*\n`;
-    response += `💰 Balance: $${balance.toFixed(2)}`;
+    response += `💰 Balance: AED ${balance.toFixed(2)}`;
     
     if (pm.type === 'credit_card' && pm.creditLimit) {
       const limit = parseFloat(pm.creditLimit.toString());
       const utilization = (balance / limit) * 100;
-      response += `\n📊 Credit: $${limit.toFixed(2)} (${utilization.toFixed(0)}% used)`;
+      response += `\n📊 Credit: AED ${limit.toFixed(2)} (${utilization.toFixed(0)}% used)`;
       
       if (utilization >= 80) {
         response += ` ⚠️`;
@@ -577,10 +577,10 @@ async function handleCreatePaymentMethod(intent: Intent, storage: IStorage): Pro
 
   let response = `✅ Payment Method Created!\n\n💳 ${intent.paymentMethodName}\n📂 Type: ${intent.paymentMethodType}`;
   if (intent.amount) {
-    response += `\n💰 Balance: $${intent.amount.toFixed(2)}`;
+    response += `\n💰 Balance: AED ${intent.amount.toFixed(2)}`;
   }
   if (intent.creditLimit) {
-    response += `\n📊 Credit Limit: $${intent.creditLimit.toFixed(2)}`;
+    response += `\n📊 Credit Limit: AED ${intent.creditLimit.toFixed(2)}`;
   }
   if (intent.dueDate) {
     response += `\n📅 Due Date: Day ${intent.dueDate}`;
@@ -611,7 +611,7 @@ async function handleUpdatePaymentMethod(intent: Intent, storage: IStorage): Pro
 
   let response = `✅ Payment Method Updated!\n\n💳 ${intent.paymentMethodName}`;
   if (intent.creditLimit !== undefined) {
-    response += `\n📊 New Limit: $${intent.creditLimit.toFixed(2)}`;
+    response += `\n📊 New Limit: AED ${intent.creditLimit.toFixed(2)}`;
   }
   if (intent.dueDate !== undefined) {
     response += `\n📅 Due Date: Day ${intent.dueDate}`;
@@ -636,7 +636,7 @@ async function handleDeletePaymentMethod(intent: Intent, storage: IStorage): Pro
 
 async function handleAddFundsToPaymentMethod(intent: Intent, storage: IStorage): Promise<string> {
   if (!intent.paymentMethodName || !intent.amount) {
-    return "❌ Please specify payment method and amount.\n\n💡 Example: 'Add $500 to Chase'";
+    return "❌ Please specify payment method and amount.\n\n💡 Example: 'Add 500 AED to Chase'";
   }
 
   const pm = await storage.getPaymentMethodByName(intent.paymentMethodName);
@@ -649,7 +649,7 @@ async function handleAddFundsToPaymentMethod(intent: Intent, storage: IStorage):
   const updated = await storage.getPaymentMethod(pm.id);
   const newBalance = updated?.balance ? parseFloat(updated.balance.toString()) : 0;
 
-  return `✅ Funds Added!\n\n💳 ${intent.paymentMethodName}\n💵 Added: $${intent.amount.toFixed(2)}\n💰 New Balance: $${newBalance.toFixed(2)}`;
+  return `✅ Funds Added!\n\n💳 ${intent.paymentMethodName}\n💵 Added: AED ${intent.amount.toFixed(2)}\n💰 New Balance: AED ${newBalance.toFixed(2)}`;
 }
 
 // ============= ANALYTICS & DATA HANDLERS =============
@@ -671,24 +671,24 @@ async function handleViewAnalytics(storage: IStorage, intent: Intent): Promise<s
 
   let response = `📊 *Spending Analytics*\n\n`;
   response += `📅 *This Month:*\n`;
-  response += `💰 Total: $${thisMonthTotal.toFixed(2)}\n`;
+  response += `💰 Total: AED ${thisMonthTotal.toFixed(2)}\n`;
   response += `📝 Transactions: ${thisMonthExpenses.length}\n\n`;
   
   response += `📅 *Last Month:*\n`;
-  response += `💰 Total: $${lastMonthTotal.toFixed(2)}\n`;
+  response += `💰 Total: AED ${lastMonthTotal.toFixed(2)}\n`;
   response += `📝 Transactions: ${lastMonthExpenses.length}\n\n`;
   
   response += `📈 *Trend:*\n`;
   if (change > 0) {
-    response += `📈 Spending increased by $${Math.abs(change).toFixed(2)} (${Math.abs(percentChange).toFixed(1)}%)`;
+    response += `📈 Spending increased by AED ${Math.abs(change).toFixed(2)} (${Math.abs(percentChange).toFixed(1)}%)`;
   } else if (change < 0) {
-    response += `📉 Spending decreased by $${Math.abs(change).toFixed(2)} (${Math.abs(percentChange).toFixed(1)}%)`;
+    response += `📉 Spending decreased by AED ${Math.abs(change).toFixed(2)} (${Math.abs(percentChange).toFixed(1)}%)`;
   } else {
     response += `➡️ Spending remained the same`;
   }
 
   const avgDaily = thisMonthExpenses.length > 0 ? thisMonthTotal / today.getDate() : 0;
-  response += `\n\n💵 *Average Daily:* $${avgDaily.toFixed(2)}`;
+  response += `\n\n💵 *Average Daily:* AED ${avgDaily.toFixed(2)}`;
 
   return response;
 }
@@ -703,7 +703,7 @@ function getHelpMessage(): string {
   return `🤖 *Smart Expense Tracker - Full Features*
 
 *💰 EXPENSES:*
-• "Spent $50 on food with Chase card"
+• "Spent 50 AED on food with Chase card"
 • "Paid 100 for groceries yesterday"
 • "Delete last expense"
 • "Show expenses this month"
@@ -712,15 +712,15 @@ function getHelpMessage(): string {
 *📁 CATEGORIES:*
 • "Show categories"
 • "Create category Food"
-• "Set $500 budget for Food"
-• "Add $200 to Food category"
+• "Set 500 AED budget for Food"
+• "Add 200 AED to Food category"
 • "Delete category Transport"
 
 *💳 PAYMENT METHODS:*
 • "Show payment methods" / "My cards"
 • "Create credit card Chase with 5000 limit"
 • "Add cash wallet with 200"
-• "Add $500 to Chase"
+• "Add 500 AED to Chase"
 • "Update Chase limit to 10000"
 • "Delete Chase card"
 
@@ -833,7 +833,7 @@ Return JSON format.`;
 
     let responseText = `📸 *Receipt Scanned Successfully!*\n\n`;
     responseText += `✅ Expense Added:\n`;
-    responseText += `💰 Amount: $${receiptData.amount.toFixed(2)}\n`;
+    responseText += `💰 Amount: AED ${receiptData.amount.toFixed(2)}\n`;
     responseText += `🏪 Merchant: ${receiptData.merchant}\n`;
     responseText += `📁 Category: ${categoryName}\n`;
     
