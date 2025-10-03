@@ -1,13 +1,14 @@
 import { 
   expenses, categories, fundHistory, paymentMethods, paymentMethodFundHistory, telegramBotConfigs, telegramUserStates,
-  whatsappBotConfigs, whatsappUserStates,
+  whatsappBotConfigs, whatsappUserStates, geminiConfigs,
   type Expense, type InsertExpense, type Category, type InsertCategory,
   type FundHistory, type InsertFundHistory, type PaymentMethod, type InsertPaymentMethod,
   type PaymentMethodFundHistory, type InsertPaymentMethodFundHistory,
   type TelegramBotConfig, type InsertTelegramBotConfig,
   type TelegramUserState, type InsertTelegramUserState,
   type WhatsappBotConfig, type InsertWhatsappBotConfig,
-  type WhatsappUserState, type InsertWhatsappUserState
+  type WhatsappUserState, type InsertWhatsappUserState,
+  type GeminiConfig, type InsertGeminiConfig
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and, gte, lte } from "drizzle-orm";
@@ -94,6 +95,11 @@ export interface IStorage {
   getWhatsappUserState(phoneNumber: string): Promise<WhatsappUserState | undefined>;
   setWhatsappUserState(phoneNumber: string, state: string | null, data?: any): Promise<void>;
   clearWhatsappUserState(phoneNumber: string): Promise<void>;
+
+  // Gemini AI Config management
+  getGeminiConfig(): Promise<GeminiConfig | undefined>;
+  createOrUpdateGeminiConfig(config: InsertGeminiConfig): Promise<GeminiConfig>;
+  deleteGeminiConfig(): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -875,6 +881,41 @@ export class DatabaseStorage implements IStorage {
 
   async clearWhatsappUserState(phoneNumber: string): Promise<void> {
     await db.delete(whatsappUserStates).where(eq(whatsappUserStates.phoneNumber, phoneNumber));
+  }
+
+  async getGeminiConfig(): Promise<GeminiConfig | undefined> {
+    const [config] = await db.select().from(geminiConfigs).limit(1);
+    return config || undefined;
+  }
+
+  async createOrUpdateGeminiConfig(insertConfig: InsertGeminiConfig): Promise<GeminiConfig> {
+    const existing = await this.getGeminiConfig();
+    
+    if (existing) {
+      const [updated] = await db
+        .update(geminiConfigs)
+        .set({
+          ...insertConfig,
+          updatedAt: sql`NOW()`,
+        })
+        .where(eq(geminiConfigs.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db
+        .insert(geminiConfigs)
+        .values(insertConfig)
+        .returning();
+      return created;
+    }
+  }
+
+  async deleteGeminiConfig(): Promise<boolean> {
+    const existing = await this.getGeminiConfig();
+    if (!existing) return false;
+    
+    const result = await db.delete(geminiConfigs).where(eq(geminiConfigs.id, existing.id));
+    return (result.rowCount || 0) > 0;
   }
 
 }
