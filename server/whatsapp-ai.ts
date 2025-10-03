@@ -837,34 +837,15 @@ export function getMainMenuData() {
     buttonText: "📋 Select Action",
     sections: [
       {
-        title: "💰 Expenses",
         rows: [
-          { id: "add_expense_guide", title: "➕ Add Expense", description: "Log a new expense" },
           { id: "view_expenses", title: "📊 View Expenses", description: "See all expenses" },
+          { id: "add_expense_guide", title: "➕ Add Expense", description: "Log a new expense" },
           { id: "view_summary", title: "📈 Summary", description: "Monthly overview" },
-          { id: "delete_expense", title: "🗑️ Delete Last", description: "Remove last expense" }
-        ]
-      },
-      {
-        title: "📁 Categories",
-        rows: [
-          { id: "view_categories", title: "📂 View Categories", description: "List all categories" },
-          { id: "category_menu", title: "⚙️ Manage Categories", description: "Create, edit, or delete" }
-        ]
-      },
-      {
-        title: "💳 Payment Methods",
-        rows: [
-          { id: "view_payment_methods", title: "💳 View Methods", description: "List payment methods" },
-          { id: "payment_menu", title: "⚙️ Manage Methods", description: "Create, edit, or delete" }
-        ]
-      },
-      {
-        title: "📊 More",
-        rows: [
+          { id: "view_categories", title: "📂 Categories", description: "View & manage" },
+          { id: "view_payment_methods", title: "💳 Payment Methods", description: "View & manage" },
           { id: "view_analytics", title: "📊 Analytics", description: "Spending trends" },
-          { id: "export_data", title: "📦 Export", description: "Download your data" },
-          { id: "help", title: "❓ Help", description: "Full feature list" }
+          { id: "export_data", title: "📦 Export Data", description: "Download data" },
+          { id: "help", title: "❓ Help & Guide", description: "Full feature list" }
         ]
       }
     ]
