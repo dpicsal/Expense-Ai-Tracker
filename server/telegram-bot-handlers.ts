@@ -41,7 +41,7 @@ export async function handleCallbackQuery(
     return;
   }
 
-  // Add Expense Flow
+  // Add Expense Flow - Start with category selection
   if (callbackData === 'menu_add_expense') {
     const categories = await storage.getAllCategories();
     if (categories.length === 0) {
@@ -54,10 +54,10 @@ export async function handleCallbackQuery(
     }
     await sendTelegramMessage(
       chatId,
-      '➕ *Add Expense*\n\nPlease enter the amount (numbers only):',
-      createCancelMenu()
+      '➕ *Add Expense*\n\n📂 Select a category:',
+      createSelectionKeyboard(categories, 'select_expense_category')
     );
-    await storage.setUserState(chatId, 'add_expense_amount');
+    await storage.setUserState(chatId, 'add_expense_select_category');
     return;
   }
 
@@ -545,52 +545,57 @@ async function handleSelectionCallback(chatId: string, callbackData: string, sto
     return;
   }
 
-  if (action === 'select_category_expense') {
-    const userState = await storage.getUserState(chatId);
-    if (userState && userState.data) {
-      const data = JSON.parse(userState.data);
-      data.category = id;
-      
-      const paymentMethods = await storage.getAllPaymentMethods();
+  // Add Expense Flow - Category selection
+  if (action === 'select_expense_category') {
+    const category = await storage.getCategory(id);
+    if (!category) {
+      await sendTelegramMessage(chatId, '❌ Category not found.', createMainMenu());
+      return;
+    }
+    
+    const paymentMethods = await storage.getAllPaymentMethods();
+    if (paymentMethods.length === 0) {
       await sendTelegramMessage(
         chatId,
-        '💳 *Select Payment Method:*',
-        createSelectionKeyboard(paymentMethods, 'select_payment_expense')
+        '❌ No payment methods found. Please add payment methods in the web app first.',
+        createMainMenu()
       );
-      await storage.setUserState(chatId, 'select_payment_for_expense', data);
+      return;
     }
+    
+    await sendTelegramMessage(
+      chatId,
+      '➕ *Add Expense*\n\n💳 Select payment method:',
+      createSelectionKeyboard(paymentMethods, 'select_expense_payment')
+    );
+    await storage.setUserState(chatId, 'add_expense_select_payment', { 
+      categoryId: id,
+      categoryName: category.name
+    });
     return;
   }
 
-  if (action === 'select_payment_expense') {
+  // Add Expense Flow - Payment method selection
+  if (action === 'select_expense_payment') {
     const userState = await storage.getUserState(chatId);
-    if (userState && userState.data) {
-      const data = JSON.parse(userState.data);
-      data.paymentMethodId = id;
-
-      // Create expense
-      const expense = await storage.createExpense({
-        amount: data.amount,
-        description: data.description,
-        category: data.categoryName,
-        paymentMethod: id,
-        date: new Date()
-      });
-
-      const category = await storage.getCategory(data.category);
-      const paymentMethod = await storage.getPaymentMethod(id);
-
-      await sendTelegramMessage(
-        chatId,
-        `✅ *Expense Added Successfully!*\n\n` +
-        `Amount: AED ${parseFloat(expense.amount).toFixed(2)}\n` +
-        `Description: ${expense.description}\n` +
-        `Category: ${category?.name || data.categoryName}\n` +
-        `Payment: ${paymentMethod?.name || 'Unknown'}`,
-        createMainMenu()
-      );
-      await storage.clearUserState(chatId);
+    if (!userState || !userState.data) {
+      await sendTelegramMessage(chatId, '❌ Session expired. Please start again.', createMainMenu());
+      return;
     }
+    
+    const data = JSON.parse(userState.data);
+    const paymentMethod = await storage.getPaymentMethod(id);
+    
+    await sendTelegramMessage(
+      chatId,
+      '➕ *Add Expense*\n\n💵 Enter the amount (numbers only):',
+      createCancelMenu()
+    );
+    await storage.setUserState(chatId, 'add_expense_amount', {
+      ...data,
+      paymentMethodId: id,
+      paymentMethodName: paymentMethod?.name || 'Unknown'
+    });
     return;
   }
 }
@@ -610,7 +615,7 @@ export async function handleTextMessage(chatId: string, text: string, storage: I
   const state = userState.state;
   const data = userState.data ? JSON.parse(userState.data) : {};
 
-  // Add expense flow
+  // Add expense flow - Amount entry
   if (state === 'add_expense_amount') {
     const amount = parseFloat(text);
     if (isNaN(amount) || amount <= 0) {
@@ -621,26 +626,42 @@ export async function handleTextMessage(chatId: string, text: string, storage: I
       );
       return;
     }
+    
     await sendTelegramMessage(
       chatId,
-      '📝 *Enter Description:*\n\nWhat was this expense for?',
+      '➕ *Add Expense*\n\n📝 Enter a description/note (or type "skip" to skip):',
       createCancelMenu()
     );
-    await storage.setUserState(chatId, 'add_expense_description', { amount });
+    await storage.setUserState(chatId, 'add_expense_description', {
+      ...data,
+      amount: amount.toString()
+    });
     return;
   }
 
+  // Add expense flow - Description entry (final step)
   if (state === 'add_expense_description') {
-    data.description = text.trim();
-    const categories = await storage.getAllCategories();
+    const description = text.trim().toLowerCase() === 'skip' ? 'No description' : text.trim();
+    
+    // Create the expense
+    const expense = await storage.createExpense({
+      amount: data.amount,
+      description: description,
+      category: data.categoryName,
+      paymentMethod: data.paymentMethodId,
+      date: new Date()
+    });
+
     await sendTelegramMessage(
       chatId,
-      '🏷️ *Select Category:*',
-      createSelectionKeyboard(categories, 'select_category_expense')
+      `✅ *Expense Added Successfully!*\n\n` +
+      `Amount: AED ${parseFloat(expense.amount).toFixed(2)}\n` +
+      `Description: ${expense.description}\n` +
+      `Category: ${data.categoryName}\n` +
+      `Payment: ${data.paymentMethodName}`,
+      createMainMenu()
     );
-    const categoryMap = new Map(categories.map(c => [c.id, c.name]));
-    data.categoryMap = Object.fromEntries(categoryMap);
-    await storage.setUserState(chatId, 'select_category_for_expense', data);
+    await storage.clearUserState(chatId);
     return;
   }
 
