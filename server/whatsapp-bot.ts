@@ -4,9 +4,33 @@ import crypto from 'crypto';
 interface WhatsappMessage {
   messaging_product: 'whatsapp';
   to: string;
-  type: 'text';
-  text: {
+  type: 'text' | 'interactive';
+  text?: {
     body: string;
+  };
+  interactive?: {
+    type: 'button' | 'list';
+    body?: {
+      text: string;
+    };
+    action: {
+      buttons?: Array<{
+        type: 'reply';
+        reply: {
+          id: string;
+          title: string;
+        };
+      }>;
+      button?: string;
+      sections?: Array<{
+        title?: string;
+        rows: Array<{
+          id: string;
+          title: string;
+          description?: string;
+        }>;
+      }>;
+    };
   };
 }
 
@@ -146,6 +170,123 @@ export async function sendWhatsappMessage(to: string, text: string): Promise<boo
     return true;
   } catch (error) {
     console.error('[WhatsApp Bot] Error sending message:', error);
+    return false;
+  }
+}
+
+export async function sendWhatsappMenu(to: string, bodyText: string, buttonText: string, sections: Array<{
+  title?: string;
+  rows: Array<{
+    id: string;
+    title: string;
+    description?: string;
+  }>;
+}>): Promise<boolean> {
+  if (!whatsappConfig.accessToken || !whatsappConfig.phoneNumberId) {
+    console.log('[WhatsApp Bot] Cannot send menu - bot not configured');
+    return false;
+  }
+
+  try {
+    const message: WhatsappMessage = {
+      messaging_product: 'whatsapp',
+      to: to,
+      type: 'interactive',
+      interactive: {
+        type: 'list',
+        body: {
+          text: bodyText
+        },
+        action: {
+          button: buttonText,
+          sections: sections
+        }
+      }
+    };
+
+    const apiVersion = process.env.WHATSAPP_API_VERSION || 'v21.0';
+    const url = `https://graph.facebook.com/${apiVersion}/${whatsappConfig.phoneNumberId}/messages`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${whatsappConfig.accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(message),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('[WhatsApp Bot] Failed to send menu:', errorData);
+      return false;
+    }
+
+    const data = await response.json();
+    console.log('[WhatsApp Bot] Menu sent successfully:', data);
+    return true;
+  } catch (error) {
+    console.error('[WhatsApp Bot] Error sending menu:', error);
+    return false;
+  }
+}
+
+export async function sendWhatsappButtons(to: string, bodyText: string, buttons: Array<{ id: string; title: string }>): Promise<boolean> {
+  if (!whatsappConfig.accessToken || !whatsappConfig.phoneNumberId) {
+    console.log('[WhatsApp Bot] Cannot send buttons - bot not configured');
+    return false;
+  }
+
+  if (buttons.length > 3) {
+    console.error('[WhatsApp Bot] Maximum 3 buttons allowed');
+    return false;
+  }
+
+  try {
+    const message: WhatsappMessage = {
+      messaging_product: 'whatsapp',
+      to: to,
+      type: 'interactive',
+      interactive: {
+        type: 'button',
+        body: {
+          text: bodyText
+        },
+        action: {
+          buttons: buttons.map(btn => ({
+            type: 'reply' as const,
+            reply: {
+              id: btn.id,
+              title: btn.title
+            }
+          }))
+        }
+      }
+    };
+
+    const apiVersion = process.env.WHATSAPP_API_VERSION || 'v21.0';
+    const url = `https://graph.facebook.com/${apiVersion}/${whatsappConfig.phoneNumberId}/messages`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${whatsappConfig.accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(message),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('[WhatsApp Bot] Failed to send buttons:', errorData);
+      return false;
+    }
+
+    const data = await response.json();
+    console.log('[WhatsApp Bot] Buttons sent successfully:', data);
+    return true;
+  } catch (error) {
+    console.error('[WhatsApp Bot] Error sending buttons:', error);
     return false;
   }
 }

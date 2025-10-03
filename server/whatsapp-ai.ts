@@ -10,7 +10,7 @@ interface Intent {
           'set_budget' | 'add_funds_to_category' | 
           'view_payment_methods' | 'create_payment_method' | 'update_payment_method' | 
           'delete_payment_method' | 'add_funds_to_payment_method' |
-          'view_analytics' | 'export_data' | 'help' | 'greeting' | 'unknown';
+          'view_analytics' | 'export_data' | 'help' | 'greeting' | 'menu' | 'unknown';
   
   amount?: number;
   category?: string;
@@ -86,8 +86,10 @@ export async function processWhatsAppMessage(message: string, storage: IStorage,
         return getHelpMessage();
       case 'greeting':
         return getGreetingResponse();
+      case 'menu':
+        return "📋 *Main Menu*\n\nTap the button below to see all available options, or just type what you need!";
       default:
-        return "I didn't understand that. Send 'help' to see everything I can do!";
+        return "I didn't understand that. Send 'help' or 'menu' to see everything I can do!";
     }
   } catch (error) {
     console.error('[WhatsApp AI] Error processing message:', error);
@@ -102,6 +104,7 @@ Analyze user messages and extract their intent precisely. Be context-aware and i
 
 **CONVERSATIONAL:**
 - greeting: "hello", "hi", "hey", "good morning", "good afternoon", "good evening", "how are you"
+- menu: "menu", "show menu", "main menu", "options", "what can you do"
 
 **EXPENSE ACTIONS:**
 - add_expense: "spent 50 AED on food", "paid 100 for groceries", "lunch was 25"
@@ -155,7 +158,7 @@ Return JSON only.`;
               "set_budget", "add_funds_to_category",
               "view_payment_methods", "create_payment_method", "update_payment_method", 
               "delete_payment_method", "add_funds_to_payment_method",
-              "view_analytics", "export_data", "help", "greeting", "unknown"
+              "view_analytics", "export_data", "help", "greeting", "menu", "unknown"
             ]
           },
           amount: { type: "number" },
@@ -739,20 +742,51 @@ function getHelpMessage(): string {
 ✓ Credit limit monitoring
 ✓ Multi-payment method support
 ✓ Date range queries
+✓ Interactive menus & buttons
 
+📋 Type "menu" anytime to see interactive options!
 Just chat naturally - I understand context! 🚀`;
 }
 
 function getGreetingResponse(): string {
   const greetings = [
-    "Hello! 👋 I'm your smart expense tracking assistant. How can I help you today?",
-    "Hi there! 👋 Ready to track your expenses? Just tell me what you need!",
-    "Hey! 👋 I'm here to help you manage your finances. What would you like to do?",
-    "Good to hear from you! 👋 I can help you track expenses, manage categories, and more. What do you need?"
+    "Hello! 👋 I'm your smart expense tracking assistant.",
+    "Hi there! 👋 Ready to track your expenses?",
+    "Hey! 👋 I'm here to help you manage your finances.",
+    "Good to hear from you! 👋 Welcome to your expense tracker!"
   ];
   
   const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
-  return `${randomGreeting}\n\n💡 Send 'help' to see all available features!`;
+  return `${randomGreeting}\n\nWhat would you like to do?\n\n💡 Tap the button below to see the menu, or just type naturally!`;
+}
+
+export function getMainMenuButtons() {
+  return {
+    bodyText: "Welcome to your Expense Tracker! 💰\n\nQuick actions:",
+    buttons: [
+      { id: "view_expenses", title: "📊 View Expenses" },
+      { id: "view_categories", title: "📂 Categories" },
+      { id: "help", title: "❓ Help" }
+    ]
+  };
+}
+
+export function getMainMenuData() {
+  return {
+    bodyText: "What would you like to do? Choose an option:",
+    buttonText: "📋 Menu",
+    sections: [
+      {
+        rows: [
+          { id: "view_expenses", title: "📊 View Expenses" },
+          { id: "view_categories", title: "📂 View Categories" },
+          { id: "view_summary", title: "📈 Summary" },
+          { id: "view_payment_methods", title: "💳 Payment Methods" },
+          { id: "help", title: "❓ Help & Features" }
+        ]
+      }
+    ]
+  };
 }
 
 async function handleReceiptImage(imageUrl: string, storage: IStorage): Promise<string> {
