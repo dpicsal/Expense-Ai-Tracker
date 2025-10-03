@@ -2,7 +2,21 @@ import { GoogleGenAI } from "@google/genai";
 import type { IStorage } from './storage';
 import type { InsertExpense, InsertPaymentMethod, InsertCategory } from "@shared/schema";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
+async function getGeminiAI(storage: IStorage): Promise<GoogleGenAI | null> {
+  const config = await storage.getGeminiConfig();
+  
+  let apiKey = config?.apiKey;
+  if (!apiKey || !config?.isEnabled) {
+    apiKey = process.env.GEMINI_API_KEY;
+  }
+  
+  if (!apiKey) {
+    console.error('[WhatsApp AI] No Gemini API key configured');
+    return null;
+  }
+  
+  return new GoogleGenAI({ apiKey });
+}
 
 interface Intent {
   action: 'add_expense' | 'view_expenses' | 'view_summary' | 'delete_expense' | 
@@ -41,7 +55,7 @@ export async function processWhatsAppMessage(message: string, storage: IStorage,
       return await handleReceiptImage(imageUrl, storage);
     }
     
-    const intent = await extractIntent(message);
+    const intent = await extractIntent(message, storage);
     
     switch (intent.action) {
       case 'add_expense':
@@ -97,7 +111,7 @@ export async function processWhatsAppMessage(message: string, storage: IStorage,
   }
 }
 
-async function extractIntent(message: string): Promise<Intent> {
+async function extractIntent(message: string, storage: IStorage): Promise<Intent> {
   const systemPrompt = `You are a smart expense tracking assistant for WhatsApp with comprehensive features.
 
 Analyze user messages and extract their intent precisely. Be context-aware and intelligent.
@@ -141,6 +155,12 @@ For date ranges: extract startDate, endDate, period
 Be smart about context. "add 500 to Food" = add_funds_to_category, not add_expense.
 
 Return JSON only.`;
+
+  const ai = await getGeminiAI(storage);
+  if (!ai) {
+    console.error('[WhatsApp AI] Failed to get Gemini AI instance in extractIntent');
+    return { action: 'unknown' };
+  }
 
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",
@@ -800,6 +820,12 @@ Extract:
 - Individual items (optional)
 
 Return JSON format.`;
+
+    const ai = await getGeminiAI(storage);
+    if (!ai) {
+      console.error('[WhatsApp AI] Failed to get Gemini AI instance in handleReceiptImage');
+      return "❌ Gemini AI is not configured. Please configure your Gemini API key in settings.";
+    }
 
     const aiResponse = await ai.models.generateContent({
       model: "gemini-2.5-pro",
