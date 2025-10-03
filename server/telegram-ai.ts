@@ -833,3 +833,125 @@ function getConversationalUnknownResponse(message: string): string {
 }
 
 export { getGreetingResponse, getHelpMessage };
+
+interface ReceiptData {
+  amount?: number;
+  merchant?: string;
+  category?: string;
+  date?: string;
+  items?: string[];
+  confidence: 'high' | 'medium' | 'low';
+}
+
+export async function processReceiptPhoto(
+  chatId: string,
+  base64Image: string,
+  storage: IStorage
+): Promise<void> {
+  try {
+    const ai = await getGeminiAI(storage);
+    
+    if (!ai) {
+      await sendTelegramMessage(
+        chatId,
+        '❌ AI service is not configured. Please enable Gemini AI in settings.',
+        createMainMenu()
+      );
+      return;
+    }
+
+    await sendTelegramMessage(chatId, '🔍 Analyzing receipt...');
+
+    const systemPrompt = `You are a receipt OCR assistant. Extract structured data from receipt images.
+
+Analyze the receipt and return JSON with:
+- amount: Total amount (number)
+- merchant: Store/merchant name (string)
+- category: Best category match from: Food & Dining, Transportation, Shopping, Entertainment, Bills & Utilities, Healthcare, Travel, Education, Other
+- date: Date in ISO format (YYYY-MM-DD), use today if unclear
+- items: Array of item descriptions (up to 5 main items)
+- confidence: "high" if all key fields clear, "medium" if some unclear, "low" if very unclear
+
+Return only valid JSON, no markdown.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-1.5-flash",
+      config: {
+        systemInstruction: systemPrompt,
+        responseMimeType: "application/json"
+      },
+      contents: [
+        {
+          inlineData: {
+            mimeType: 'image/jpeg',
+            data: base64Image
+          }
+        },
+        'Extract receipt data from this image.'
+      ]
+    });
+
+    const rawJson = response.text;
+    const receiptData: ReceiptData = JSON.parse(rawJson);
+
+    if (receiptData.confidence === 'low' || !receiptData.amount) {
+      await sendTelegramMessage(
+        chatId,
+        '😕 I had trouble reading this receipt clearly. Please try:\n\n' +
+        '• Taking a clearer photo\n' +
+        '• Better lighting\n' +
+        '• Flattening the receipt\n\n' +
+        'Or you can add the expense manually using natural language like "Spent 50 on food"',
+        createMainMenu()
+      );
+      return;
+    }
+
+    const categoryName = receiptData.category || 'Other';
+    const paymentMethodName = 'Telegram';
+    const description = receiptData.merchant 
+      ? `${receiptData.merchant}${receiptData.items && receiptData.items.length > 0 ? ` - ${receiptData.items.slice(0, 2).join(', ')}` : ''}`
+      : 'Receipt scan';
+    const expenseDate = receiptData.date ? new Date(receiptData.date) : new Date();
+
+    const confirmMessage = 
+      `📸 *Receipt Scanned!*\n\n` +
+      `💰 Amount: AED ${receiptData.amount.toFixed(2)}\n` +
+      (receiptData.merchant ? `🏪 Merchant: ${receiptData.merchant}\n` : '') +
+      `📁 Category: ${categoryName}\n` +
+      `💳 Payment: ${paymentMethodName}\n` +
+      `📝 Description: ${description}\n` +
+      `📅 Date: ${expenseDate.toLocaleDateString()}\n\n` +
+      (receiptData.items && receiptData.items.length > 0 
+        ? `📋 Items:\n${receiptData.items.slice(0, 3).map(item => `• ${item}`).join('\n')}\n\n`
+        : '') +
+      `${receiptData.confidence === 'medium' ? '⚠️ Medium confidence - please verify\n\n' : ''}` +
+      `Would you like to add this expense?`;
+
+    const confirmKeyboard = createInlineKeyboard([
+      [
+        { text: '✅ Yes, Add It', callback_data: 'confirm_ai_action' },
+        { text: '❌ Cancel', callback_data: 'cancel_ai_action' }
+      ]
+    ]);
+
+    await sendTelegramMessage(chatId, confirmMessage, confirmKeyboard);
+
+    await storage.setUserState(chatId, 'awaiting_confirmation', {
+      action: 'add_expense',
+      amount: receiptData.amount,
+      category: categoryName,
+      paymentMethod: paymentMethodName,
+      description: description,
+      date: expenseDate.toISOString()
+    });
+
+  } catch (error) {
+    console.error('[Telegram AI] Error processing receipt photo:', error);
+    await sendTelegramMessage(
+      chatId,
+      '❌ Failed to process receipt. Please try again or add the expense manually.',
+      createMainMenu()
+    );
+  }
+}
