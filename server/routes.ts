@@ -952,6 +952,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const message = change.value.messages[0];
             const from = message.from;
             const messageId = message.id;
+            const messageType = message.type;
             const text = message.text?.body || '';
 
             // Check whitelist
@@ -961,14 +962,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
               return res.status(200).send("OK");
             }
 
-            console.log(`[WhatsApp Webhook] Message from ${from}: ${text}`);
-
             // Mark message as read
             await markMessageAsRead(messageId);
 
             // Process message with AI and send response
             const { processWhatsAppMessage } = await import('./whatsapp-ai');
-            const aiResponse = await processWhatsAppMessage(text, storage);
+            let aiResponse: string;
+            
+            if (messageType === 'image') {
+              const imageId = message.image?.id;
+              if (imageId && config.accessToken) {
+                try {
+                  const apiVersion = process.env.WHATSAPP_API_VERSION || 'v21.0';
+                  const mediaUrl = `https://graph.facebook.com/${apiVersion}/${imageId}`;
+                  
+                  const mediaResponse = await fetch(mediaUrl, {
+                    headers: {
+                      'Authorization': `Bearer ${config.accessToken}`
+                    }
+                  });
+                  
+                  const mediaData = await mediaResponse.json() as { url?: string };
+                  
+                  if (mediaData.url) {
+                    const imageResponse = await fetch(mediaData.url, {
+                      headers: {
+                        'Authorization': `Bearer ${config.accessToken}`
+                      }
+                    });
+                    
+                    const imageBuffer = await imageResponse.arrayBuffer();
+                    const base64Image = Buffer.from(imageBuffer).toString('base64');
+                    
+                    console.log(`[WhatsApp Webhook] Processing receipt image from ${from}`);
+                    aiResponse = await processWhatsAppMessage('', storage, base64Image);
+                  } else {
+                    aiResponse = "❌ Could not download the image. Please try again.";
+                  }
+                } catch (error) {
+                  console.error('[WhatsApp Webhook] Error downloading image:', error);
+                  aiResponse = "❌ Failed to process image. Please try again.";
+                }
+              } else {
+                aiResponse = "❌ No image found in message.";
+              }
+            } else {
+              console.log(`[WhatsApp Webhook] Message from ${from}: ${text}`);
+              aiResponse = await processWhatsAppMessage(text, storage);
+            }
+            
             await sendWhatsappMessage(from, aiResponse);
           }
         }
