@@ -6,12 +6,21 @@ import {
   insertExpenseSchema, insertCategorySchema, 
   insertFundHistorySchema, insertPaymentMethodSchema,
   insertPaymentMethodFundHistorySchema, insertTelegramBotConfigSchema,
+  insertWhatsappBotConfigSchema,
   expenses, categories, fundHistory, paymentMethods, paymentMethodFundHistory
 } from "@shared/schema";
 import { z } from "zod";
 import { initializeTelegramBot, restartTelegramBot, sendTelegramMessage } from "./telegram-bot";
 import { handleCallbackQuery, handleTextMessage } from "./telegram-bot-handlers";
 import { createMainMenu } from "./telegram-bot-menus";
+import { 
+  initializeWhatsappBot, 
+  restartWhatsappBot, 
+  sendWhatsappMessage,
+  verifyWebhookSignature,
+  getVerifyToken,
+  markMessageAsRead
+} from "./whatsapp-bot";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Get all expenses with optional date range filtering
@@ -825,10 +834,153 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // =============== WHATSAPP BOT SETTINGS ROUTES ===============
+
+  // Get WhatsApp bot configuration
+  app.get("/api/settings/whatsapp-bot", async (req, res) => {
+    try {
+      const config = await storage.getWhatsappBotConfig();
+      if (!config) {
+        return res.json({
+          isEnabled: false,
+          appId: null,
+          appSecret: null,
+          accessToken: null,
+          phoneNumberId: null,
+          verifyToken: null,
+          chatWhitelist: []
+        });
+      }
+      res.json(config);
+    } catch (error) {
+      console.error("Error fetching WhatsApp bot config:", error);
+      res.status(500).json({ error: "Failed to fetch WhatsApp bot configuration" });
+    }
+  });
+
+  // Create or update WhatsApp bot configuration
+  app.put("/api/settings/whatsapp-bot", async (req, res) => {
+    try {
+      const validatedData = insertWhatsappBotConfigSchema.parse(req.body);
+      const config = await storage.createOrUpdateWhatsappBotConfig(validatedData);
+      
+      // Restart the bot with new configuration
+      await restartWhatsappBot(storage);
+      
+      res.json(config);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
+      console.error("Error updating WhatsApp bot config:", error);
+      res.status(500).json({ error: "Failed to update WhatsApp bot configuration" });
+    }
+  });
+
+  // Delete WhatsApp bot configuration
+  app.delete("/api/settings/whatsapp-bot", async (req, res) => {
+    try {
+      const success = await storage.deleteWhatsappBotConfig();
+      if (!success) {
+        return res.status(404).json({ error: "WhatsApp bot configuration not found" });
+      }
+      
+      // Stop the bot when configuration is deleted
+      await restartWhatsappBot(storage);
+      
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting WhatsApp bot config:", error);
+      res.status(500).json({ error: "Failed to delete WhatsApp bot configuration" });
+    }
+  });
+
+  // =============== WHATSAPP WEBHOOK ENDPOINT ===============
+
+  // WhatsApp webhook verification endpoint (GET)
+  app.get("/api/integrations/whatsapp/webhook", (req, res) => {
+    const mode = req.query['hub.mode'];
+    const token = req.query['hub.verify_token'];
+    const challenge = req.query['hub.challenge'];
+
+    const verifyToken = getVerifyToken();
+    
+    if (mode === 'subscribe' && token === verifyToken) {
+      console.log('[WhatsApp Webhook] Webhook verified successfully');
+      res.status(200).send(challenge);
+    } else {
+      console.log('[WhatsApp Webhook] Verification failed');
+      res.sendStatus(403);
+    }
+  });
+
+  // WhatsApp webhook to receive messages (POST)
+  app.post("/api/integrations/whatsapp/webhook", async (req, res) => {
+    try {
+      console.log('[WhatsApp Webhook] Received update:', JSON.stringify(req.body, null, 2));
+      
+      const config = await storage.getWhatsappBotConfig();
+      
+      if (!config || !config.isEnabled) {
+        console.log('[WhatsApp Webhook] Bot is not enabled');
+        return res.status(403).json({ error: "WhatsApp bot is not enabled" });
+      }
+
+      // Verify webhook signature
+      const signature = req.headers['x-hub-signature-256'] as string;
+      if (signature && config.appSecret) {
+        const isValid = verifyWebhookSignature(JSON.stringify(req.body), signature);
+        if (!isValid) {
+          console.log('[WhatsApp Webhook] Invalid signature');
+          return res.status(403).json({ error: "Invalid signature" });
+        }
+      }
+
+      const body = req.body;
+
+      // Check if this is a WhatsApp message
+      if (body.object === 'whatsapp_business_account') {
+        if (body.entry && body.entry[0].changes && body.entry[0].changes[0]) {
+          const change = body.entry[0].changes[0];
+          
+          if (change.value.messages && change.value.messages[0]) {
+            const message = change.value.messages[0];
+            const from = message.from;
+            const messageId = message.id;
+            const text = message.text?.body || '';
+
+            // Check whitelist
+            const chatWhitelist = config.chatWhitelist || [];
+            if (chatWhitelist.length > 0 && !chatWhitelist.includes(from)) {
+              console.log('[WhatsApp Webhook] Phone number not in whitelist:', from);
+              return res.status(200).send("OK");
+            }
+
+            console.log(`[WhatsApp Webhook] Message from ${from}: ${text}`);
+
+            // Mark message as read
+            await markMessageAsRead(messageId);
+
+            // Send echo response for now
+            await sendWhatsappMessage(from, `Echo: ${text}\n\nYour phone: ${from}`);
+          }
+        }
+      }
+
+      res.status(200).send("OK");
+    } catch (error) {
+      console.error("Error processing WhatsApp webhook:", error);
+      res.status(200).send("OK");
+    }
+  });
+
   const httpServer = createServer(app);
 
   // Initialize Telegram bot on server start
   await initializeTelegramBot(storage);
+
+  // Initialize WhatsApp bot on server start
+  await initializeWhatsappBot(storage);
 
   return httpServer;
 }
