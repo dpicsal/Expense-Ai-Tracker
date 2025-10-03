@@ -55,6 +55,7 @@ export interface IStorage {
   // Payment Method management
   getAllPaymentMethods(): Promise<PaymentMethod[]>;
   getPaymentMethod(id: string): Promise<PaymentMethod | undefined>;
+  getPaymentMethodByName(name: string): Promise<PaymentMethod | undefined>;
   createPaymentMethod(paymentMethod: InsertPaymentMethod): Promise<PaymentMethod>;
   updatePaymentMethod(id: string, paymentMethod: Partial<InsertPaymentMethod>): Promise<PaymentMethod | undefined>;
   deletePaymentMethod(id: string): Promise<boolean>;
@@ -477,6 +478,11 @@ export class DatabaseStorage implements IStorage {
 
   async getPaymentMethod(id: string): Promise<PaymentMethod | undefined> {
     const [paymentMethod] = await db.select().from(paymentMethods).where(eq(paymentMethods.id, id));
+    return paymentMethod || undefined;
+  }
+
+  async getPaymentMethodByName(name: string): Promise<PaymentMethod | undefined> {
+    const [paymentMethod] = await db.select().from(paymentMethods).where(eq(paymentMethods.name, name));
     return paymentMethod || undefined;
   }
 
