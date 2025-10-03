@@ -1,9 +1,10 @@
 import { 
-  expenses, categories, fundHistory, paymentMethods, paymentMethodFundHistory, telegramBotConfigs,
+  expenses, categories, fundHistory, paymentMethods, paymentMethodFundHistory, telegramBotConfigs, telegramUserStates,
   type Expense, type InsertExpense, type Category, type InsertCategory,
   type FundHistory, type InsertFundHistory, type PaymentMethod, type InsertPaymentMethod,
   type PaymentMethodFundHistory, type InsertPaymentMethodFundHistory,
-  type TelegramBotConfig, type InsertTelegramBotConfig
+  type TelegramBotConfig, type InsertTelegramBotConfig,
+  type TelegramUserState, type InsertTelegramUserState
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and, gte, lte } from "drizzle-orm";
@@ -74,6 +75,11 @@ export interface IStorage {
   getTelegramBotConfig(): Promise<TelegramBotConfig | undefined>;
   createOrUpdateTelegramBotConfig(config: InsertTelegramBotConfig): Promise<TelegramBotConfig>;
   deleteTelegramBotConfig(): Promise<boolean>;
+  
+  // Telegram User State management
+  getUserState(chatId: string): Promise<TelegramUserState | undefined>;
+  setUserState(chatId: string, state: string | null, data?: any): Promise<void>;
+  clearUserState(chatId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -761,6 +767,33 @@ export class DatabaseStorage implements IStorage {
     
     const result = await db.delete(telegramBotConfigs).where(eq(telegramBotConfigs.id, existing.id));
     return (result.rowCount || 0) > 0;
+  }
+
+  async getUserState(chatId: string): Promise<TelegramUserState | undefined> {
+    const [state] = await db.select().from(telegramUserStates).where(eq(telegramUserStates.chatId, chatId));
+    return state || undefined;
+  }
+
+  async setUserState(chatId: string, state: string | null, data?: any): Promise<void> {
+    const existing = await this.getUserState(chatId);
+    const stateData = {
+      chatId,
+      state,
+      data: data ? JSON.stringify(data) : null,
+      updatedAt: sql`NOW()`,
+    };
+
+    if (existing) {
+      await db.update(telegramUserStates)
+        .set(stateData)
+        .where(eq(telegramUserStates.chatId, chatId));
+    } else {
+      await db.insert(telegramUserStates).values(stateData);
+    }
+  }
+
+  async clearUserState(chatId: string): Promise<void> {
+    await db.delete(telegramUserStates).where(eq(telegramUserStates.chatId, chatId));
   }
 
 }
