@@ -38,6 +38,7 @@ export default function Settings() {
   const [whatsappAppSecret, setWhatsappAppSecret] = useState("");
   const [whatsappAccessToken, setWhatsappAccessToken] = useState("");
   const [whatsappPhoneNumberId, setWhatsappPhoneNumberId] = useState("");
+  const [whatsappVerifyToken, setWhatsappVerifyToken] = useState("");
   const [whatsappChatWhitelist, setWhatsappChatWhitelist] = useState("");
   const [whatsappIsEnabled, setWhatsappIsEnabled] = useState(false);
   const [copiedWebhookUrl, setCopiedWebhookUrl] = useState(false);
@@ -73,6 +74,7 @@ export default function Settings() {
       setWhatsappAppSecret(whatsappConfig.appSecret || "");
       setWhatsappAccessToken(whatsappConfig.accessToken || "");
       setWhatsappPhoneNumberId(whatsappConfig.phoneNumberId || "");
+      setWhatsappVerifyToken(whatsappConfig.verifyToken || "");
       setWhatsappChatWhitelist(whatsappConfig.chatWhitelist?.join(", ") || "");
       setWhatsappIsEnabled(whatsappConfig.isEnabled || false);
     }
@@ -295,6 +297,7 @@ export default function Settings() {
         appSecret: whatsappAppSecret || undefined,
         accessToken: whatsappAccessToken || undefined,
         phoneNumberId: whatsappPhoneNumberId || undefined,
+        verifyToken: whatsappVerifyToken || undefined,
         chatWhitelist: whatsappChatWhitelist ? whatsappChatWhitelist.split(',').map(num => num.trim()).filter(Boolean) : [],
         isEnabled: whatsappIsEnabled,
       });
@@ -318,6 +321,7 @@ export default function Settings() {
       setWhatsappAppSecret("");
       setWhatsappAccessToken("");
       setWhatsappPhoneNumberId("");
+      setWhatsappVerifyToken("");
       setWhatsappChatWhitelist("");
       setWhatsappIsEnabled(false);
       toast({
@@ -610,6 +614,21 @@ export default function Settings() {
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Copy this URL and add it to your WhatsApp webhook configuration in Meta
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="whatsapp-verify-token">Verify Token</Label>
+                <Input
+                  id="whatsapp-verify-token"
+                  type="text"
+                  placeholder="Create a custom verify token"
+                  value={whatsappVerifyToken}
+                  onChange={(e) => setWhatsappVerifyToken(e.target.value)}
+                  data-testid="input-whatsapp-verify-token"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Create any custom string here, then enter the SAME token in Meta's "Verify token" field
                 </p>
               </div>
 
