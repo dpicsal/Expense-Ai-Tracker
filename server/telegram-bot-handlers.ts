@@ -85,7 +85,7 @@ export async function handleCallbackQuery(
 
   if (callbackData === 'cancel_ai_action') {
     const userState = await storage.getUserState(chatId);
-    if (userState?.state === 'awaiting_confirmation') {
+    if (userState?.state === 'awaiting_confirmation' || userState?.state === 'awaiting_receipt_category') {
       await storage.clearUserState(chatId);
       await sendTelegramMessage(
         chatId,
