@@ -13,11 +13,8 @@ export function useUpdateTelegramBotConfig() {
 
   return useMutation({
     mutationFn: async (config: InsertTelegramBotConfig) => {
-      return apiRequest<TelegramBotConfig>("/api/settings/telegram-bot", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(config),
-      });
+      const response = await apiRequest("PUT", "/api/settings/telegram-bot", config);
+      return response.json() as Promise<TelegramBotConfig>;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/settings/telegram-bot"] });
@@ -30,9 +27,7 @@ export function useDeleteTelegramBotConfig() {
 
   return useMutation({
     mutationFn: async () => {
-      return apiRequest("/api/settings/telegram-bot", {
-        method: "DELETE",
-      });
+      await apiRequest("DELETE", "/api/settings/telegram-bot");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/settings/telegram-bot"] });
