@@ -2,6 +2,10 @@ import type { IStorage } from './storage';
 import type { Expense, Category, PaymentMethod } from '@shared/schema';
 import { sendTelegramMessage } from './telegram-bot';
 
+function escapeMarkdown(text: string): string {
+  return text.replace(/([_*\[\]()~`>#+\-=|{}.!])/g, '\\$1');
+}
+
 export async function notifyTelegramExpenseCreated(
   expense: Expense,
   storage: IStorage
@@ -21,9 +25,9 @@ export async function notifyTelegramExpenseCreated(
     const message = 
       `💰 *New Expense Added*\n\n` +
       `Amount: AED ${parseFloat(expense.amount).toFixed(2)}\n` +
-      `Category: ${expense.category}\n` +
-      `Payment: ${expense.paymentMethod}\n` +
-      `Description: ${expense.description}\n` +
+      `Category: ${escapeMarkdown(expense.category)}\n` +
+      `Payment: ${escapeMarkdown(expense.paymentMethod)}\n` +
+      `Description: ${escapeMarkdown(expense.description)}\n` +
       `Date: ${new Date(expense.date).toLocaleDateString()}`;
 
     for (const chatId of chatWhitelist) {
@@ -56,7 +60,7 @@ export async function notifyTelegramCategoryCreated(
 
     const message = 
       `🏷️ *New Category Created*\n\n` +
-      `Name: ${category.name}\n` +
+      `Name: ${escapeMarkdown(category.name)}\n` +
       `Allocated Funds: AED ${parseFloat(category.allocatedFunds || '0').toFixed(2)}` +
       (category.budget ? `\nBudget: AED ${parseFloat(category.budget).toFixed(2)}` : '');
 
@@ -98,8 +102,8 @@ export async function notifyTelegramPaymentMethodCreated(
 
     const message = 
       `${typeEmoji} *New Payment Method Created*\n\n` +
-      `Name: ${paymentMethod.name}\n` +
-      `Type: ${paymentMethod.type.replace('_', ' ')}\n` +
+      `Name: ${escapeMarkdown(paymentMethod.name)}\n` +
+      `Type: ${escapeMarkdown(paymentMethod.type.replace('_', ' '))}\n` +
       `Balance: AED ${parseFloat(paymentMethod.balance || '0').toFixed(2)}` +
       (paymentMethod.creditLimit ? `\nCredit Limit: AED ${parseFloat(paymentMethod.creditLimit).toFixed(2)}` : '');
 
