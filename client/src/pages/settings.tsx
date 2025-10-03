@@ -38,7 +38,6 @@ export default function Settings() {
   const [whatsappAppSecret, setWhatsappAppSecret] = useState("");
   const [whatsappAccessToken, setWhatsappAccessToken] = useState("");
   const [whatsappPhoneNumberId, setWhatsappPhoneNumberId] = useState("");
-  const [whatsappVerifyToken, setWhatsappVerifyToken] = useState("");
   const [whatsappChatWhitelist, setWhatsappChatWhitelist] = useState("");
   const [whatsappIsEnabled, setWhatsappIsEnabled] = useState(false);
   
@@ -72,7 +71,6 @@ export default function Settings() {
       setWhatsappAppSecret(whatsappConfig.appSecret || "");
       setWhatsappAccessToken(whatsappConfig.accessToken || "");
       setWhatsappPhoneNumberId(whatsappConfig.phoneNumberId || "");
-      setWhatsappVerifyToken(whatsappConfig.verifyToken || "");
       setWhatsappChatWhitelist(whatsappConfig.chatWhitelist?.join(", ") || "");
       setWhatsappIsEnabled(whatsappConfig.isEnabled || false);
     }
@@ -295,7 +293,6 @@ export default function Settings() {
         appSecret: whatsappAppSecret || undefined,
         accessToken: whatsappAccessToken || undefined,
         phoneNumberId: whatsappPhoneNumberId || undefined,
-        verifyToken: whatsappVerifyToken || undefined,
         chatWhitelist: whatsappChatWhitelist ? whatsappChatWhitelist.split(',').map(num => num.trim()).filter(Boolean) : [],
         isEnabled: whatsappIsEnabled,
       });
@@ -319,7 +316,6 @@ export default function Settings() {
       setWhatsappAppSecret("");
       setWhatsappAccessToken("");
       setWhatsappPhoneNumberId("");
-      setWhatsappVerifyToken("");
       setWhatsappChatWhitelist("");
       setWhatsappIsEnabled(false);
       toast({
@@ -621,21 +617,6 @@ export default function Settings() {
                 />
                 <p className="text-xs text-muted-foreground">
                   Your WhatsApp Business Phone Number ID from the API Setup
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="whatsapp-verify-token">Verify Token</Label>
-                <Input
-                  id="whatsapp-verify-token"
-                  type="text"
-                  placeholder="Enter webhook verify token"
-                  value={whatsappVerifyToken}
-                  onChange={(e) => setWhatsappVerifyToken(e.target.value)}
-                  data-testid="input-whatsapp-verify-token"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Custom token for webhook verification (you create this)
                 </p>
               </div>
 
