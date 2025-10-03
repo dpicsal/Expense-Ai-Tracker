@@ -913,18 +913,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // =============== WHATSAPP WEBHOOK ENDPOINT ===============
 
   // WhatsApp webhook verification endpoint (GET)
-  app.get("/api/integrations/whatsapp/webhook", (req, res) => {
+  app.get("/api/integrations/whatsapp/webhook", async (req, res) => {
     const mode = req.query['hub.mode'];
     const token = req.query['hub.verify_token'];
     const challenge = req.query['hub.challenge'];
 
-    const verifyToken = getVerifyToken();
-    
-    if (mode === 'subscribe' && token === verifyToken) {
-      console.log('[WhatsApp Webhook] Webhook verified successfully');
-      res.status(200).send(challenge);
-    } else {
-      console.log('[WhatsApp Webhook] Verification failed');
+    console.log('[WhatsApp Webhook] Verification request received');
+    console.log('[WhatsApp Webhook] Mode:', mode);
+    console.log('[WhatsApp Webhook] Token from Meta:', token);
+    console.log('[WhatsApp Webhook] Challenge:', challenge);
+
+    try {
+      const config = await storage.getWhatsappBotConfig();
+      const verifyToken = config?.verifyToken;
+      
+      console.log('[WhatsApp Webhook] Stored verify token:', verifyToken);
+      
+      if (mode === 'subscribe' && token && verifyToken && token === verifyToken) {
+        console.log('[WhatsApp Webhook] ✓ Webhook verified successfully');
+        res.status(200).send(challenge);
+      } else {
+        console.log('[WhatsApp Webhook] ✗ Verification failed - tokens do not match');
+        res.sendStatus(403);
+      }
+    } catch (error) {
+      console.error('[WhatsApp Webhook] Error during verification:', error);
       res.sendStatus(403);
     }
   });
