@@ -6,7 +6,7 @@ import {
   insertExpenseSchema, insertCategorySchema, 
   insertFundHistorySchema, insertPaymentMethodSchema,
   insertPaymentMethodFundHistorySchema, insertTelegramBotConfigSchema,
-  insertWhatsappBotConfigSchema,
+  insertWhatsappBotConfigSchema, insertGeminiConfigSchema,
   expenses, categories, fundHistory, paymentMethods, paymentMethodFundHistory
 } from "@shared/schema";
 import { z } from "zod";
@@ -907,6 +907,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching WhatsApp webhook URL:", error);
       res.status(500).json({ error: "Failed to fetch webhook URL" });
+    }
+  });
+
+  // =============== GEMINI AI SETTINGS ROUTES ===============
+
+  // Get Gemini AI configuration
+  app.get("/api/settings/gemini", async (req, res) => {
+    try {
+      const config = await storage.getGeminiConfig();
+      if (!config) {
+        return res.json({
+          isEnabled: false,
+          apiKey: null
+        });
+      }
+      res.json(config);
+    } catch (error) {
+      console.error("Error fetching Gemini config:", error);
+      res.status(500).json({ error: "Failed to fetch Gemini configuration" });
+    }
+  });
+
+  // Create or update Gemini AI configuration
+  app.put("/api/settings/gemini", async (req, res) => {
+    try {
+      const validatedData = insertGeminiConfigSchema.parse(req.body);
+      const config = await storage.createOrUpdateGeminiConfig(validatedData);
+      res.json(config);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
+      console.error("Error updating Gemini config:", error);
+      res.status(500).json({ error: "Failed to update Gemini configuration" });
+    }
+  });
+
+  // Delete Gemini AI configuration
+  app.delete("/api/settings/gemini", async (req, res) => {
+    try {
+      const success = await storage.deleteGeminiConfig();
+      if (!success) {
+        return res.status(404).json({ error: "Gemini configuration not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting Gemini config:", error);
+      res.status(500).json({ error: "Failed to delete Gemini configuration" });
     }
   });
 
