@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Edit, Trash2, Settings as SettingsIcon, Download, FileSpreadsheet, Shield, Bot, Save, Trash } from "lucide-react";
+import { Plus, Edit, Trash2, Settings as SettingsIcon, Download, FileSpreadsheet, Shield, Bot, Save, Trash, Copy, Check } from "lucide-react";
 import * as Icons from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,7 +17,7 @@ import { useCategories, useDeleteCategory } from "@/hooks/use-categories";
 import { useAppSettings } from "@/hooks/use-app-settings";
 import { useExpenses } from "@/hooks/use-expenses";
 import { useTelegramBotConfig, useUpdateTelegramBotConfig, useDeleteTelegramBotConfig } from "@/hooks/use-telegram-bot-config";
-import { useWhatsappBotConfig, useUpdateWhatsappBotConfig, useDeleteWhatsappBotConfig } from "@/hooks/use-whatsapp-bot-config";
+import { useWhatsappBotConfig, useUpdateWhatsappBotConfig, useDeleteWhatsappBotConfig, useWhatsappWebhookUrl } from "@/hooks/use-whatsapp-bot-config";
 import { useIsMobile } from "@/hooks/use-mobile";
 import ExcelJS from "exceljs";
 import { CategoryForm } from "@/components/category-form";
@@ -40,6 +40,7 @@ export default function Settings() {
   const [whatsappPhoneNumberId, setWhatsappPhoneNumberId] = useState("");
   const [whatsappChatWhitelist, setWhatsappChatWhitelist] = useState("");
   const [whatsappIsEnabled, setWhatsappIsEnabled] = useState(false);
+  const [copiedWebhookUrl, setCopiedWebhookUrl] = useState(false);
   
   const { toast } = useToast();
   const isMobile = useIsMobile();
@@ -53,6 +54,7 @@ export default function Settings() {
   const deleteTelegramConfig = useDeleteTelegramBotConfig();
   
   const { data: whatsappConfig, isLoading: isWhatsappConfigLoading } = useWhatsappBotConfig();
+  const { data: whatsappWebhookData } = useWhatsappWebhookUrl();
   const updateWhatsappConfig = useUpdateWhatsappBotConfig();
   const deleteWhatsappConfig = useDeleteWhatsappBotConfig();
 
@@ -331,6 +333,26 @@ export default function Settings() {
     }
   };
 
+  const handleCopyWebhookUrl = async () => {
+    if (whatsappWebhookData?.webhookUrl) {
+      try {
+        await navigator.clipboard.writeText(whatsappWebhookData.webhookUrl);
+        setCopiedWebhookUrl(true);
+        toast({
+          title: "Copied!",
+          description: "Webhook URL copied to clipboard",
+        });
+        setTimeout(() => setCopiedWebhookUrl(false), 2000);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to copy to clipboard",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
   return (
     <div className={`${isMobile ? 'space-y-6' : 'space-y-8'} animate-fade-in-up`}>
       {/* Header */}
@@ -558,6 +580,37 @@ export default function Settings() {
                   onCheckedChange={setWhatsappIsEnabled}
                   data-testid="switch-whatsapp-enabled"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="whatsapp-callback-url">Callback URL</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="whatsapp-callback-url"
+                    type="text"
+                    value={whatsappWebhookData?.webhookUrl || "Loading..."}
+                    readOnly
+                    className="bg-muted/50"
+                    data-testid="input-whatsapp-callback-url"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={handleCopyWebhookUrl}
+                    disabled={!whatsappWebhookData?.webhookUrl}
+                    data-testid="button-copy-webhook-url"
+                  >
+                    {copiedWebhookUrl ? (
+                      <Check className="h-4 w-4 text-green-600" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Copy this URL and add it to your WhatsApp webhook configuration in Meta
+                </p>
               </div>
 
               <div className="space-y-2">

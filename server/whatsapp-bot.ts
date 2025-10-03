@@ -38,6 +38,10 @@ function getWebhookUrl(): string | null {
   return `https://${primaryDomain}/api/integrations/whatsapp/webhook`;
 }
 
+export function getWhatsappWebhookUrl(): string | null {
+  return getWebhookUrl();
+}
+
 export function verifyWebhookSignature(payload: string, signature: string): boolean {
   if (!whatsappConfig.appSecret) {
     console.error('[WhatsApp Bot] Cannot verify signature - app secret not configured');
