@@ -80,10 +80,12 @@ export function PaymentReminders() {
 
   const urgentReminders = reminders.filter(r => r.urgency === "overdue" || r.urgency === "urgent");
 
-  // Check if any credit cards have a balance that needs to be paid
+  // Check if any credit cards have been used (amount owed > 0)
   const cardsWithBalance = creditCards.filter(card => {
-    const balance = parseFloat(card.balance || "0");
-    return balance > 0;
+    const availableCredit = parseFloat(card.balance || "0");
+    const creditLimit = parseFloat(card.creditLimit || "0");
+    const amountOwed = creditLimit - availableCredit;
+    return amountOwed > 0;
   });
 
   if (isLoading) {
@@ -172,8 +174,9 @@ export function PaymentReminders() {
         ) : (
           <div className="space-y-3">
             {reminders.slice(0, 5).map((reminder) => {
-              const balance = parseFloat(reminder.paymentMethod.balance || "0");
-              const hasBalance = balance > 0;
+              const availableCredit = parseFloat(reminder.paymentMethod.balance || "0");
+              const creditLimit = parseFloat(reminder.paymentMethod.creditLimit || "0");
+              const amountOwed = creditLimit - availableCredit;
 
               return (
                 <div
@@ -205,11 +208,11 @@ export function PaymentReminders() {
                         <p className="text-xs text-muted-foreground">
                           Due: {formatDate(reminder.nextDueDate)}
                         </p>
-                        {reminder.daysUntilDue <= 10 && (
+                        {reminder.daysUntilDue <= 10 && amountOwed > 0 && (
                           <>
                             <span className="text-xs text-muted-foreground">•</span>
                             <p className="text-xs font-medium" data-testid={`text-balance-${reminder.paymentMethod.id}`}>
-                              Credit: {formatCurrency(balance)}
+                              Amount Due: {formatCurrency(amountOwed)}
                             </p>
                           </>
                         )}
