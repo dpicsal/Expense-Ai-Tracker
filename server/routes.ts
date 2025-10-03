@@ -6,7 +6,7 @@ import {
   insertExpenseSchema, insertCategorySchema, 
   insertFundHistorySchema, insertPaymentMethodSchema,
   insertPaymentMethodFundHistorySchema, insertTelegramBotConfigSchema,
-  insertWhatsappBotConfigSchema, insertGeminiConfigSchema,
+  insertWhatsappBotConfigSchema, insertGeminiConfigSchema, insertOpenAIConfigSchema,
   expenses, categories, fundHistory, paymentMethods, paymentMethodFundHistory
 } from "@shared/schema";
 import { z } from "zod";
@@ -1028,6 +1028,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting Gemini config:", error);
       res.status(500).json({ error: "Failed to delete Gemini configuration" });
+    }
+  });
+
+  // =============== OPENAI SETTINGS ROUTES ===============
+
+  // Get OpenAI configuration
+  app.get("/api/settings/openai", async (req, res) => {
+    try {
+      const config = await storage.getOpenAIConfig();
+      if (!config) {
+        return res.json({
+          isEnabled: false,
+          apiKey: null
+        });
+      }
+      res.json(config);
+    } catch (error) {
+      console.error("Error fetching OpenAI config:", error);
+      res.status(500).json({ error: "Failed to fetch OpenAI configuration" });
+    }
+  });
+
+  // Create or update OpenAI configuration
+  app.put("/api/settings/openai", async (req, res) => {
+    try {
+      const validatedData = insertOpenAIConfigSchema.parse(req.body);
+      const config = await storage.createOrUpdateOpenAIConfig(validatedData);
+      res.json(config);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
+      console.error("Error updating OpenAI config:", error);
+      res.status(500).json({ error: "Failed to update OpenAI configuration" });
+    }
+  });
+
+  // Delete OpenAI configuration
+  app.delete("/api/settings/openai", async (req, res) => {
+    try {
+      const success = await storage.deleteOpenAIConfig();
+      if (!success) {
+        return res.status(404).json({ error: "OpenAI configuration not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting OpenAI config:", error);
+      res.status(500).json({ error: "Failed to delete OpenAI configuration" });
     }
   });
 
