@@ -10,7 +10,7 @@ interface Intent {
           'set_budget' | 'add_funds_to_category' | 
           'view_payment_methods' | 'create_payment_method' | 'update_payment_method' | 
           'delete_payment_method' | 'add_funds_to_payment_method' |
-          'view_analytics' | 'export_data' | 'help' | 'unknown';
+          'view_analytics' | 'export_data' | 'help' | 'greeting' | 'unknown';
   
   amount?: number;
   category?: string;
@@ -84,6 +84,8 @@ export async function processWhatsAppMessage(message: string, storage: IStorage,
       
       case 'help':
         return getHelpMessage();
+      case 'greeting':
+        return getGreetingResponse();
       default:
         return "I didn't understand that. Send 'help' to see everything I can do!";
     }
@@ -97,6 +99,9 @@ async function extractIntent(message: string): Promise<Intent> {
   const systemPrompt = `You are a smart expense tracking assistant for WhatsApp with comprehensive features.
 
 Analyze user messages and extract their intent precisely. Be context-aware and intelligent.
+
+**CONVERSATIONAL:**
+- greeting: "hello", "hi", "hey", "good morning", "good afternoon", "good evening", "how are you"
 
 **EXPENSE ACTIONS:**
 - add_expense: "spent $50 on food", "paid 100 for groceries", "lunch was 25"
@@ -150,7 +155,7 @@ Return JSON only.`;
               "set_budget", "add_funds_to_category",
               "view_payment_methods", "create_payment_method", "update_payment_method", 
               "delete_payment_method", "add_funds_to_payment_method",
-              "view_analytics", "export_data", "help", "unknown"
+              "view_analytics", "export_data", "help", "greeting", "unknown"
             ]
           },
           amount: { type: "number" },
@@ -736,6 +741,18 @@ function getHelpMessage(): string {
 ✓ Date range queries
 
 Just chat naturally - I understand context! 🚀`;
+}
+
+function getGreetingResponse(): string {
+  const greetings = [
+    "Hello! 👋 I'm your smart expense tracking assistant. How can I help you today?",
+    "Hi there! 👋 Ready to track your expenses? Just tell me what you need!",
+    "Hey! 👋 I'm here to help you manage your finances. What would you like to do?",
+    "Good to hear from you! 👋 I can help you track expenses, manage categories, and more. What do you need?"
+  ];
+  
+  const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
+  return `${randomGreeting}\n\n💡 Send 'help' to see all available features!`;
 }
 
 async function handleReceiptImage(imageUrl: string, storage: IStorage): Promise<string> {
