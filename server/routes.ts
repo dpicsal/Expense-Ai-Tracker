@@ -961,8 +961,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Mark message as read
             await markMessageAsRead(messageId);
 
-            // Send echo response for now
-            await sendWhatsappMessage(from, `Echo: ${text}\n\nYour phone: ${from}`);
+            // Process message with AI and send response
+            const { processWhatsAppMessage } = await import('./whatsapp-ai');
+            const aiResponse = await processWhatsAppMessage(text, storage);
+            await sendWhatsappMessage(from, aiResponse);
           }
         }
       }
