@@ -711,6 +711,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // =============== TELEGRAM WEBHOOK ENDPOINT ===============
+
+  // Telegram webhook to receive expense commands
+  app.post("/api/integrations/telegram/webhook", async (req, res) => {
+    try {
+      const config = await storage.getTelegramBotConfig();
+      
+      if (!config || !config.isEnabled) {
+        return res.status(403).json({ error: "Telegram bot is not enabled" });
+      }
+
+      const secretToken = req.headers['x-telegram-bot-api-secret-token'];
+      if (config.webhookSecret && secretToken !== config.webhookSecret) {
+        return res.status(403).json({ error: "Invalid webhook secret" });
+      }
+
+      const update = req.body;
+      
+      if (!update.message || !update.message.text) {
+        return res.status(200).send("OK");
+      }
+
+      const chatId = update.message.chat.id.toString();
+      const chatWhitelist = config.chatWhitelist || [];
+      
+      if (chatWhitelist.length > 0 && !chatWhitelist.includes(chatId)) {
+        return res.status(403).json({ error: "Chat not authorized" });
+      }
+
+      const text = update.message.text.trim();
+      
+      if (!text.startsWith('/expense')) {
+        return res.status(200).send("OK");
+      }
+
+      const expenseCommand = text.substring(8).trim();
+      
+      const amountMatch = expenseCommand.match(/^(\d+(?:\.\d+)?)\s+(.+)/);
+      if (!amountMatch) {
+        return res.status(400).json({ error: "Invalid expense format. Use: /expense <amount> <description> @<category> #<payment-method>" });
+      }
+
+      const amount = parseFloat(amountMatch[1]);
+      if (isNaN(amount) || amount <= 0) {
+        return res.status(400).json({ error: "Invalid amount" });
+      }
+
+      const remainder = amountMatch[2];
+      
+      const categoryMatch = remainder.match(/@([^#]+)/);
+      const paymentMethodMatch = remainder.match(/#(.+?)(?=\s[@#]|$)/);
+      
+      let category = categoryMatch ? categoryMatch[1].trim() : '';
+      let paymentMethod = paymentMethodMatch ? paymentMethodMatch[1].trim() : '';
+      
+      let description = remainder
+        .replace(/@[^#]+/, '')
+        .replace(/#.+/, '')
+        .trim();
+
+      if (!description) {
+        return res.status(400).json({ error: "Description is required" });
+      }
+
+      if (!category) {
+        category = 'Other';
+      }
+
+      const existingCategory = await storage.getCategoryByName(category);
+      if (!existingCategory) {
+        return res.status(400).json({ error: `Category '${category}' not found. Please create it first or use an existing category.` });
+      }
+
+      if (paymentMethod) {
+        const paymentMethods = await storage.getAllPaymentMethods();
+        const existingMethod = paymentMethods.find(pm => pm.name === paymentMethod);
+        if (!existingMethod) {
+          return res.status(400).json({ error: `Payment method '${paymentMethod}' not found` });
+        }
+        paymentMethod = existingMethod.id;
+      }
+
+      if (!paymentMethod) {
+        return res.status(400).json({ error: "Payment method is required" });
+      }
+
+      const expenseData = {
+        amount,
+        description,
+        category: category,
+        paymentMethod: paymentMethod,
+        date: new Date()
+      };
+
+      const validatedData = insertExpenseSchema.parse(expenseData);
+      const expense = await storage.createExpense(validatedData);
+
+      res.status(200).json({ 
+        success: true, 
+        message: `Expense added: ${description} - ${amount}`,
+        expense 
+      });
+    } catch (error) {
+      console.error("Error processing Telegram webhook:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      }
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
