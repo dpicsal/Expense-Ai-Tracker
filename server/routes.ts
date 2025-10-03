@@ -9,7 +9,7 @@ import {
   expenses, categories, fundHistory, paymentMethods, paymentMethodFundHistory
 } from "@shared/schema";
 import { z } from "zod";
-import { initializeTelegramBot, restartTelegramBot, sendTelegramMessage } from "./telegram-bot";
+import { initializeTelegramBot, restartTelegramBot, sendTelegramMessage, answerCallbackQuery, createMainMenu, sendTelegramDocument } from "./telegram-bot";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Get all expenses with optional date range filtering
@@ -738,6 +738,181 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const update = req.body;
       
+      // Handle callback queries from inline keyboards
+      if (update.callback_query) {
+        const callbackQuery = update.callback_query;
+        const chatId = callbackQuery.message.chat.id.toString();
+        const callbackData = callbackQuery.data;
+        
+        const chatWhitelist = config.chatWhitelist || [];
+        if (chatWhitelist.length > 0 && !chatWhitelist.includes(chatId)) {
+          await answerCallbackQuery(callbackQuery.id, "Chat not authorized");
+          return res.status(200).send("OK");
+        }
+
+        await answerCallbackQuery(callbackQuery.id);
+
+        // Handle menu callbacks
+        if (callbackData === 'menu_dashboard') {
+          const allExpenses = await storage.getAllExpenses();
+          const allCategories = await storage.getAllCategories();
+          const allPaymentMethods = await storage.getAllPaymentMethods();
+          
+          const totalSpent = allExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
+          const totalExpenses = allExpenses.length;
+          const totalCategories = allCategories.length;
+          const totalPaymentMethods = allPaymentMethods.length;
+          
+          const recentExpenses = allExpenses.slice(0, 5);
+          let recentList = '';
+          if (recentExpenses.length > 0) {
+            recentList = recentExpenses.map(e => 
+              `• AED ${parseFloat(e.amount).toFixed(2)} - ${e.description}\n  ${e.category} via ${e.paymentMethod}`
+            ).join('\n\n');
+          } else {
+            recentList = 'No expenses yet';
+          }
+          
+          await sendTelegramMessage(
+            chatId,
+            `📊 *Dashboard Summary*\n\n` +
+            `💰 Total Spent: AED ${totalSpent.toFixed(2)}\n` +
+            `📝 Total Expenses: ${totalExpenses}\n` +
+            `🏷️ Categories: ${totalCategories}\n` +
+            `💳 Payment Methods: ${totalPaymentMethods}\n\n` +
+            `🕐 *Recent Expenses:*\n\n${recentList}`,
+            createMainMenu()
+          );
+        } else if (callbackData === 'menu_add') {
+          await sendTelegramMessage(
+            chatId,
+            '➕ *Add New Expense*\n\n' +
+            'Use the following format:\n' +
+            '/expense <amount> <description> @<category> #<payment-method>\n\n' +
+            '*Example:*\n' +
+            '/expense 50.5 Lunch at cafe @Food & Dining #Cash\n\n' +
+            '💡 Tips:\n' +
+            '• Amount must be a positive number\n' +
+            '• Category must exist in your system\n' +
+            '• Payment method must exist',
+            createMainMenu()
+          );
+        } else if (callbackData === 'menu_analytics') {
+          const allExpenses = await storage.getAllExpenses();
+          const allCategories = await storage.getAllCategories();
+          
+          const categoryStats = allCategories.map(category => {
+            const categoryExpenses = allExpenses.filter(e => e.category.trim() === category.name.trim());
+            const total = categoryExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
+            return { name: category.name, total, count: categoryExpenses.length };
+          }).filter(stat => stat.count > 0).sort((a, b) => b.total - a.total);
+
+          const totalSpent = allExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
+          
+          let analyticsText = '📈 *Spending Analytics*\n\n';
+          
+          if (categoryStats.length > 0) {
+            categoryStats.forEach(stat => {
+              const percentage = totalSpent > 0 ? (stat.total / totalSpent * 100).toFixed(1) : '0';
+              analyticsText += `${stat.name}\n`;
+              analyticsText += `  AED ${stat.total.toFixed(2)} (${percentage}%) - ${stat.count} expenses\n\n`;
+            });
+          } else {
+            analyticsText += 'No expenses to analyze yet.';
+          }
+          
+          await sendTelegramMessage(chatId, analyticsText, createMainMenu());
+        } else if (callbackData === 'menu_categories') {
+          const allCategories = await storage.getAllCategories();
+          const allExpenses = await storage.getAllExpenses();
+          
+          let categoriesText = '🏷️ *Categories*\n\n';
+          
+          if (allCategories.length > 0) {
+            allCategories.forEach(category => {
+              const categoryExpenses = allExpenses.filter(e => e.category.trim() === category.name.trim());
+              const total = categoryExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
+              const allocatedFunds = category.allocatedFunds ? parseFloat(category.allocatedFunds) : 0;
+              
+              categoriesText += `${category.icon || '📌'} *${category.name}*\n`;
+              if (allocatedFunds > 0) {
+                categoriesText += `  Budget: AED ${allocatedFunds.toFixed(2)}\n`;
+              }
+              categoriesText += `  Spent: AED ${total.toFixed(2)} (${categoryExpenses.length} expenses)\n\n`;
+            });
+          } else {
+            categoriesText += 'No categories found. Please add categories in the web app.';
+          }
+          
+          await sendTelegramMessage(chatId, categoriesText, createMainMenu());
+        } else if (callbackData === 'menu_payments') {
+          const allPaymentMethods = await storage.getAllPaymentMethods();
+          
+          let paymentsText = '💳 *Payment Methods*\n\n';
+          
+          if (allPaymentMethods.length > 0) {
+            allPaymentMethods.forEach(method => {
+              const balance = method.balance ? parseFloat(method.balance) : 0;
+              const typeIcon = method.type === 'credit_card' ? '💳' : 
+                             method.type === 'debit_card' ? '🏦' : 
+                             method.type === 'bank_account' ? '🏛️' : '💵';
+              
+              paymentsText += `${typeIcon} *${method.name}*\n`;
+              paymentsText += `  Type: ${method.type.replace('_', ' ')}\n`;
+              paymentsText += `  Balance: AED ${balance.toFixed(2)}\n`;
+              
+              if (method.type === 'credit_card' && method.creditLimit) {
+                const creditLimit = parseFloat(method.creditLimit);
+                const utilization = (balance / creditLimit * 100).toFixed(1);
+                paymentsText += `  Credit Limit: AED ${creditLimit.toFixed(2)}\n`;
+                paymentsText += `  Utilization: ${utilization}%\n`;
+              }
+              
+              if (method.dueDate) {
+                paymentsText += `  Due Date: ${new Date(method.dueDate).toLocaleDateString()}\n`;
+              }
+              
+              paymentsText += '\n';
+            });
+          } else {
+            paymentsText += 'No payment methods found. Please add payment methods in the web app.';
+          }
+          
+          await sendTelegramMessage(chatId, paymentsText, createMainMenu());
+        } else if (callbackData === 'menu_backup') {
+          const allExpenses = await storage.getAllExpenses();
+          const allCategories = await storage.getAllCategories();
+          const allPaymentMethods = await storage.getAllPaymentMethods();
+          const allFundHistory = await storage.getAllFundHistory();
+          
+          const backupData = {
+            expenses: allExpenses,
+            categories: allCategories,
+            paymentMethods: allPaymentMethods,
+            fundHistory: allFundHistory,
+            exportDate: new Date().toISOString(),
+          };
+          
+          const backupText = JSON.stringify(backupData, null, 2);
+          const fileName = `expense-tracker-backup-${new Date().toISOString().split('T')[0]}.json`;
+          
+          await sendTelegramDocument(
+            chatId,
+            fileName,
+            backupText,
+            `💾 *Backup Complete*\n\n` +
+            `Expenses: ${allExpenses.length}\n` +
+            `Categories: ${allCategories.length}\n` +
+            `Payment Methods: ${allPaymentMethods.length}\n\n` +
+            `To restore this backup, use the web app's Backup & Restore feature.`,
+            createMainMenu()
+          );
+        }
+
+        return res.status(200).send("OK");
+      }
+
+      // Handle text messages
       if (!update.message || !update.message.text) {
         return res.status(200).send("OK");
       }
@@ -752,15 +927,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const text = update.message.text.trim();
       
       // Handle /start command
-      if (text === '/start') {
+      if (text === '/start' || text === '/menu') {
         await sendTelegramMessage(
           chatId,
-          'Welcome to Expense Tracker Bot! 🎉\n\n' +
-          'Use /expense to add a new expense:\n' +
-          '/expense <amount> <description> @<category> #<payment-method>\n\n' +
-          'Example:\n' +
-          '/expense 50.5 Lunch at cafe @Food & Dining #Cash\n\n' +
-          'Your chat ID: ' + chatId
+          '🎯 *Expense Tracker Bot*\n\n' +
+          'Welcome! Choose an option from the menu below:\n\n' +
+          '📊 *Dashboard* - View summary and recent expenses\n' +
+          '➕ *Add Expense* - Quick expense entry guide\n' +
+          '📈 *Analytics* - Spending breakdown\n' +
+          '🏷️ *Categories* - View all categories\n' +
+          '💳 *Payment Methods* - View payment accounts\n' +
+          '💾 *Backup* - Download your data\n\n' +
+          'Your chat ID: ' + chatId,
+          createMainMenu()
         );
         return res.status(200).send("OK");
       }
@@ -769,17 +948,176 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (text === '/help') {
         await sendTelegramMessage(
           chatId,
-          'Expense Tracker Bot Commands:\n\n' +
-          '📝 /expense - Add a new expense\n' +
-          'Format: /expense <amount> <description> @<category> #<payment-method>\n\n' +
-          'Example:\n' +
-          '/expense 50.5 Lunch at cafe @Food & Dining #Cash\n\n' +
-          '💡 Tips:\n' +
-          '• Amount must be a positive number\n' +
-          '• Category must exist in your system\n' +
-          '• Payment method must exist\n' +
-          '• If no category is specified, "Other" will be used\n\n' +
-          'Your chat ID: ' + chatId
+          '📚 *Available Commands:*\n\n' +
+          '🏠 /menu - Show main menu\n' +
+          '📊 /dashboard - View expense summary\n' +
+          '➕ /expense - Add a new expense\n' +
+          '📈 /analytics - View spending breakdown\n' +
+          '🏷️ /categories - List all categories\n' +
+          '💳 /payments - List payment methods\n' +
+          '💾 /backup - Download backup file\n\n' +
+          '💡 *Expense Format:*\n' +
+          '/expense <amount> <description> @<category> #<payment-method>\n\n' +
+          '*Example:*\n' +
+          '/expense 50.5 Lunch at cafe @Food & Dining #Cash'
+        );
+        return res.status(200).send("OK");
+      }
+
+      // Handle /dashboard command
+      if (text === '/dashboard') {
+        const allExpenses = await storage.getAllExpenses();
+        const allCategories = await storage.getAllCategories();
+        const allPaymentMethods = await storage.getAllPaymentMethods();
+        
+        const totalSpent = allExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
+        const totalExpenses = allExpenses.length;
+        const totalCategories = allCategories.length;
+        const totalPaymentMethods = allPaymentMethods.length;
+        
+        const recentExpenses = allExpenses.slice(0, 5);
+        let recentList = '';
+        if (recentExpenses.length > 0) {
+          recentList = recentExpenses.map(e => 
+            `• AED ${parseFloat(e.amount).toFixed(2)} - ${e.description}\n  ${e.category} via ${e.paymentMethod}`
+          ).join('\n\n');
+        } else {
+          recentList = 'No expenses yet';
+        }
+        
+        await sendTelegramMessage(
+          chatId,
+          `📊 *Dashboard Summary*\n\n` +
+          `💰 Total Spent: AED ${totalSpent.toFixed(2)}\n` +
+          `📝 Total Expenses: ${totalExpenses}\n` +
+          `🏷️ Categories: ${totalCategories}\n` +
+          `💳 Payment Methods: ${totalPaymentMethods}\n\n` +
+          `🕐 *Recent Expenses:*\n\n${recentList}`
+        );
+        return res.status(200).send("OK");
+      }
+
+      // Handle /analytics command
+      if (text === '/analytics') {
+        const allExpenses = await storage.getAllExpenses();
+        const allCategories = await storage.getAllCategories();
+        
+        const categoryStats = allCategories.map(category => {
+          const categoryExpenses = allExpenses.filter(e => e.category.trim() === category.name.trim());
+          const total = categoryExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
+          return { name: category.name, total, count: categoryExpenses.length };
+        }).filter(stat => stat.count > 0).sort((a, b) => b.total - a.total);
+
+        const totalSpent = allExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
+        
+        let analyticsText = '📈 *Spending Analytics*\n\n';
+        
+        if (categoryStats.length > 0) {
+          categoryStats.forEach(stat => {
+            const percentage = totalSpent > 0 ? (stat.total / totalSpent * 100).toFixed(1) : '0';
+            analyticsText += `${stat.name}\n`;
+            analyticsText += `  AED ${stat.total.toFixed(2)} (${percentage}%) - ${stat.count} expenses\n\n`;
+          });
+        } else {
+          analyticsText += 'No expenses to analyze yet.';
+        }
+        
+        await sendTelegramMessage(chatId, analyticsText);
+        return res.status(200).send("OK");
+      }
+
+      // Handle /categories command
+      if (text === '/categories') {
+        const allCategories = await storage.getAllCategories();
+        const allExpenses = await storage.getAllExpenses();
+        
+        let categoriesText = '🏷️ *Categories*\n\n';
+        
+        if (allCategories.length > 0) {
+          allCategories.forEach(category => {
+            const categoryExpenses = allExpenses.filter(e => e.category.trim() === category.name.trim());
+            const total = categoryExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
+            const allocatedFunds = category.allocatedFunds ? parseFloat(category.allocatedFunds) : 0;
+            
+            categoriesText += `${category.icon || '📌'} *${category.name}*\n`;
+            if (allocatedFunds > 0) {
+              categoriesText += `  Budget: AED ${allocatedFunds.toFixed(2)}\n`;
+            }
+            categoriesText += `  Spent: AED ${total.toFixed(2)} (${categoryExpenses.length} expenses)\n\n`;
+          });
+        } else {
+          categoriesText += 'No categories found. Please add categories in the web app.';
+        }
+        
+        await sendTelegramMessage(chatId, categoriesText);
+        return res.status(200).send("OK");
+      }
+
+      // Handle /payments command
+      if (text === '/payments') {
+        const allPaymentMethods = await storage.getAllPaymentMethods();
+        
+        let paymentsText = '💳 *Payment Methods*\n\n';
+        
+        if (allPaymentMethods.length > 0) {
+          allPaymentMethods.forEach(method => {
+            const balance = method.balance ? parseFloat(method.balance) : 0;
+            const typeIcon = method.type === 'credit_card' ? '💳' : 
+                           method.type === 'debit_card' ? '🏦' : 
+                           method.type === 'bank_account' ? '🏛️' : '💵';
+            
+            paymentsText += `${typeIcon} *${method.name}*\n`;
+            paymentsText += `  Type: ${method.type.replace('_', ' ')}\n`;
+            paymentsText += `  Balance: AED ${balance.toFixed(2)}\n`;
+            
+            if (method.type === 'credit_card' && method.creditLimit) {
+              const creditLimit = parseFloat(method.creditLimit);
+              const utilization = (balance / creditLimit * 100).toFixed(1);
+              paymentsText += `  Credit Limit: AED ${creditLimit.toFixed(2)}\n`;
+              paymentsText += `  Utilization: ${utilization}%\n`;
+            }
+            
+            if (method.dueDate) {
+              paymentsText += `  Due Date: ${new Date(method.dueDate).toLocaleDateString()}\n`;
+            }
+            
+            paymentsText += '\n';
+          });
+        } else {
+          paymentsText += 'No payment methods found. Please add payment methods in the web app.';
+        }
+        
+        await sendTelegramMessage(chatId, paymentsText);
+        return res.status(200).send("OK");
+      }
+
+      // Handle /backup command
+      if (text === '/backup') {
+        const allExpenses = await storage.getAllExpenses();
+        const allCategories = await storage.getAllCategories();
+        const allPaymentMethods = await storage.getAllPaymentMethods();
+        const allFundHistory = await storage.getAllFundHistory();
+        
+        const backupData = {
+          expenses: allExpenses,
+          categories: allCategories,
+          paymentMethods: allPaymentMethods,
+          fundHistory: allFundHistory,
+          exportDate: new Date().toISOString(),
+        };
+        
+        const backupText = JSON.stringify(backupData, null, 2);
+        const fileName = `expense-tracker-backup-${new Date().toISOString().split('T')[0]}.json`;
+        
+        await sendTelegramDocument(
+          chatId,
+          fileName,
+          backupText,
+          `💾 *Backup Complete*\n\n` +
+          `Expenses: ${allExpenses.length}\n` +
+          `Categories: ${allCategories.length}\n` +
+          `Payment Methods: ${allPaymentMethods.length}\n\n` +
+          `To restore this backup, use the web app's Backup & Restore feature.`
         );
         return res.status(200).send("OK");
       }
