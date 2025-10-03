@@ -205,11 +205,11 @@ export function PaymentReminders() {
                         <p className="text-xs text-muted-foreground">
                           Due: {formatDate(reminder.nextDueDate)}
                         </p>
-                        {hasBalance && (
+                        {reminder.daysUntilDue <= 10 && (
                           <>
                             <span className="text-xs text-muted-foreground">•</span>
                             <p className="text-xs font-medium" data-testid={`text-balance-${reminder.paymentMethod.id}`}>
-                              Balance: {formatCurrency(balance)}
+                              Credit: {formatCurrency(balance)}
                             </p>
                           </>
                         )}
