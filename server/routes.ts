@@ -796,6 +796,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(200).send("OK");
       }
 
+      // Handle photo messages (receipt scanning)
+      if (update.message && update.message.photo) {
+        const chatId = update.message.chat.id.toString();
+        
+        const chatWhitelist = config.chatWhitelist || [];
+        if (chatWhitelist.length > 0 && !chatWhitelist.includes(chatId)) {
+          return res.status(403).json({ error: "Chat not authorized" });
+        }
+
+        try {
+          // Get the largest photo
+          const photo = update.message.photo[update.message.photo.length - 1];
+          const fileId = photo.file_id;
+          
+          // Get file path from Telegram
+          const fileResponse = await fetch(`https://api.telegram.org/bot${config.botToken}/getFile?file_id=${fileId}`);
+          const fileData = await fileResponse.json();
+          
+          if (fileData.ok && fileData.result.file_path) {
+            // Download the image
+            const imageUrl = `https://api.telegram.org/file/bot${config.botToken}/${fileData.result.file_path}`;
+            const imageResponse = await fetch(imageUrl);
+            const imageBuffer = await imageResponse.arrayBuffer();
+            const base64Image = Buffer.from(imageBuffer).toString('base64');
+            
+            // Process with AI
+            const { processTelegramMessage } = await import('./telegram-ai');
+            const aiResponse = await processTelegramMessage('', storage, base64Image);
+            
+            await sendTelegramMessage(chatId, aiResponse, createMainMenu());
+          } else {
+            await sendTelegramMessage(chatId, '❌ Failed to download image. Please try again.');
+          }
+        } catch (error) {
+          console.error('[Telegram Webhook] Error processing photo:', error);
+          await sendTelegramMessage(chatId, '❌ Failed to process receipt image. Please try again.');
+        }
+        
+        return res.status(200).send("OK");
+      }
+
       // Handle text messages
       if (update.message && update.message.text) {
         const chatId = update.message.chat.id.toString();
@@ -812,6 +853,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             chatId,
             '🎯 *Expense Tracker Bot*\n\n' +
             'Welcome! Use the menu buttons below to navigate.\n\n' +
+            '💡 You can also:\n' +
+            '• Type naturally: "Spent 50 AED on groceries"\n' +
+            '• Send receipt photos for auto-scanning\n\n' +
             'Your chat ID: ' + chatId,
             createMainMenu()
           );
@@ -819,8 +863,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(200).send("OK");
         }
 
-        // Handle other text messages (conversational flows)
-        await handleTextMessage(chatId, text, storage);
+        // Check if user is in a conversational flow (has a state)
+        const userState = await storage.getUserState(chatId);
+        
+        if (userState && userState.state) {
+          // Handle state-based text messages (button flows)
+          await handleTextMessage(chatId, text, storage);
+        } else {
+          // Handle natural language with AI
+          const { processTelegramMessage } = await import('./telegram-ai');
+          const aiResponse = await processTelegramMessage(text, storage);
+          await sendTelegramMessage(chatId, aiResponse, createMainMenu());
+        }
+        
         return res.status(200).send("OK");
       }
 
