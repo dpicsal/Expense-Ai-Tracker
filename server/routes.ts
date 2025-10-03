@@ -9,6 +9,7 @@ import {
   expenses, categories, fundHistory, paymentMethods, paymentMethodFundHistory
 } from "@shared/schema";
 import { z } from "zod";
+import { initializeTelegramBot, restartTelegramBot, sendTelegramMessage } from "./telegram-bot";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Get all expenses with optional date range filtering
@@ -687,6 +688,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertTelegramBotConfigSchema.parse(req.body);
       const config = await storage.createOrUpdateTelegramBotConfig(validatedData);
+      
+      // Restart the bot with new configuration
+      await restartTelegramBot(storage);
+      
       res.json(config);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -704,6 +709,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!success) {
         return res.status(404).json({ error: "Telegram bot configuration not found" });
       }
+      
+      // Stop the bot when configuration is deleted
+      await restartTelegramBot(storage);
+      
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting Telegram bot config:", error);
@@ -742,6 +751,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const text = update.message.text.trim();
       
+      // Handle /start command
+      if (text === '/start') {
+        await sendTelegramMessage(
+          chatId,
+          'Welcome to Expense Tracker Bot! 🎉\n\n' +
+          'Use /expense to add a new expense:\n' +
+          '/expense <amount> <description> @<category> #<payment-method>\n\n' +
+          'Example:\n' +
+          '/expense 50.5 Lunch at cafe @Food & Dining #Cash\n\n' +
+          'Your chat ID: ' + chatId
+        );
+        return res.status(200).send("OK");
+      }
+      
+      // Handle /help command
+      if (text === '/help') {
+        await sendTelegramMessage(
+          chatId,
+          'Expense Tracker Bot Commands:\n\n' +
+          '📝 /expense - Add a new expense\n' +
+          'Format: /expense <amount> <description> @<category> #<payment-method>\n\n' +
+          'Example:\n' +
+          '/expense 50.5 Lunch at cafe @Food & Dining #Cash\n\n' +
+          '💡 Tips:\n' +
+          '• Amount must be a positive number\n' +
+          '• Category must exist in your system\n' +
+          '• Payment method must exist\n' +
+          '• If no category is specified, "Other" will be used\n\n' +
+          'Your chat ID: ' + chatId
+        );
+        return res.status(200).send("OK");
+      }
+      
       if (!text.startsWith('/expense')) {
         return res.status(200).send("OK");
       }
@@ -750,12 +792,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const amountMatch = expenseCommand.match(/^(\d+(?:\.\d+)?)\s+(.+)/);
       if (!amountMatch) {
-        return res.status(400).json({ error: "Invalid expense format. Use: /expense <amount> <description> @<category> #<payment-method>" });
+        await sendTelegramMessage(
+          chatId,
+          '❌ Invalid format.\n\n' +
+          'Use: /expense <amount> <description> @<category> #<payment-method>\n\n' +
+          'Example:\n' +
+          '/expense 50.5 Lunch at cafe @Food & Dining #Cash'
+        );
+        return res.status(200).send("OK");
       }
 
       const amount = parseFloat(amountMatch[1]);
       if (isNaN(amount) || amount <= 0) {
-        return res.status(400).json({ error: "Invalid amount" });
+        await sendTelegramMessage(chatId, '❌ Invalid amount. Please provide a positive number.');
+        return res.status(200).send("OK");
       }
 
       const remainder = amountMatch[2];
@@ -772,7 +822,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .trim();
 
       if (!description) {
-        return res.status(400).json({ error: "Description is required" });
+        await sendTelegramMessage(chatId, '❌ Description is required.');
+        return res.status(200).send("OK");
       }
 
       if (!category) {
@@ -781,20 +832,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const existingCategory = await storage.getCategoryByName(category);
       if (!existingCategory) {
-        return res.status(400).json({ error: `Category '${category}' not found. Please create it first or use an existing category.` });
+        const categories = await storage.getAllCategories();
+        const categoryNames = categories.map(c => c.name).join(', ');
+        await sendTelegramMessage(
+          chatId,
+          `❌ Category '${category}' not found.\n\nAvailable categories:\n${categoryNames}`
+        );
+        return res.status(200).send("OK");
       }
 
+      let paymentMethodName = '';
       if (paymentMethod) {
         const paymentMethods = await storage.getAllPaymentMethods();
         const existingMethod = paymentMethods.find(pm => pm.name === paymentMethod);
         if (!existingMethod) {
-          return res.status(400).json({ error: `Payment method '${paymentMethod}' not found` });
+          const methodNames = paymentMethods.map(pm => pm.name).join(', ');
+          await sendTelegramMessage(
+            chatId,
+            `❌ Payment method '${paymentMethod}' not found.\n\nAvailable payment methods:\n${methodNames}`
+          );
+          return res.status(200).send("OK");
         }
+        paymentMethodName = paymentMethod;
         paymentMethod = existingMethod.id;
       }
 
       if (!paymentMethod) {
-        return res.status(400).json({ error: "Payment method is required" });
+        await sendTelegramMessage(chatId, '❌ Payment method is required. Use #<payment-method>');
+        return res.status(200).send("OK");
       }
 
       const expenseData = {
@@ -808,21 +873,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertExpenseSchema.parse(expenseData);
       const expense = await storage.createExpense(validatedData);
 
-      res.status(200).json({ 
-        success: true, 
-        message: `Expense added: ${description} - ${amount}`,
-        expense 
-      });
+      await sendTelegramMessage(
+        chatId,
+        `✅ Expense added successfully!\n\n` +
+        `💰 Amount: AED ${amount.toFixed(2)}\n` +
+        `📝 Description: ${description}\n` +
+        `📂 Category: ${category}\n` +
+        `💳 Payment: ${paymentMethodName}`
+      );
+
+      res.status(200).send("OK");
     } catch (error) {
       console.error("Error processing Telegram webhook:", error);
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Validation failed", details: error.errors });
+      const chatId = req.body?.message?.chat?.id;
+      if (chatId) {
+        await sendTelegramMessage(chatId, '❌ Failed to add expense. Please try again.');
       }
-      res.status(500).json({ error: "Internal server error" });
+      res.status(200).send("OK");
     }
   });
 
   const httpServer = createServer(app);
+
+  // Initialize Telegram bot on server start
+  await initializeTelegramBot(storage);
 
   return httpServer;
 }
