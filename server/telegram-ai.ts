@@ -66,7 +66,7 @@ interface Intent {
 
 export async function processTelegramMessage(chatId: string, message: string, storage: IStorage): Promise<void> {
   try {
-    const userState = await storage.getTelegramUserState(chatId);
+    const userState = await storage.getUserState(chatId);
     
     // Check if user is confirming or canceling an action
     if (userState?.state === 'awaiting_confirmation') {
@@ -74,11 +74,11 @@ export async function processTelegramMessage(chatId: string, message: string, st
       
       if (intent.action === 'confirm_action' || message.toLowerCase().includes('yes') || message.toLowerCase().includes('confirm')) {
         const pendingAction = JSON.parse(userState.data || '{}');
-        await storage.clearTelegramUserState(chatId);
+        await storage.clearUserState(chatId);
         await executePendingAction(chatId, pendingAction, storage);
         return;
       } else if (intent.action === 'cancel_action' || message.toLowerCase().includes('no') || message.toLowerCase().includes('cancel')) {
-        await storage.clearTelegramUserState(chatId);
+        await storage.clearUserState(chatId);
         await sendTelegramMessage(
           chatId,
           "✅ Action cancelled. What else can I help you with?",
@@ -336,7 +336,7 @@ async function handleAddExpense(chatId: string, intent: Intent, storage: IStorag
   await sendTelegramMessage(chatId, confirmMessage, confirmKeyboard);
   
   // Store pending action
-  await storage.setTelegramUserState(chatId, 'awaiting_confirmation', {
+  await storage.setUserState(chatId, 'awaiting_confirmation', {
     action: 'add_expense',
     amount: intent.amount,
     category: categoryName,
@@ -626,7 +626,7 @@ async function handleCreateCategory(chatId: string, intent: Intent, storage: ISt
   await sendTelegramMessage(chatId, confirmMessage, confirmKeyboard);
   
   // Store pending action
-  await storage.setTelegramUserState(chatId, 'awaiting_confirmation', {
+  await storage.setUserState(chatId, 'awaiting_confirmation', {
     action: 'create_category',
     categoryName: intent.categoryName,
     categoryColor: intent.categoryColor || 'bg-blue-500',
@@ -731,7 +731,7 @@ async function handleCreatePaymentMethod(chatId: string, intent: Intent, storage
   await sendTelegramMessage(chatId, confirmMessage, confirmKeyboard);
   
   // Store pending action
-  await storage.setTelegramUserState(chatId, 'awaiting_confirmation', {
+  await storage.setUserState(chatId, 'awaiting_confirmation', {
     action: 'create_payment_method',
     paymentMethodName: intent.paymentMethodName,
     paymentMethodType: intent.paymentMethodType || 'cash',
