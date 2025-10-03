@@ -14,6 +14,34 @@ export async function handleCallbackQuery(
 ): Promise<void> {
   await answerCallbackQuery(callbackQueryId);
 
+  // AI confirmation handlers
+  if (callbackData === 'confirm_ai_action') {
+    const userState = await storage.getUserState(chatId);
+    if (userState?.state === 'awaiting_confirmation') {
+      const pendingAction = JSON.parse(userState.data || '{}');
+      await storage.clearUserState(chatId);
+      
+      // Execute the pending AI action
+      const { processTelegramMessage } = await import('./telegram-ai');
+      // Trigger confirmation by sending "yes"
+      await processTelegramMessage(chatId, 'yes', storage);
+    }
+    return;
+  }
+
+  if (callbackData === 'cancel_ai_action') {
+    const userState = await storage.getUserState(chatId);
+    if (userState?.state === 'awaiting_confirmation') {
+      await storage.clearUserState(chatId);
+      await sendTelegramMessage(
+        chatId,
+        '✅ Action cancelled. What else can I help you with?',
+        createMainMenu()
+      );
+    }
+    return;
+  }
+
   // Main menu navigation
   if (callbackData === 'menu_main') {
     await sendTelegramMessage(

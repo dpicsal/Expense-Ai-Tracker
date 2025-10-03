@@ -821,11 +821,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const imageBuffer = await imageResponse.arrayBuffer();
             const base64Image = Buffer.from(imageBuffer).toString('base64');
             
-            // Process with AI
-            const { processTelegramMessage } = await import('./telegram-ai');
-            const aiResponse = await processTelegramMessage('', storage, base64Image);
-            
-            await sendTelegramMessage(chatId, aiResponse, createMainMenu());
+            // Process receipt image - this feature is for receipt scanning, not conversational AI
+            await sendTelegramMessage(chatId, "📸 Processing receipt... (Receipt scanning coming soon!)", createMainMenu());
           } else {
             await sendTelegramMessage(chatId, '❌ Failed to download image. Please try again.');
           }
@@ -866,14 +863,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Check if user is in a conversational flow (has a state)
         const userState = await storage.getUserState(chatId);
         
-        if (userState && userState.state) {
+        if (userState && userState.state && userState.state !== 'awaiting_confirmation') {
           // Handle state-based text messages (button flows)
           await handleTextMessage(chatId, text, storage);
         } else {
-          // Handle natural language with AI
+          // Handle natural language with AI (including confirmations)
           const { processTelegramMessage } = await import('./telegram-ai');
-          const aiResponse = await processTelegramMessage(text, storage);
-          await sendTelegramMessage(chatId, aiResponse, createMainMenu());
+          await processTelegramMessage(chatId, text, storage);
         }
         
         return res.status(200).send("OK");
