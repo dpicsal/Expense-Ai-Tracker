@@ -19,12 +19,23 @@ export async function handleCallbackQuery(
     const userState = await storage.getUserState(chatId);
     if (userState?.state === 'awaiting_confirmation') {
       const pendingAction = JSON.parse(userState.data || '{}');
-      await storage.clearUserState(chatId);
       
-      // Execute the pending AI action
-      const { processTelegramMessage } = await import('./telegram-ai');
-      // Trigger confirmation by sending "yes"
-      await processTelegramMessage(chatId, 'yes', storage);
+      try {
+        // Execute the pending AI action directly
+        const { executePendingAction } = await import('./telegram-ai');
+        await executePendingAction(chatId, pendingAction, storage);
+        
+        // Clear state only after successful execution
+        await storage.clearUserState(chatId);
+      } catch (error) {
+        console.error('[Telegram AI] Error executing pending action:', error);
+        await sendTelegramMessage(
+          chatId,
+          '❌ An error occurred while processing your request. Please try again.',
+          createMainMenu()
+        );
+        await storage.clearUserState(chatId);
+      }
     }
     return;
   }
