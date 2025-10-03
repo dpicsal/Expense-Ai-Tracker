@@ -222,7 +222,7 @@ export function createMainMenu(): InlineKeyboardMarkup {
 export async function sendTelegramDocument(
   chatId: number | string,
   fileName: string,
-  fileContent: string,
+  fileContent: string | Buffer,
   caption?: string,
   replyMarkup?: InlineKeyboardMarkup
 ): Promise<boolean> {
@@ -233,7 +233,16 @@ export async function sendTelegramDocument(
 
   try {
     const formData = new FormData();
-    const blob = new Blob([fileContent], { type: 'application/json' });
+    let blob: Blob;
+    
+    if (fileContent instanceof Buffer) {
+      blob = new Blob([fileContent], { 
+        type: fileName.endsWith('.xlsx') ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' : 'application/octet-stream' 
+      });
+    } else {
+      blob = new Blob([fileContent], { type: 'application/json' });
+    }
+    
     formData.append('chat_id', chatId.toString());
     formData.append('document', blob, fileName);
     

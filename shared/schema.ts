@@ -70,6 +70,14 @@ export const telegramBotConfigs = pgTable("telegram_bot_configs", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// Telegram User States - track conversation flows
+export const telegramUserStates = pgTable("telegram_user_states", {
+  chatId: text("chat_id").primaryKey(),
+  state: text("state"), // Current conversation state (add_expense, add_fund, make_payment, etc.)
+  data: text("data"), // JSON data for the current flow
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const insertCategorySchema = createInsertSchema(categories).omit({
   id: true,
   createdAt: true,
@@ -155,3 +163,6 @@ export type Expense = typeof expenses.$inferSelect;
 
 export type InsertTelegramBotConfig = z.infer<typeof insertTelegramBotConfigSchema>;
 export type TelegramBotConfig = typeof telegramBotConfigs.$inferSelect;
+
+export type TelegramUserState = typeof telegramUserStates.$inferSelect;
+export type InsertTelegramUserState = typeof telegramUserStates.$inferInsert;
