@@ -65,18 +65,25 @@ export function PaymentReminders() {
     (method) => method.type === "credit_card" && method.dueDate
   );
 
-  const reminders: PaymentReminderData[] = creditCards.map((method) => {
-    const daysUntilDue = calculateDaysUntilDue(method.dueDate!);
-    const nextDueDate = getNextDueDate(method.dueDate!);
-    const urgency = getUrgency(daysUntilDue);
-    
-    return {
-      paymentMethod: method,
-      daysUntilDue,
-      nextDueDate,
-      urgency,
-    };
-  }).sort((a, b) => a.daysUntilDue - b.daysUntilDue);
+  const reminders: PaymentReminderData[] = creditCards
+    .filter(method => {
+      const availableCredit = parseFloat(method.balance || "0");
+      const creditLimit = parseFloat(method.creditLimit || "0");
+      const amountOwed = creditLimit - availableCredit;
+      return amountOwed > 0;
+    })
+    .map((method) => {
+      const daysUntilDue = calculateDaysUntilDue(method.dueDate!);
+      const nextDueDate = getNextDueDate(method.dueDate!);
+      const urgency = getUrgency(daysUntilDue);
+      
+      return {
+        paymentMethod: method,
+        daysUntilDue,
+        nextDueDate,
+        urgency,
+      };
+    }).sort((a, b) => a.daysUntilDue - b.daysUntilDue);
 
   const urgentReminders = reminders.filter(r => r.urgency === "overdue" || r.urgency === "urgent");
 
