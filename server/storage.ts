@@ -1,8 +1,9 @@
 import { 
-  expenses, categories, fundHistory, paymentMethods, paymentMethodFundHistory,
+  expenses, categories, fundHistory, paymentMethods, paymentMethodFundHistory, telegramBotConfigs,
   type Expense, type InsertExpense, type Category, type InsertCategory,
   type FundHistory, type InsertFundHistory, type PaymentMethod, type InsertPaymentMethod,
-  type PaymentMethodFundHistory, type InsertPaymentMethodFundHistory
+  type PaymentMethodFundHistory, type InsertPaymentMethodFundHistory,
+  type TelegramBotConfig, type InsertTelegramBotConfig
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, sql, and, gte, lte } from "drizzle-orm";
@@ -68,6 +69,11 @@ export interface IStorage {
   
   // Backup & Restore
   clearAllData(): Promise<void>;
+
+  // Telegram Bot Config management
+  getTelegramBotConfig(): Promise<TelegramBotConfig | undefined>;
+  createOrUpdateTelegramBotConfig(config: InsertTelegramBotConfig): Promise<TelegramBotConfig>;
+  deleteTelegramBotConfig(): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -720,6 +726,41 @@ export class DatabaseStorage implements IStorage {
       await tx.delete(paymentMethods);
       await tx.delete(categories);
     });
+  }
+
+  async getTelegramBotConfig(): Promise<TelegramBotConfig | undefined> {
+    const [config] = await db.select().from(telegramBotConfigs).limit(1);
+    return config || undefined;
+  }
+
+  async createOrUpdateTelegramBotConfig(insertConfig: InsertTelegramBotConfig): Promise<TelegramBotConfig> {
+    const existing = await this.getTelegramBotConfig();
+    
+    if (existing) {
+      const [updated] = await db
+        .update(telegramBotConfigs)
+        .set({
+          ...insertConfig,
+          updatedAt: sql`NOW()`,
+        })
+        .where(eq(telegramBotConfigs.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      const [created] = await db
+        .insert(telegramBotConfigs)
+        .values(insertConfig)
+        .returning();
+      return created;
+    }
+  }
+
+  async deleteTelegramBotConfig(): Promise<boolean> {
+    const existing = await this.getTelegramBotConfig();
+    if (!existing) return false;
+    
+    const result = await db.delete(telegramBotConfigs).where(eq(telegramBotConfigs.id, existing.id));
+    return (result.rowCount || 0) > 0;
   }
 
 }

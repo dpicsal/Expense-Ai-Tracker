@@ -58,6 +58,18 @@ export const expenses = pgTable("expenses", {
   date: timestamp("date").notNull().defaultNow(),
 });
 
+// Telegram Bot Configuration table
+export const telegramBotConfigs = pgTable("telegram_bot_configs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  botToken: text("bot_token"), // Encrypted bot token
+  webhookSecret: text("webhook_secret"), // Secret token for webhook validation
+  chatWhitelist: text("chat_whitelist").array().default(sql`'{}'::text[]`), // Array of allowed chat IDs
+  isEnabled: boolean("is_enabled").default(false),
+  lastSyncedAt: timestamp("last_synced_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 export const insertCategorySchema = createInsertSchema(categories).omit({
   id: true,
   createdAt: true,
@@ -112,6 +124,18 @@ export const insertPaymentMethodFundHistorySchema = createInsertSchema(paymentMe
   addedAt: z.coerce.date(),
 });
 
+// Telegram Bot Config schemas
+export const insertTelegramBotConfigSchema = createInsertSchema(telegramBotConfigs).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  botToken: z.string().optional(),
+  webhookSecret: z.string().optional(),
+  chatWhitelist: z.array(z.string()).optional(),
+  isEnabled: z.boolean().optional(),
+});
+
 // Type exports
 
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
@@ -128,3 +152,6 @@ export type PaymentMethodFundHistory = typeof paymentMethodFundHistory.$inferSel
 
 export type InsertExpense = z.infer<typeof insertExpenseSchema>;
 export type Expense = typeof expenses.$inferSelect;
+
+export type InsertTelegramBotConfig = z.infer<typeof insertTelegramBotConfigSchema>;
+export type TelegramBotConfig = typeof telegramBotConfigs.$inferSelect;
