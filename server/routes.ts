@@ -917,7 +917,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // WhatsApp webhook to receive messages (POST)
   app.post("/api/integrations/whatsapp/webhook", async (req, res) => {
     try {
-      console.log('[WhatsApp Webhook] Received update:', JSON.stringify(req.body, null, 2));
+      console.log('[WhatsApp Webhook] ===== RECEIVED POST REQUEST =====');
+      console.log('[WhatsApp Webhook] Headers:', JSON.stringify(req.headers, null, 2));
+      console.log('[WhatsApp Webhook] Body:', JSON.stringify(req.body, null, 2));
       
       const config = await storage.getWhatsappBotConfig();
       
