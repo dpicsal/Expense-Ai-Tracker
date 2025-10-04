@@ -118,7 +118,7 @@ export async function processWhatsAppMessage(message: string, storage: IStorage,
     
     switch (intent.action) {
       case 'add_expense':
-        return await handleAddExpense(intent, storage, userId);
+        return await handleAddExpense(intent, storage);
       case 'view_expenses':
         return await handleViewExpenses(storage, intent);
       case 'view_summary':
@@ -129,7 +129,7 @@ export async function processWhatsAppMessage(message: string, storage: IStorage,
       case 'view_categories':
         return await handleViewCategories(storage);
       case 'create_category':
-        return await handleCreateCategory(intent, storage, userId);
+        return await handleCreateCategory(intent, storage);
       case 'update_category':
         return await handleUpdateCategory(intent, storage);
       case 'delete_category':
@@ -144,7 +144,7 @@ export async function processWhatsAppMessage(message: string, storage: IStorage,
       case 'view_payment_methods':
         return await handleViewPaymentMethods(storage);
       case 'create_payment_method':
-        return await handleCreatePaymentMethod(intent, storage, userId);
+        return await handleCreatePaymentMethod(intent, storage);
       case 'update_payment_method':
         return await handleUpdatePaymentMethod(intent, storage);
       case 'delete_payment_method':
@@ -385,7 +385,8 @@ async function handleViewExpenses(storage: IStorage, intent: Intent): Promise<st
   
   const recentExpenses = expenses.slice(0, 15);
   for (const expense of recentExpenses) {
-    const date = new Date(expense.date).toLocaleDateString();
+    const expDate = new Date(expense.date);
+    const date = `${expDate.getDate().toString().padStart(2, '0')}/${(expDate.getMonth() + 1).toString().padStart(2, '0')}/${expDate.getFullYear()}`;
     response += `💰 AED ${parseFloat(expense.amount.toString()).toFixed(2)}\n`;
     response += `📁 ${expense.category} | 💳 ${expense.paymentMethod}\n`;
     if (expense.description && expense.description !== 'WhatsApp expense') {
@@ -436,7 +437,9 @@ async function handleViewSummary(storage: IStorage, intent: Intent): Promise<str
   let response = `📈 *Spending Summary*\n\n`;
   response += `💰 Total Spent: AED ${total.toFixed(2)}\n`;
   response += `📝 Total Expenses: ${expenses.length}\n`;
-  response += `📅 Period: ${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}\n\n`;
+  const formattedStartDate = `${startDate.getDate().toString().padStart(2, '0')}/${(startDate.getMonth() + 1).toString().padStart(2, '0')}/${startDate.getFullYear()}`;
+  const formattedEndDate = `${endDate.getDate().toString().padStart(2, '0')}/${(endDate.getMonth() + 1).toString().padStart(2, '0')}/${endDate.getFullYear()}`;
+  response += `📅 Period: ${formattedStartDate} - ${formattedEndDate}\n\n`;
   
   if (categoryTotals.size > 0) {
     response += `📁 *By Category:*\n`;

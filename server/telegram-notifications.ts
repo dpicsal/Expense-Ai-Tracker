@@ -33,11 +33,8 @@ export async function notifyTelegramExpenseCreated(
       digital_wallet: '📱'
     }[paymentMethod.type] || '💰' : '💰';
 
-    const formattedDate = new Date(expense.date).toLocaleDateString('en-US', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
-    });
+    const date = new Date(expense.date);
+    const formattedDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
 
     const message = 
       `💰 *New Expense Added*\n\n` +

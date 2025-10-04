@@ -509,7 +509,8 @@ async function handleViewExpenses(chatId: string, storage: IStorage, intent: Int
   
   const recentExpenses = expenses.slice(0, 15);
   for (const expense of recentExpenses) {
-    const date = new Date(expense.date).toLocaleDateString();
+    const expDate = new Date(expense.date);
+    const date = `${expDate.getDate().toString().padStart(2, '0')}/${(expDate.getMonth() + 1).toString().padStart(2, '0')}/${expDate.getFullYear()}`;
     response += `💰 AED ${parseFloat(expense.amount).toFixed(2)}\n`;
     response += `📁 ${expense.category} | 💳 ${expense.paymentMethod}\n`;
     if (expense.description && expense.description !== 'Telegram expense') {
@@ -560,7 +561,9 @@ async function handleViewSummary(chatId: string, storage: IStorage, intent: Inte
   let response = `📈 *Spending Summary*\n\n`;
   response += `💰 Total Spent: AED ${total.toFixed(2)}\n`;
   response += `📝 Total Expenses: ${expenses.length}\n`;
-  response += `📅 Period: ${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}\n\n`;
+  const formattedStartDate = `${startDate.getDate().toString().padStart(2, '0')}/${(startDate.getMonth() + 1).toString().padStart(2, '0')}/${startDate.getFullYear()}`;
+  const formattedEndDate = `${endDate.getDate().toString().padStart(2, '0')}/${(endDate.getMonth() + 1).toString().padStart(2, '0')}/${endDate.getFullYear()}`;
+  response += `📅 Period: ${formattedStartDate} - ${formattedEndDate}\n\n`;
   
   if (categoryTotals.size > 0) {
     response += `📁 *By Category:*\n`;
@@ -1032,12 +1035,13 @@ Return only valid JSON, no markdown.`;
       : 'Receipt scan';
     const expenseDate = receiptData.date ? new Date(receiptData.date) : new Date();
 
+    const formattedExpenseDate = `${expenseDate.getDate().toString().padStart(2, '0')}/${(expenseDate.getMonth() + 1).toString().padStart(2, '0')}/${expenseDate.getFullYear()}`;
     const confirmMessage = 
       `📸 *Receipt Scanned!*\n\n` +
       `💰 Amount: AED ${receiptData.amount.toFixed(2)}\n` +
       (receiptData.merchant ? `🏪 Merchant: ${receiptData.merchant}\n` : '') +
       `📝 Description: ${description}\n` +
-      `📅 Date: ${expenseDate.toLocaleDateString()}\n\n` +
+      `📅 Date: ${formattedExpenseDate}\n\n` +
       (receiptData.items && receiptData.items.length > 0 
         ? `📋 Items:\n${receiptData.items.slice(0, 3).map(item => `• ${item}`).join('\n')}\n\n`
         : '') +
