@@ -34,7 +34,6 @@ export default function Settings() {
   const [deletingCategory, setDeletingCategory] = useState<Category | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [telegramBotToken, setTelegramBotToken] = useState("");
-  const [telegramWebhookSecret, setTelegramWebhookSecret] = useState("");
   const [telegramChatWhitelist, setTelegramChatWhitelist] = useState("");
   const [telegramIsEnabled, setTelegramIsEnabled] = useState(false);
   
@@ -73,7 +72,6 @@ export default function Settings() {
   useEffect(() => {
     if (telegramConfig) {
       setTelegramBotToken(telegramConfig.botToken || "");
-      setTelegramWebhookSecret(telegramConfig.webhookSecret || "");
       setTelegramChatWhitelist(telegramConfig.chatWhitelist?.join(", ") || "");
       setTelegramIsEnabled(telegramConfig.isEnabled || false);
     }
@@ -252,7 +250,6 @@ export default function Settings() {
     try {
       await updateTelegramConfig.mutateAsync({
         botToken: telegramBotToken || undefined,
-        webhookSecret: telegramWebhookSecret || undefined,
         chatWhitelist: telegramChatWhitelist ? telegramChatWhitelist.split(',').map(id => id.trim()).filter(Boolean) : [],
         isEnabled: telegramIsEnabled,
       });
@@ -273,7 +270,6 @@ export default function Settings() {
     try {
       await deleteTelegramConfig.mutateAsync();
       setTelegramBotToken("");
-      setTelegramWebhookSecret("");
       setTelegramChatWhitelist("");
       setTelegramIsEnabled(false);
       toast({
@@ -437,21 +433,6 @@ export default function Settings() {
                     />
                     <p className="text-xs text-muted-foreground">
                       Get your bot token from @BotFather on Telegram
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="webhook-secret">Webhook Secret</Label>
-                    <Input
-                      id="webhook-secret"
-                      type="password"
-                      placeholder="Enter webhook secret (optional)"
-                      value={telegramWebhookSecret}
-                      onChange={(e) => setTelegramWebhookSecret(e.target.value)}
-                      data-testid="input-webhook-secret"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Optional secret token for webhook validation
                     </p>
                   </div>
 
