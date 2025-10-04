@@ -33,12 +33,18 @@ export default function Categories() {
     const categoryExpenses = expenses.filter(e => e.category.trim() === categoryName);
     const total = categoryExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
     const count = categoryExpenses.length;
+    
+    // Get total funds added to this category from fund history
+    const categoryFunds = fundHistory.filter(f => f.categoryId === category.id);
+    const totalFundsAdded = categoryFunds.reduce((sum, f) => sum + parseFloat(f.amount), 0);
+    
     return { 
       ...category,
       category: categoryName, 
       color: category.color,
       icon: category.icon,
       allocatedFunds: category.allocatedFunds ? parseFloat(category.allocatedFunds) : 0,
+      totalFundsAdded, // Total funds added (for percentage calculation)
       total, 
       count 
     };
@@ -142,9 +148,9 @@ export default function Categories() {
       ) : (
         <div className={`grid ${isMobile ? 'gap-3' : 'gap-4'}`}>
           {categoryStats.map((categoryData) => {
-            const { category, color, icon, allocatedFunds, total, count } = categoryData;
-            const percentage = allocatedFunds > 0 ? (total / allocatedFunds) * 100 : 0;
-            const remaining = allocatedFunds - total;
+            const { category, color, icon, allocatedFunds, totalFundsAdded, total, count } = categoryData;
+            const percentage = totalFundsAdded > 0 ? (total / totalFundsAdded) * 100 : 0;
+            const remaining = allocatedFunds;
             const isExpanded = expandedHistories.has(category);
             
             return (
@@ -179,7 +185,7 @@ export default function Categories() {
                   </div>
                   
                   {/* Fund Information */}
-                  {allocatedFunds > 0 && (
+                  {totalFundsAdded > 0 && (
                     <div className="mb-4 p-4 rounded-xl dark:bg-gradient-to-r dark:from-[hsl(45,90%,55%)]/[0.08] dark:to-[hsl(270,60%,45%)]/[0.05] bg-muted/50 border dark:border-[hsl(45,60%,55%)]/20 border-border/30 backdrop-blur-sm shadow-lg relative overflow-hidden">
                       <div className="absolute inset-0 dark:bg-gradient-to-br dark:from-white/[0.02] dark:to-transparent pointer-events-none"></div>
                       <div className="flex items-center justify-between text-sm relative z-10">
@@ -187,10 +193,10 @@ export default function Categories() {
                           <div className="p-2 rounded-lg dark:bg-[hsl(45,90%,55%)]/20 bg-primary/5 shadow-md">
                             <Wallet className="h-4 w-4 text-primary drop-shadow-sm" />
                           </div>
-                          <span className="font-semibold dark:text-[hsl(45,30%,85%)]">Available Fund</span>
+                          <span className="font-semibold dark:text-[hsl(45,30%,85%)]">Total Allocated</span>
                         </div>
                         <span className="font-bold tabular-nums text-base dark:text-[hsl(45,90%,65%)] drop-shadow-sm" data-testid={`category-allocated-${category}`}>
-                          AED {allocatedFunds.toFixed(2)}
+                          AED {totalFundsAdded.toFixed(2)}
                         </span>
                       </div>
                     </div>
