@@ -67,9 +67,9 @@ export async function notifyTelegramExpenseCreated(
     const message = 
       `💰 *New Expense Added*\n\n` +
       `💵 Amount: *AED ${parseFloat(expense.amount).toFixed(2)}*\n` +
-      `🏷️ Category: ${escapeMarkdown(expense.category)}\n${categoryInfo}\n` +
+      `🏷️ Category: ${escapeMarkdown(expense.category)}\n` +
+      `📝 Description: ${escapeMarkdown(expense.description)}\n${categoryInfo}\n` +
       `${typeEmoji} Payment: ${escapeMarkdown(paymentName)}\n${paymentInfo}\n` +
-      `📝 Description: ${escapeMarkdown(expense.description)}\n` +
       `📅 Date: ${formattedDate}\n\n` +
       `━━━━━━━━━━━━━━━━━━━━`;
 
