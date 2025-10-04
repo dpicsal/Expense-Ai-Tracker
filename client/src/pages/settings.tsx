@@ -475,7 +475,7 @@ export default function Settings() {
                       onClick={handleSaveTelegramConfig}
                       disabled={updateTelegramConfig.isPending}
                       data-testid="button-save-telegram-config"
-                      className={isMobile ? 'w-full' : ''}
+                      className={isMobile ? 'w-full rounded-md' : ''}
                     >
                       {updateTelegramConfig.isPending ? (
                         <>
@@ -495,7 +495,7 @@ export default function Settings() {
                           variant="destructive"
                           disabled={deleteTelegramConfig.isPending}
                           data-testid="button-delete-telegram-config"
-                          className={isMobile ? 'w-full' : ''}
+                          className={isMobile ? 'w-full rounded-md' : ''}
                         >
                           <Trash className="h-4 w-4 mr-2" />
                           {isMobile ? 'Delete' : 'Delete Configuration'}
@@ -598,7 +598,7 @@ export default function Settings() {
                       onClick={handleSaveGeminiConfig}
                       disabled={updateGeminiConfig.isPending}
                       data-testid="button-save-gemini-config"
-                      className={isMobile ? 'w-full' : ''}
+                      className={isMobile ? 'w-full rounded-md' : ''}
                     >
                       {updateGeminiConfig.isPending ? (
                         <>
@@ -618,7 +618,7 @@ export default function Settings() {
                           variant="destructive"
                           disabled={deleteGeminiConfig.isPending}
                           data-testid="button-delete-gemini-config"
-                          className={isMobile ? 'w-full' : ''}
+                          className={isMobile ? 'w-full rounded-md' : ''}
                         >
                           <Trash className="h-4 w-4 mr-2" />
                           {isMobile ? 'Delete' : 'Delete Configuration'}
@@ -721,7 +721,7 @@ export default function Settings() {
                       onClick={handleSaveOpenAIConfig}
                       disabled={updateOpenAIConfig.isPending}
                       data-testid="button-save-openai-config"
-                      className={isMobile ? 'w-full' : ''}
+                      className={isMobile ? 'w-full rounded-md' : ''}
                     >
                       {updateOpenAIConfig.isPending ? (
                         <>
@@ -741,7 +741,7 @@ export default function Settings() {
                           variant="destructive"
                           disabled={deleteOpenAIConfig.isPending}
                           data-testid="button-delete-openai-config"
-                          className={isMobile ? 'w-full' : ''}
+                          className={isMobile ? 'w-full rounded-md' : ''}
                         >
                           <Trash className="h-4 w-4 mr-2" />
                           {isMobile ? 'Delete' : 'Delete Configuration'}
