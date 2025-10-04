@@ -364,7 +364,7 @@ export default function Settings() {
   };
 
   return (
-    <div className={`${isMobile ? 'space-y-4' : 'space-y-6'} animate-fade-in-up`}>
+    <div className={`${isMobile ? 'space-y-4 px-4' : 'space-y-6'} animate-fade-in-up`}>
       {/* Header */}
       <div className="space-y-1">
         <h1 className={`${isMobile ? 'text-2xl' : 'text-2xl md:text-4xl'} font-semibold tracking-tight text-foreground`}>
