@@ -53,7 +53,6 @@ export default function Settings() {
   const [openaiIsEnabled, setOpenaiIsEnabled] = useState(false);
 
   // Collapsible state for each section
-  const [appPrefsOpen, setAppPrefsOpen] = useState(false);
   const [telegramOpen, setTelegramOpen] = useState(false);
   const [whatsappOpen, setWhatsappOpen] = useState(false);
   const [geminiOpen, setGeminiOpen] = useState(false);
@@ -468,57 +467,6 @@ export default function Settings() {
           Manage your app preferences and integrations
         </p>
       </div>
-
-      {/* App Preferences */}
-      <Collapsible open={appPrefsOpen} onOpenChange={setAppPrefsOpen}>
-        <Card className="shadow-md hover-elevate">
-          <CollapsibleTrigger className="w-full" data-testid="toggle-app-preferences">
-            <CardHeader className={isMobile ? 'pb-3 px-4 pt-4' : 'pb-4'}>
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className={`${isMobile ? 'p-1.5' : 'p-2'} rounded-lg bg-green-100 dark:bg-green-900`}>
-                    <Shield className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-green-600 dark:text-green-400`} />
-                  </div>
-                  <div className="text-left">
-                    <CardTitle className={`${isMobile ? 'text-base' : 'text-lg md:text-xl'} font-semibold`}>App Preferences</CardTitle>
-                    <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground mt-1`}>
-                      {appPrefsOpen ? 'Control app features and permissions' : 'Manage category settings'}
-                    </p>
-                  </div>
-                </div>
-                <ChevronDown className={cn("h-5 w-5 transition-transform text-muted-foreground", appPrefsOpen && "rotate-180")} />
-              </div>
-            </CardHeader>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <CardContent className="pt-0">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border border-border/50 rounded-lg bg-card/50">
-                  <div className="space-y-1">
-                    <div className="font-medium text-foreground">Category Management</div>
-                    <p className="text-sm text-muted-foreground">
-                      Allow adding, editing, and deleting expense categories
-                    </p>
-                  </div>
-                  <Switch
-                    checked={settings.allowCategoryManagement}
-                    onCheckedChange={(checked) => {
-                      updateSettings({ allowCategoryManagement: checked });
-                      toast({
-                        title: checked ? "Category Management Enabled" : "Category Management Disabled",
-                        description: checked 
-                          ? "You can now add, edit, and delete categories" 
-                          : "Category management has been disabled",
-                      });
-                    }}
-                    data-testid="switch-category-management"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
 
       {/* Telegram Bot Configuration */}
       <Collapsible open={telegramOpen} onOpenChange={setTelegramOpen}>
@@ -1136,33 +1084,57 @@ export default function Settings() {
       </Collapsible>
 
       {/* Category Management */}
-      {settings.allowCategoryManagement && (
-        <Collapsible open={categoryOpen} onOpenChange={setCategoryOpen}>
-          <Dialog open={isDialogOpen} onOpenChange={(open) => {
-            setIsDialogOpen(open);
-            if (!open) setEditingCategory(null);
-          }}>
-            <Card className="shadow-md hover-elevate">
-              <CollapsibleTrigger className="w-full" data-testid="toggle-category-management">
-                <CardHeader className={isMobile ? 'pb-3 px-4 pt-4' : 'pb-4'}>
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className={`${isMobile ? 'p-1.5' : 'p-2'} rounded-lg bg-primary/10`}>
-                        <SettingsIcon className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-primary`} />
-                      </div>
-                      <div className="text-left">
-                        <CardTitle className={`${isMobile ? 'text-base' : 'text-lg md:text-xl'} font-semibold`}>Category Management</CardTitle>
-                        <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground mt-1`}>
-                          {categoryOpen ? 'Add, edit, or remove expense categories' : `${categories.length} categories`}
-                        </div>
+      <Collapsible open={categoryOpen} onOpenChange={setCategoryOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) setEditingCategory(null);
+        }}>
+          <Card className="shadow-md hover-elevate">
+            <CollapsibleTrigger className="w-full" data-testid="toggle-category-management">
+              <CardHeader className={isMobile ? 'pb-3 px-4 pt-4' : 'pb-4'}>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`${isMobile ? 'p-1.5' : 'p-2'} rounded-lg bg-primary/10`}>
+                      <SettingsIcon className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-primary`} />
+                    </div>
+                    <div className="text-left">
+                      <CardTitle className={`${isMobile ? 'text-base' : 'text-lg md:text-xl'} font-semibold`}>Category Management</CardTitle>
+                      <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground mt-1`}>
+                        {categoryOpen ? 'Manage expense categories' : settings.allowCategoryManagement ? `${categories.length} categories` : 'Disabled'}
                       </div>
                     </div>
-                    <ChevronDown className={cn("h-5 w-5 transition-transform text-muted-foreground", categoryOpen && "rotate-180")} />
                   </div>
-                </CardHeader>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <CardContent className="pt-0">
+                  <ChevronDown className={cn("h-5 w-5 transition-transform text-muted-foreground", categoryOpen && "rotate-180")} />
+                </div>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="pt-0">
+                <div className="space-y-4 mb-4">
+                  <div className="flex items-center justify-between p-4 border border-border/50 rounded-lg bg-card/50">
+                    <div className="space-y-1">
+                      <div className="font-medium text-foreground">Enable Category Management</div>
+                      <p className="text-sm text-muted-foreground">
+                        Allow adding, editing, and deleting expense categories
+                      </p>
+                    </div>
+                    <Switch
+                      checked={settings.allowCategoryManagement}
+                      onCheckedChange={(checked) => {
+                        updateSettings({ allowCategoryManagement: checked });
+                        toast({
+                          title: checked ? "Category Management Enabled" : "Category Management Disabled",
+                          description: checked 
+                            ? "You can now add, edit, and delete categories" 
+                            : "Category management has been disabled",
+                        });
+                      }}
+                      data-testid="switch-category-management"
+                    />
+                  </div>
+                </div>
+                {settings.allowCategoryManagement && (
+                  <>
                   {isLoading ? (
                     <div className="text-center py-8 text-muted-foreground">
                       <div className="flex flex-col items-center gap-3">
@@ -1279,29 +1251,30 @@ export default function Settings() {
                       </div>
                     </>
                   )}
-                </CardContent>
-              </CollapsibleContent>
-            </Card>
-            <DialogContent className={isMobile ? 'w-[95vw] max-w-md' : 'sm:max-w-md'}>
-              <DialogHeader>
-                <DialogTitle>
-                  {editingCategory ? 'Edit Category' : 'Add New Category'}
-                </DialogTitle>
-                <DialogDescription>
-                  {editingCategory 
-                    ? 'Modify the category details below. Changes will affect existing expenses in this category.'
-                    : 'Create a new category to organize your expenses with custom colors and budget settings.'}
-                </DialogDescription>
-              </DialogHeader>
-              <CategoryForm 
-                onClose={() => setIsDialogOpen(false)}
-                initialData={editingCategory || undefined}
-                isEditing={!!editingCategory}
-              />
-            </DialogContent>
-          </Dialog>
-        </Collapsible>
-      )}
+                </>
+                )}
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+          <DialogContent className={isMobile ? 'w-[95vw] max-w-md' : 'sm:max-w-md'}>
+            <DialogHeader>
+              <DialogTitle>
+                {editingCategory ? 'Edit Category' : 'Add New Category'}
+              </DialogTitle>
+              <DialogDescription>
+                {editingCategory 
+                  ? 'Modify the category details below. Changes will affect existing expenses in this category.'
+                  : 'Create a new category to organize your expenses with custom colors and budget settings.'}
+              </DialogDescription>
+            </DialogHeader>
+            <CategoryForm 
+              onClose={() => setIsDialogOpen(false)}
+              initialData={editingCategory || undefined}
+              isEditing={!!editingCategory}
+            />
+          </DialogContent>
+        </Dialog>
+      </Collapsible>
 
       {/* Reports & Export */}
       {!isMobile && (
