@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Edit, Trash2, Settings as SettingsIcon, Download, FileSpreadsheet, Shield, Bot, Save, Trash, Copy, Check, ChevronDown } from "lucide-react";
+import { Plus, Edit, Trash2, Settings as SettingsIcon, Download, FileSpreadsheet, Send, MessageCircle, Sparkles, Zap, Save, Trash, Copy, Check, ChevronDown } from "lucide-react";
 import * as Icons from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -476,7 +476,7 @@ export default function Settings() {
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className={`${isMobile ? 'p-1.5' : 'p-2'} rounded-lg bg-purple-100 dark:bg-purple-900`}>
-                    <Bot className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-purple-600 dark:text-purple-400`} />
+                    <Send className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-purple-600 dark:text-purple-400`} />
                   </div>
                   <div className="text-left">
                     <CardTitle className={`${isMobile ? 'text-base' : 'text-lg md:text-xl'} font-semibold`}>Telegram Bot</CardTitle>
@@ -627,7 +627,7 @@ export default function Settings() {
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className={`${isMobile ? 'p-1.5' : 'p-2'} rounded-lg bg-blue-100 dark:bg-blue-900`}>
-                    <Bot className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-blue-600 dark:text-blue-400`} />
+                    <MessageCircle className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-blue-600 dark:text-blue-400`} />
                   </div>
                   <div className="text-left">
                     <CardTitle className={`${isMobile ? 'text-base' : 'text-lg md:text-xl'} font-semibold`}>WhatsApp Bot</CardTitle>
@@ -849,7 +849,7 @@ export default function Settings() {
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className={`${isMobile ? 'p-1.5' : 'p-2'} rounded-lg bg-orange-100 dark:bg-orange-900`}>
-                    <Bot className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-orange-600 dark:text-orange-400`} />
+                    <Sparkles className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-orange-600 dark:text-orange-400`} />
                   </div>
                   <div className="text-left">
                     <CardTitle className={`${isMobile ? 'text-base' : 'text-lg md:text-xl'} font-semibold`}>Gemini AI</CardTitle>
@@ -970,7 +970,7 @@ export default function Settings() {
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className={`${isMobile ? 'p-1.5' : 'p-2'} rounded-lg bg-emerald-100 dark:bg-emerald-900`}>
-                    <Bot className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-emerald-600 dark:text-emerald-400`} />
+                    <Zap className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-emerald-600 dark:text-emerald-400`} />
                   </div>
                   <div className="text-left">
                     <CardTitle className={`${isMobile ? 'text-base' : 'text-lg md:text-xl'} font-semibold`}>OpenAI</CardTitle>
