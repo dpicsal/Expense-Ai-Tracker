@@ -932,29 +932,64 @@ export async function processVoiceMessage(
   try {
     await sendTelegramMessage(chatId, '🎙️ Transcribing voice message...');
 
-    // Get OpenAI client for Whisper transcription
+    let transcribedText = '';
+
+    // Try OpenAI Whisper first
     const openai = await getOpenAIClient(storage);
-    
-    if (!openai) {
-      await sendTelegramMessage(
-        chatId,
-        '❌ Voice transcription requires OpenAI. Please enable OpenAI in settings.',
-        createMainMenu()
-      );
-      return;
+    if (openai) {
+      try {
+        console.log('[Telegram AI] Using OpenAI Whisper for voice transcription');
+        const file = new File([voiceBuffer], 'voice.ogg', { type: 'audio/ogg' });
+        
+        const transcription = await openai.audio.transcriptions.create({
+          file: file,
+          model: "whisper-1",
+          language: "en"
+        });
+
+        transcribedText = transcription.text;
+      } catch (error) {
+        console.error('[Telegram AI] OpenAI Whisper failed, falling back to Gemini:', error);
+      }
     }
 
-    // Create a File-like object from the buffer (Telegram voice is in OGG format)
-    const file = new File([voiceBuffer], 'voice.ogg', { type: 'audio/ogg' });
-    
-    // Transcribe using OpenAI Whisper
-    const transcription = await openai.audio.transcriptions.create({
-      file: file,
-      model: "whisper-1",
-      language: "en"
-    });
+    // Fallback to Gemini AI
+    if (!transcribedText || transcribedText.trim() === '') {
+      const ai = await getGeminiAI(storage);
+      
+      if (!ai) {
+        await sendTelegramMessage(
+          chatId,
+          '❌ Voice transcription requires OpenAI or Gemini AI. Please enable one in settings.',
+          createMainMenu()
+        );
+        return;
+      }
 
-    const transcribedText = transcription.text;
+      try {
+        console.log('[Telegram AI] Using Gemini AI for voice transcription');
+        
+        // Convert buffer to base64 for Gemini
+        const base64Audio = voiceBuffer.toString('base64');
+        
+        const response = await ai.models.generateContent({
+          model: "gemini-2.0-flash-exp",
+          contents: [
+            {
+              inlineData: {
+                mimeType: 'audio/ogg',
+                data: base64Audio
+              }
+            },
+            "Transcribe this audio to text. Only return the transcribed text, nothing else."
+          ]
+        });
+
+        transcribedText = response.text?.trim() || '';
+      } catch (error) {
+        console.error('[Telegram AI] Gemini transcription failed:', error);
+      }
+    }
     
     if (!transcribedText || transcribedText.trim() === '') {
       await sendTelegramMessage(
