@@ -470,11 +470,12 @@ export default function Settings() {
                     </p>
                   </div>
 
-                  <div className="flex gap-2 pt-2">
+                  <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} gap-2 pt-2`}>
                     <Button
                       onClick={handleSaveTelegramConfig}
                       disabled={updateTelegramConfig.isPending}
                       data-testid="button-save-telegram-config"
+                      className={isMobile ? 'w-full' : ''}
                     >
                       {updateTelegramConfig.isPending ? (
                         <>
@@ -484,7 +485,7 @@ export default function Settings() {
                       ) : (
                         <>
                           <Save className="h-4 w-4 mr-2" />
-                          Save Configuration
+                          {isMobile ? 'Save' : 'Save Configuration'}
                         </>
                       )}
                     </Button>
@@ -494,9 +495,10 @@ export default function Settings() {
                           variant="destructive"
                           disabled={deleteTelegramConfig.isPending}
                           data-testid="button-delete-telegram-config"
+                          className={isMobile ? 'w-full' : ''}
                         >
                           <Trash className="h-4 w-4 mr-2" />
-                          Delete Configuration
+                          {isMobile ? 'Delete' : 'Delete Configuration'}
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
@@ -591,11 +593,12 @@ export default function Settings() {
                     </p>
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} gap-2`}>
                     <Button
                       onClick={handleSaveGeminiConfig}
                       disabled={updateGeminiConfig.isPending}
                       data-testid="button-save-gemini-config"
+                      className={isMobile ? 'w-full' : ''}
                     >
                       {updateGeminiConfig.isPending ? (
                         <>
@@ -605,7 +608,7 @@ export default function Settings() {
                       ) : (
                         <>
                           <Save className="h-4 w-4 mr-2" />
-                          Save Configuration
+                          {isMobile ? 'Save' : 'Save Configuration'}
                         </>
                       )}
                     </Button>
@@ -615,9 +618,10 @@ export default function Settings() {
                           variant="destructive"
                           disabled={deleteGeminiConfig.isPending}
                           data-testid="button-delete-gemini-config"
+                          className={isMobile ? 'w-full' : ''}
                         >
                           <Trash className="h-4 w-4 mr-2" />
-                          Delete Configuration
+                          {isMobile ? 'Delete' : 'Delete Configuration'}
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
@@ -712,11 +716,12 @@ export default function Settings() {
                     </p>
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} gap-2`}>
                     <Button
                       onClick={handleSaveOpenAIConfig}
                       disabled={updateOpenAIConfig.isPending}
                       data-testid="button-save-openai-config"
+                      className={isMobile ? 'w-full' : ''}
                     >
                       {updateOpenAIConfig.isPending ? (
                         <>
@@ -726,7 +731,7 @@ export default function Settings() {
                       ) : (
                         <>
                           <Save className="h-4 w-4 mr-2" />
-                          Save Configuration
+                          {isMobile ? 'Save' : 'Save Configuration'}
                         </>
                       )}
                     </Button>
@@ -736,9 +741,10 @@ export default function Settings() {
                           variant="destructive"
                           disabled={deleteOpenAIConfig.isPending}
                           data-testid="button-delete-openai-config"
+                          className={isMobile ? 'w-full' : ''}
                         >
                           <Trash className="h-4 w-4 mr-2" />
-                          Delete Configuration
+                          {isMobile ? 'Delete' : 'Delete Configuration'}
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
