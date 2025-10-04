@@ -3,7 +3,7 @@ import type { Expense, Category, PaymentMethod } from '@shared/schema';
 import { sendTelegramMessage } from './telegram-bot';
 
 function escapeMarkdown(text: string): string {
-  return text.replace(/([_*\[\]()~`>#+\-=|{}.!])/g, '\\$1');
+  return text.replace(/([_*\[\]()~`>#+=|{}.!])/g, '\\$1');
 }
 
 export async function notifyTelegramExpenseCreated(
@@ -22,13 +22,30 @@ export async function notifyTelegramExpenseCreated(
       return;
     }
 
+    const paymentMethod = await storage.getPaymentMethod(expense.paymentMethod);
+    const paymentName = paymentMethod?.name || 'Unknown';
+
+    const typeEmoji = paymentMethod ? {
+      cash: '💵',
+      credit_card: '💳',
+      debit_card: '🏦',
+      bank_transfer: '🏛️',
+      digital_wallet: '📱'
+    }[paymentMethod.type] || '💰' : '💰';
+
+    const formattedDate = new Date(expense.date).toLocaleDateString('en-US', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+
     const message = 
       `💰 *New Expense Added*\n\n` +
-      `Amount: AED ${parseFloat(expense.amount).toFixed(2)}\n` +
-      `Category: ${escapeMarkdown(expense.category)}\n` +
-      `Payment: ${escapeMarkdown(expense.paymentMethod)}\n` +
-      `Description: ${escapeMarkdown(expense.description)}\n` +
-      `Date: ${new Date(expense.date).toLocaleDateString()}`;
+      `💵 Amount: *AED ${parseFloat(expense.amount).toFixed(2)}*\n` +
+      `🏷️ Category: ${escapeMarkdown(expense.category)}\n` +
+      `${typeEmoji} Payment: ${escapeMarkdown(paymentName)}\n` +
+      `📝 Description: ${escapeMarkdown(expense.description)}\n` +
+      `📅 Date: ${formattedDate}`;
 
     for (const chatId of chatWhitelist) {
       try {
@@ -58,11 +75,12 @@ export async function notifyTelegramCategoryCreated(
       return;
     }
 
+    const icon = category.icon || '🏷️';
     const message = 
       `🏷️ *New Category Created*\n\n` +
-      `Name: ${escapeMarkdown(category.name)}\n` +
-      `Allocated Funds: AED ${parseFloat(category.allocatedFunds || '0').toFixed(2)}` +
-      (category.budget ? `\nBudget: AED ${parseFloat(category.budget).toFixed(2)}` : '');
+      `${icon} Name: *${escapeMarkdown(category.name)}*\n` +
+      `💰 Allocated Funds: AED ${parseFloat(category.allocatedFunds || '0').toFixed(2)}` +
+      (category.budget ? `\n📊 Budget: AED ${parseFloat(category.budget).toFixed(2)}` : '');
 
     for (const chatId of chatWhitelist) {
       try {
@@ -100,12 +118,14 @@ export async function notifyTelegramPaymentMethodCreated(
       digital_wallet: '📱'
     }[paymentMethod.type] || '💰';
 
+    const typeName = paymentMethod.type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
     const message = 
       `${typeEmoji} *New Payment Method Created*\n\n` +
-      `Name: ${escapeMarkdown(paymentMethod.name)}\n` +
-      `Type: ${escapeMarkdown(paymentMethod.type.replace('_', ' '))}\n` +
-      `Balance: AED ${parseFloat(paymentMethod.balance || '0').toFixed(2)}` +
-      (paymentMethod.creditLimit ? `\nCredit Limit: AED ${parseFloat(paymentMethod.creditLimit).toFixed(2)}` : '');
+      `${typeEmoji} Name: *${escapeMarkdown(paymentMethod.name)}*\n` +
+      `📋 Type: ${typeName}\n` +
+      `💰 Balance: AED ${parseFloat(paymentMethod.balance || '0').toFixed(2)}` +
+      (paymentMethod.creditLimit ? `\n💳 Credit Limit: AED ${parseFloat(paymentMethod.creditLimit).toFixed(2)}` : '');
 
     for (const chatId of chatWhitelist) {
       try {
