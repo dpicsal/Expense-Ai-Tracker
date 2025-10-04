@@ -217,7 +217,7 @@ Analyze user messages and extract their intent with high precision. Be context-a
 - cancel_action: "no", "cancel", "stop", "nevermind", "don't do it"
 
 **EXPENSE MANAGEMENT:**
-- add_expense: "spent 50 AED on food", "paid 100 for lunch", "groceries 75 AED", "bought coffee 15", "dinner was 200 yesterday"
+- add_expense: "spent 50 AED on food", "paid 100 for lunch", "groceries 75 AED", "bought coffee 15", "dinner was 200 yesterday", "I am buying coffee 5 dirham", "buying one coffee cup 5 dirham", "5 AED coffee", "coffee for 5", "I spent 20 dirham on food"
 - view_expenses: "show expenses", "list spending", "what did I spend", "my expenses", "expense history"
 - view_summary: "summary", "monthly report", "spending breakdown", "how much did I spend", "total expenses"
 - delete_expense: "delete last expense", "remove last one", "undo", "cancel last entry"
@@ -246,8 +246,12 @@ Analyze user messages and extract their intent with high precision. Be context-a
 
 **SMART EXTRACTION RULES:**
 1. For expenses: extract amount, category, description, date, paymentMethod
+   - Amount can be in AED, Dirham, or just a number. "Dirham" = "AED"
    - Examples: "spent 50 on food" → amount=50, category="Food"
    - "paid 100 for groceries with Chase" → amount=100, category="Groceries", paymentMethod="Chase"
+   - "I am buying coffee 5 dirham" → amount=5, category="Food & Dining", description="coffee"
+   - "buying one coffee cup 5 dirham" → amount=5, category="Food & Dining", description="coffee cup"
+   - "5 AED coffee" → amount=5, category="Food & Dining", description="coffee"
 
 2. For categories: extract categoryName, budgetAmount, allocatedFunds, categoryColor, categoryIcon
    - Examples: "create Food with 500 budget" → categoryName="Food", budgetAmount=500
