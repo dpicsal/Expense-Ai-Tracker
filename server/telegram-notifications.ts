@@ -39,25 +39,29 @@ export async function notifyTelegramExpenseCreated(
     // Get category information and calculate available amount
     const category = await storage.getCategoryByName(expense.category);
     let categoryInfo = '';
-    let totalSpent = 0;
-    let totalAllocated = 0;
     
     if (category) {
       const categoryFundHistory = await storage.getFundHistoryByCategory(category.id);
-      totalAllocated = categoryFundHistory.reduce((sum, f) => sum + parseFloat(f.amount), 0);
+      const totalAllocated = categoryFundHistory.reduce((sum, f) => sum + parseFloat(f.amount), 0);
       const allExpenses = await storage.getAllExpenses();
       const categoryExpenses = allExpenses.filter(e => e.category.trim() === expense.category.trim());
-      totalSpent = categoryExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
+      const totalSpent = categoryExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
       const available = totalAllocated - totalSpent;
       
-      categoryInfo = `   Available: *AED ${available.toFixed(2)}*`;
+      categoryInfo = `   Available: *AED ${available.toFixed(2)}*\n   Total spend: *AED ${totalSpent.toFixed(2)}*`;
     }
 
-    // Get payment method balance information
+    // Get payment method balance and total spend information
     let paymentInfo = '';
     if (paymentMethod) {
       const currentBalance = parseFloat(paymentMethod.balance || '0');
-      paymentInfo = `   Available: *AED ${currentBalance.toFixed(2)}*`;
+      
+      // Calculate total spend for this payment method
+      const allExpenses = await storage.getAllExpenses();
+      const paymentExpenses = allExpenses.filter(e => e.paymentMethod === paymentMethod.id);
+      const paymentTotalSpent = paymentExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
+      
+      paymentInfo = `   Available: *AED ${currentBalance.toFixed(2)}*\n   Total spend: *AED ${paymentTotalSpent.toFixed(2)}*`;
     }
 
     const message = 
@@ -67,10 +71,7 @@ export async function notifyTelegramExpenseCreated(
       `${typeEmoji} Payment: ${escapeMarkdown(paymentName)}\n${paymentInfo}\n` +
       `📝 Description: ${escapeMarkdown(expense.description)}\n` +
       `📅 Date: ${formattedDate}\n\n` +
-      `━━━━━━━━━━━━━━━━━━━━\n` +
-      `📊 *Summary*\n` +
-      `Category spent *AED ${totalSpent.toFixed(2)}* of *AED ${totalAllocated.toFixed(2)}*\n` +
-      `Payment method has *AED ${paymentMethod ? parseFloat(paymentMethod.balance || '0').toFixed(2) : '0.00'}* remaining`;
+      `━━━━━━━━━━━━━━━━━━━━`;
 
     for (const chatId of chatWhitelist) {
       try {
