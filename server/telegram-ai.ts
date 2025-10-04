@@ -924,6 +924,118 @@ interface ReceiptData {
   confidence: 'high' | 'medium' | 'low';
 }
 
+export async function processVoiceMessage(
+  chatId: string,
+  voiceBuffer: Buffer,
+  storage: IStorage
+): Promise<void> {
+  try {
+    await sendTelegramMessage(chatId, '🎙️ Transcribing voice message...');
+
+    // Get OpenAI client for Whisper transcription
+    const openai = await getOpenAIClient(storage);
+    
+    if (!openai) {
+      await sendTelegramMessage(
+        chatId,
+        '❌ Voice transcription requires OpenAI. Please enable OpenAI in settings.',
+        createMainMenu()
+      );
+      return;
+    }
+
+    // Create a File-like object from the buffer (Telegram voice is in OGG format)
+    const file = new File([voiceBuffer], 'voice.ogg', { type: 'audio/ogg' });
+    
+    // Transcribe using OpenAI Whisper
+    const transcription = await openai.audio.transcriptions.create({
+      file: file,
+      model: "whisper-1",
+      language: "en"
+    });
+
+    const transcribedText = transcription.text;
+    
+    if (!transcribedText || transcribedText.trim() === '') {
+      await sendTelegramMessage(
+        chatId,
+        '❌ Could not transcribe voice message. Please try again or type your message.',
+        createMainMenu()
+      );
+      return;
+    }
+
+    console.log('[Telegram AI] Voice transcribed:', transcribedText);
+
+    // Extract intent from transcribed text
+    const intent = await extractIntent(transcribedText, storage);
+
+    // Handle add_expense intent
+    if (intent.action === 'add_expense') {
+      if (!intent.amount) {
+        await sendTelegramMessage(
+          chatId,
+          `🎙️ *Transcribed:* "${transcribedText}"\n\n❌ I couldn't find an amount. Please specify how much you spent.\n\n💡 Example: "I spent 50 AED on groceries"`,
+          createMainMenu()
+        );
+        return;
+      }
+
+      const suggestedCategory = intent.category || 'Other';
+      const paymentMethodName = intent.paymentMethod || 'Telegram';
+      const description = intent.description || transcribedText;
+      const expenseDate = intent.date ? new Date(intent.date) : new Date();
+
+      const formattedExpenseDate = `${expenseDate.getDate().toString().padStart(2, '0')}/${(expenseDate.getMonth() + 1).toString().padStart(2, '0')}/${expenseDate.getFullYear()}`;
+      
+      const confirmMessage = 
+        `🎙️ *Voice Message Transcribed!*\n\n` +
+        `📝 "${transcribedText}"\n\n` +
+        `💰 Amount: AED ${intent.amount.toFixed(2)}\n` +
+        `📝 Description: ${description}\n` +
+        `📅 Date: ${formattedExpenseDate}\n\n` +
+        `Would you like to add this expense?`;
+
+      const confirmKeyboard = createInlineKeyboard([
+        [
+          { text: '✅ Yes, Add It', callback_data: 'confirm_ai_action' },
+          { text: '❌ Cancel', callback_data: 'cancel_ai_action' }
+        ]
+      ]);
+
+      await sendTelegramMessage(chatId, confirmMessage, confirmKeyboard);
+
+      await storage.setUserState(chatId, 'awaiting_confirmation', {
+        action: 'add_expense_from_voice',
+        amount: intent.amount,
+        suggestedCategory: suggestedCategory,
+        paymentMethod: paymentMethodName,
+        description: description,
+        date: expenseDate.toISOString(),
+        transcribedText: transcribedText
+      });
+
+    } else {
+      // For non-expense intents, process normally
+      await sendTelegramMessage(
+        chatId,
+        `🎙️ *Transcribed:* "${transcribedText}"\n\nProcessing your request...`
+      );
+      
+      // Process the transcribed text through normal AI flow
+      await processTelegramMessage(chatId, transcribedText, storage);
+    }
+
+  } catch (error) {
+    console.error('[Telegram AI] Error processing voice message:', error);
+    await sendTelegramMessage(
+      chatId,
+      '❌ Failed to process voice message. Please try again or type your message.',
+      createMainMenu()
+    );
+  }
+}
+
 export async function processReceiptPhoto(
   chatId: string,
   base64Image: string,
