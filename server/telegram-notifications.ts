@@ -6,6 +6,56 @@ function escapeMarkdown(text: string): string {
   return text.replace(/([_*\[\]()~`>#+=|{}.!])/g, '\\$1');
 }
 
+// Map Lucide icon names to emoji icons for Telegram
+function getEmojiForIcon(iconName: string | null): string {
+  const iconMap: Record<string, string> = {
+    'Building2': '🏢',
+    'Building': '🏢',
+    'ShoppingCart': '🛒',
+    'ShoppingBag': '🛍️',
+    'Utensils': '🍽️',
+    'Coffee': '☕',
+    'Car': '🚗',
+    'Bus': '🚌',
+    'Plane': '✈️',
+    'Home': '🏠',
+    'Heart': '❤️',
+    'Zap': '⚡',
+    'Gamepad2': '🎮',
+    'Film': '🎬',
+    'Music': '🎵',
+    'Book': '📚',
+    'GraduationCap': '🎓',
+    'Briefcase': '💼',
+    'DollarSign': '💵',
+    'CreditCard': '💳',
+    'Wallet': '👛',
+    'Gift': '🎁',
+    'Tag': '🏷️',
+    'Package': '📦',
+    'Truck': '🚚',
+    'Phone': '📱',
+    'Laptop': '💻',
+    'Monitor': '🖥️',
+    'Watch': '⌚',
+    'Activity': '📊',
+    'TrendingUp': '📈',
+    'Wrench': '🔧',
+    'Hammer': '🔨',
+    'Pill': '💊',
+    'Stethoscope': '🩺',
+    'Dumbbell': '🏋️',
+    'Pizza': '🍕',
+    'Beer': '🍺',
+    'Wine': '🍷',
+    'Shirt': '👕',
+    'Scissors': '✂️',
+    'Sparkles': '✨',
+  };
+  
+  return iconMap[iconName || ''] || '🏷️';
+}
+
 export async function notifyTelegramExpenseCreated(
   expense: Expense,
   storage: IStorage
@@ -58,7 +108,7 @@ export async function notifyTelegramExpenseCreated(
       
       // Calculate total spend for this payment method
       const allExpenses = await storage.getAllExpenses();
-      const paymentExpenses = allExpenses.filter(e => e.paymentMethod === paymentMethod.id);
+      const paymentExpenses = allExpenses.filter(e => e.paymentMethod === paymentMethod.name);
       const paymentTotalSpent = paymentExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
       
       paymentInfo = `📊 Total spend: *AED ${paymentTotalSpent.toFixed(2)}*\n✅ Available: *AED ${currentBalance.toFixed(2)}*`;
@@ -103,7 +153,7 @@ export async function notifyTelegramCategoryCreated(
       return;
     }
 
-    const icon = category.icon || '🏷️';
+    const icon = getEmojiForIcon(category.icon);
     const message = 
       `🏷️ *New Category Created*\n\n` +
       `${icon} Name: *${escapeMarkdown(category.name)}*\n` +

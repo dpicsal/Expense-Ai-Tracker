@@ -6,6 +6,56 @@ import {
 } from './telegram-bot-menus';
 import ExcelJS from 'exceljs';
 
+// Map Lucide icon names to emoji icons for Telegram
+function getEmojiForIcon(iconName: string | null): string {
+  const iconMap: Record<string, string> = {
+    'Building2': '🏢',
+    'Building': '🏢',
+    'ShoppingCart': '🛒',
+    'ShoppingBag': '🛍️',
+    'Utensils': '🍽️',
+    'Coffee': '☕',
+    'Car': '🚗',
+    'Bus': '🚌',
+    'Plane': '✈️',
+    'Home': '🏠',
+    'Heart': '❤️',
+    'Zap': '⚡',
+    'Gamepad2': '🎮',
+    'Film': '🎬',
+    'Music': '🎵',
+    'Book': '📚',
+    'GraduationCap': '🎓',
+    'Briefcase': '💼',
+    'DollarSign': '💵',
+    'CreditCard': '💳',
+    'Wallet': '👛',
+    'Gift': '🎁',
+    'Tag': '🏷️',
+    'Package': '📦',
+    'Truck': '🚚',
+    'Phone': '📱',
+    'Laptop': '💻',
+    'Monitor': '🖥️',
+    'Watch': '⌚',
+    'Activity': '📊',
+    'TrendingUp': '📈',
+    'Wrench': '🔧',
+    'Hammer': '🔨',
+    'Pill': '💊',
+    'Stethoscope': '🩺',
+    'Dumbbell': '🏋️',
+    'Pizza': '🍕',
+    'Beer': '🍺',
+    'Wine': '🍷',
+    'Shirt': '👕',
+    'Scissors': '✂️',
+    'Sparkles': '✨',
+  };
+  
+  return iconMap[iconName || ''] || '📁';
+}
+
 export async function handleCallbackQuery(
   callbackQueryId: string,
   chatId: string,
@@ -41,7 +91,7 @@ export async function handleCallbackQuery(
           // Show category selection
           const { createInlineKeyboard } = await import('./telegram-bot');
           const categoryButtons = categories.slice(0, 12).map(cat => ({
-            text: `${cat.icon || '📁'} ${cat.name}`,
+            text: `${getEmojiForIcon(cat.icon)} ${cat.name}`,
             callback_data: `receipt_cat_first:${cat.id}`
           }));
 
@@ -363,7 +413,7 @@ async function handleCategories(chatId: string, storage: IStorage): Promise<void
       const total = categoryExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
       const allocatedFunds = category.allocatedFunds ? parseFloat(category.allocatedFunds) : 0;
       
-      categoriesText += `${category.icon || '📌'} *${category.name}*\n`;
+      categoriesText += `${getEmojiForIcon(category.icon)} *${category.name}*\n`;
       if (allocatedFunds > 0) {
         categoriesText += `  Budget: AED ${allocatedFunds.toFixed(2)}\n`;
       }
@@ -769,7 +819,7 @@ async function handleSelectionCallback(chatId: string, callbackData: string, sto
       ...receiptData,
       action: 'add_expense',
       category: receiptData.category,
-      paymentMethod: paymentMethod.id
+      paymentMethod: paymentMethod.name
     };
 
     try {
