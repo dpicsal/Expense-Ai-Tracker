@@ -316,19 +316,25 @@ Return JSON only with the extracted intent and parameters.`;
   if (openai) {
     try {
       console.log('[Telegram AI] Using OpenAI for intent extraction');
+      
+      // Enhanced system prompt with explicit JSON format instructions
+      const enhancedPrompt = systemPrompt + `\n\nIMPORTANT: Always return a valid JSON object with at minimum the "action" field. For add_expense actions, also include "amount", "category", "description" fields when available.`;
+      
       const response = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
-          { role: "system", content: systemPrompt },
+          { role: "system", content: enhancedPrompt },
           { role: "user", content: message }
         ],
         response_format: { type: "json_object" },
-        temperature: 0.3
+        temperature: 0.1
       });
 
       const rawJson = response.choices[0]?.message?.content;
       if (rawJson) {
-        return JSON.parse(rawJson) as Intent;
+        const parsed = JSON.parse(rawJson) as Intent;
+        console.log('[Telegram AI] OpenAI extracted intent:', parsed);
+        return parsed;
       }
     } catch (error) {
       console.error('[Telegram AI] OpenAI failed, falling back to Gemini:', error);
