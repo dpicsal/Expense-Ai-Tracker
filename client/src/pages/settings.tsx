@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Edit, Trash2, Settings as SettingsIcon, Download, FileSpreadsheet, Save, Trash, Copy, Check, ChevronDown } from "lucide-react";
 import * as Icons from "lucide-react";
-import { SiTelegram, SiWhatsapp, SiOpenai } from "react-icons/si";
+import { SiTelegram, SiOpenai } from "react-icons/si";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +20,6 @@ import { useCategories, useDeleteCategory } from "@/hooks/use-categories";
 import { useAppSettings } from "@/hooks/use-app-settings";
 import { useExpenses } from "@/hooks/use-expenses";
 import { useTelegramBotConfig, useUpdateTelegramBotConfig, useDeleteTelegramBotConfig } from "@/hooks/use-telegram-bot-config";
-import { useWhatsappBotConfig, useUpdateWhatsappBotConfig, useDeleteWhatsappBotConfig, useWhatsappWebhookUrl } from "@/hooks/use-whatsapp-bot-config";
 import { useGeminiConfig, useUpdateGeminiConfig, useDeleteGeminiConfig } from "@/hooks/use-gemini-config";
 import { useOpenAIConfig, useUpdateOpenAIConfig, useDeleteOpenAIConfig } from "@/hooks/use-openai-config";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -39,15 +38,6 @@ export default function Settings() {
   const [telegramChatWhitelist, setTelegramChatWhitelist] = useState("");
   const [telegramIsEnabled, setTelegramIsEnabled] = useState(false);
   
-  const [whatsappAppId, setWhatsappAppId] = useState("");
-  const [whatsappAppSecret, setWhatsappAppSecret] = useState("");
-  const [whatsappAccessToken, setWhatsappAccessToken] = useState("");
-  const [whatsappPhoneNumberId, setWhatsappPhoneNumberId] = useState("");
-  const [whatsappVerifyToken, setWhatsappVerifyToken] = useState("");
-  const [whatsappChatWhitelist, setWhatsappChatWhitelist] = useState("");
-  const [whatsappIsEnabled, setWhatsappIsEnabled] = useState(false);
-  const [copiedWebhookUrl, setCopiedWebhookUrl] = useState(false);
-  
   const [geminiApiKey, setGeminiApiKey] = useState("");
   const [geminiIsEnabled, setGeminiIsEnabled] = useState(false);
   
@@ -56,7 +46,6 @@ export default function Settings() {
 
   // Collapsible state for each section
   const [telegramOpen, setTelegramOpen] = useState(false);
-  const [whatsappOpen, setWhatsappOpen] = useState(false);
   const [geminiOpen, setGeminiOpen] = useState(false);
   const [openaiOpen, setOpenaiOpen] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
@@ -72,11 +61,6 @@ export default function Settings() {
   const { data: telegramConfig, isLoading: isTelegramConfigLoading } = useTelegramBotConfig();
   const updateTelegramConfig = useUpdateTelegramBotConfig();
   const deleteTelegramConfig = useDeleteTelegramBotConfig();
-  
-  const { data: whatsappConfig, isLoading: isWhatsappConfigLoading } = useWhatsappBotConfig();
-  const { data: whatsappWebhookData } = useWhatsappWebhookUrl();
-  const updateWhatsappConfig = useUpdateWhatsappBotConfig();
-  const deleteWhatsappConfig = useDeleteWhatsappBotConfig();
   
   const { data: geminiConfig, isLoading: isGeminiConfigLoading } = useGeminiConfig();
   const updateGeminiConfig = useUpdateGeminiConfig();
@@ -94,18 +78,6 @@ export default function Settings() {
       setTelegramIsEnabled(telegramConfig.isEnabled || false);
     }
   }, [telegramConfig]);
-
-  useEffect(() => {
-    if (whatsappConfig) {
-      setWhatsappAppId(whatsappConfig.appId || "");
-      setWhatsappAppSecret(whatsappConfig.appSecret || "");
-      setWhatsappAccessToken(whatsappConfig.accessToken || "");
-      setWhatsappPhoneNumberId(whatsappConfig.phoneNumberId || "");
-      setWhatsappVerifyToken(whatsappConfig.verifyToken || "");
-      setWhatsappChatWhitelist(whatsappConfig.chatWhitelist?.join(", ") || "");
-      setWhatsappIsEnabled(whatsappConfig.isEnabled || false);
-    }
-  }, [whatsappConfig]);
 
   useEffect(() => {
     if (geminiConfig) {
@@ -314,73 +286,6 @@ export default function Settings() {
         description: "Failed to delete Telegram bot configuration",
         variant: "destructive",
       });
-    }
-  };
-
-  const handleSaveWhatsappConfig = async () => {
-    try {
-      await updateWhatsappConfig.mutateAsync({
-        appId: whatsappAppId || undefined,
-        appSecret: whatsappAppSecret || undefined,
-        accessToken: whatsappAccessToken || undefined,
-        phoneNumberId: whatsappPhoneNumberId || undefined,
-        verifyToken: whatsappVerifyToken || undefined,
-        chatWhitelist: whatsappChatWhitelist ? whatsappChatWhitelist.split(',').map(num => num.trim()).filter(Boolean) : [],
-        isEnabled: whatsappIsEnabled,
-      });
-      toast({
-        title: "Success",
-        description: "WhatsApp bot configuration saved successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to save WhatsApp bot configuration",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleDeleteWhatsappConfig = async () => {
-    try {
-      await deleteWhatsappConfig.mutateAsync();
-      setWhatsappAppId("");
-      setWhatsappAppSecret("");
-      setWhatsappAccessToken("");
-      setWhatsappPhoneNumberId("");
-      setWhatsappVerifyToken("");
-      setWhatsappChatWhitelist("");
-      setWhatsappIsEnabled(false);
-      toast({
-        title: "Success",
-        description: "WhatsApp bot configuration deleted successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete WhatsApp bot configuration",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleCopyWebhookUrl = async () => {
-    if (whatsappWebhookData?.webhookUrl) {
-      try {
-        await navigator.clipboard.writeText(whatsappWebhookData.webhookUrl);
-        setCopiedWebhookUrl(true);
-        toast({
-          title: "Copied!",
-          description: "Webhook URL copied to clipboard",
-        });
-        setTimeout(() => setCopiedWebhookUrl(false), 2000);
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to copy to clipboard",
-          variant: "destructive",
-        });
-      }
     }
   };
 
@@ -606,228 +511,6 @@ export default function Settings() {
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
                           <AlertDialogAction
                             onClick={handleDeleteTelegramConfig}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
-
-      {/* WhatsApp Bot Configuration */}
-      <Collapsible open={whatsappOpen} onOpenChange={setWhatsappOpen}>
-        <Card className="shadow-md hover-elevate">
-          <CollapsibleTrigger className="w-full" data-testid="toggle-whatsapp-config">
-            <CardHeader className={isMobile ? 'pb-3 px-4 pt-4' : 'pb-4'}>
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className={`${isMobile ? 'p-1.5' : 'p-2'} rounded-lg bg-blue-100 dark:bg-blue-900`}>
-                    <SiWhatsapp className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-blue-600 dark:text-blue-400`} />
-                  </div>
-                  <div className="text-left">
-                    <CardTitle className={`${isMobile ? 'text-base' : 'text-lg md:text-xl'} font-semibold`}>WhatsApp Bot</CardTitle>
-                    <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground mt-1`}>
-                      {whatsappOpen ? 'Configure your WhatsApp bot settings' : whatsappIsEnabled ? (
-                        <Badge variant="secondary" className="text-xs">Enabled</Badge>
-                      ) : (
-                        <span>Not configured</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <ChevronDown className={cn("h-5 w-5 transition-transform text-muted-foreground", whatsappOpen && "rotate-180")} />
-              </div>
-            </CardHeader>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <CardContent className="pt-0">
-              {isWhatsappConfigLoading ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-ios-spinner"></div>
-                    <div className="animate-pulse-glow">Loading configuration...</div>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 border border-border/50 rounded-lg bg-card/50">
-                    <div className="space-y-1">
-                      <div className="font-medium text-foreground">Enable Bot</div>
-                      <p className="text-sm text-muted-foreground">
-                        Activate the WhatsApp bot integration
-                      </p>
-                    </div>
-                    <Switch
-                      checked={whatsappIsEnabled}
-                      onCheckedChange={setWhatsappIsEnabled}
-                      data-testid="switch-whatsapp-enabled"
-                    />
-                  </div>
-
-                  {whatsappWebhookData?.webhookUrl && (
-                    <div className="space-y-2">
-                      <Label>Webhook URL</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          type="text"
-                          value={whatsappWebhookData.webhookUrl}
-                          readOnly
-                          className="font-mono text-xs"
-                          data-testid="input-whatsapp-webhook-url"
-                        />
-                        <Button
-                          size="icon"
-                          variant="outline"
-                          onClick={handleCopyWebhookUrl}
-                          data-testid="button-copy-webhook-url"
-                        >
-                          {copiedWebhookUrl ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                        </Button>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Use this URL in your Meta WhatsApp App webhook configuration
-                      </p>
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    <Label htmlFor="whatsapp-app-id">App ID</Label>
-                    <Input
-                      id="whatsapp-app-id"
-                      type="text"
-                      placeholder="Enter your WhatsApp App ID"
-                      value={whatsappAppId}
-                      onChange={(e) => setWhatsappAppId(e.target.value)}
-                      data-testid="input-whatsapp-app-id"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Your WhatsApp Business App ID from Meta Business Manager
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="whatsapp-app-secret">App Secret</Label>
-                    <Input
-                      id="whatsapp-app-secret"
-                      type="password"
-                      placeholder="Enter your WhatsApp App Secret"
-                      value={whatsappAppSecret}
-                      onChange={(e) => setWhatsappAppSecret(e.target.value)}
-                      data-testid="input-whatsapp-app-secret"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Your WhatsApp Business App Secret from Meta Business Manager
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="whatsapp-access-token">Access Token</Label>
-                    <Input
-                      id="whatsapp-access-token"
-                      type="password"
-                      placeholder="Enter your WhatsApp Access Token"
-                      value={whatsappAccessToken}
-                      onChange={(e) => setWhatsappAccessToken(e.target.value)}
-                      data-testid="input-whatsapp-access-token"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Your WhatsApp API access token from Meta Business Manager
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="whatsapp-phone-number-id">Phone Number ID</Label>
-                    <Input
-                      id="whatsapp-phone-number-id"
-                      type="text"
-                      placeholder="Enter your WhatsApp Phone Number ID"
-                      value={whatsappPhoneNumberId}
-                      onChange={(e) => setWhatsappPhoneNumberId(e.target.value)}
-                      data-testid="input-whatsapp-phone-number-id"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Your WhatsApp Business Phone Number ID from the API Setup
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="whatsapp-verify-token">Verify Token</Label>
-                    <Input
-                      id="whatsapp-verify-token"
-                      type="text"
-                      placeholder="Enter webhook verify token"
-                      value={whatsappVerifyToken}
-                      onChange={(e) => setWhatsappVerifyToken(e.target.value)}
-                      data-testid="input-whatsapp-verify-token"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Custom verify token for webhook verification (set this in Meta webhook config)
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="whatsapp-chat-whitelist">Phone Whitelist</Label>
-                    <Input
-                      id="whatsapp-chat-whitelist"
-                      type="text"
-                      placeholder="Enter allowed phone numbers (comma-separated)"
-                      value={whatsappChatWhitelist}
-                      onChange={(e) => setWhatsappChatWhitelist(e.target.value)}
-                      data-testid="input-whatsapp-chat-whitelist"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Comma-separated list of allowed phone numbers (e.g., 971501234567, 971509876543)
-                    </p>
-                  </div>
-
-                  <div className="flex gap-2 pt-2">
-                    <Button
-                      onClick={handleSaveWhatsappConfig}
-                      disabled={updateWhatsappConfig.isPending}
-                      data-testid="button-save-whatsapp-config"
-                    >
-                      {updateWhatsappConfig.isPending ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="h-4 w-4 mr-2" />
-                          Save Configuration
-                        </>
-                      )}
-                    </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="destructive"
-                          disabled={deleteWhatsappConfig.isPending}
-                          data-testid="button-delete-whatsapp-config"
-                        >
-                          <Trash className="h-4 w-4 mr-2" />
-                          Delete Configuration
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Delete WhatsApp Configuration</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Are you sure you want to delete the WhatsApp bot configuration? 
-                            This action cannot be undone and will disable the bot.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={handleDeleteWhatsappConfig}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                           >
                             Delete
