@@ -817,6 +817,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(200).send("OK");
       }
 
+      // Handle voice messages
+      if (update.message && update.message.voice) {
+        const chatId = update.message.chat.id.toString();
+        
+        const chatWhitelist = config.chatWhitelist || [];
+        if (chatWhitelist.length > 0 && !chatWhitelist.includes(chatId)) {
+          return res.status(403).json({ error: "Chat not authorized" });
+        }
+
+        try {
+          const voice = update.message.voice;
+          const fileId = voice.file_id;
+          
+          // Get file path from Telegram
+          const fileResponse = await fetch(`https://api.telegram.org/bot${config.botToken}/getFile?file_id=${fileId}`);
+          const fileData = await fileResponse.json();
+          
+          if (fileData.ok && fileData.result.file_path) {
+            // Download the voice file
+            const voiceUrl = `https://api.telegram.org/file/bot${config.botToken}/${fileData.result.file_path}`;
+            const voiceResponse = await fetch(voiceUrl);
+            const voiceBuffer = Buffer.from(await voiceResponse.arrayBuffer());
+            
+            // Process voice message using OpenAI Whisper
+            const { processVoiceMessage } = await import('./telegram-ai');
+            await processVoiceMessage(chatId, voiceBuffer, storage);
+          } else {
+            await sendTelegramMessage(chatId, '❌ Failed to download voice message. Please try again.');
+          }
+        } catch (error) {
+          console.error('[Telegram Webhook] Error processing voice:', error);
+          await sendTelegramMessage(chatId, '❌ Failed to process voice message. Please try again.');
+        }
+        
+        return res.status(200).send("OK");
+      }
+
       // Handle photo messages (receipt scanning)
       if (update.message && update.message.photo) {
         const chatId = update.message.chat.id.toString();
