@@ -433,13 +433,37 @@ export async function executePendingAction(chatId: string, action: any, storage:
 
     await storage.createExpense(expense);
 
-    let response = `✅ *Expense Added Successfully!*\n\n`;
-    response += `💰 Amount: AED ${parseFloat(action.amount).toFixed(2)}\n`;
-    response += `📁 Category: ${action.category}\n`;
-    response += `💳 Payment: ${action.paymentMethod}\n`;
-    if (action.description) {
-      response += `📝 Note: ${action.description}\n`;
+    // Calculate category statistics
+    let categoryStats = '';
+    if (category) {
+      const categoryFundHistory = await storage.getFundHistoryByCategory(category.id);
+      const totalAllocated = categoryFundHistory.reduce((sum, f) => sum + parseFloat(f.amount), 0);
+      const allExpenses = await storage.getAllExpenses();
+      const categoryExpenses = allExpenses.filter(e => e.category.trim() === action.category.trim());
+      const totalSpent = categoryExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
+      const available = totalAllocated - totalSpent;
+      categoryStats = `📊 Total spend: *AED ${totalSpent.toFixed(2)}*\n✅ Available: *AED ${available.toFixed(2)}*`;
     }
+
+    // Calculate payment method statistics
+    let paymentStats = '';
+    if (paymentMethod) {
+      const currentBalance = parseFloat(paymentMethod.balance || '0');
+      const allExpenses = await storage.getAllExpenses();
+      const paymentExpenses = allExpenses.filter(e => e.paymentMethod === paymentMethod.name);
+      const paymentTotalSpent = paymentExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
+      paymentStats = `📊 Total spend: *AED ${paymentTotalSpent.toFixed(2)}*\n✅ Available: *AED ${currentBalance.toFixed(2)}*`;
+    }
+
+    let response = `From Receipt\n✅ *Expense Added Successfully!*\n\n`;
+    response += `🏷️ Category: ${action.category}\n`;
+    response += `💵 Amount: *AED ${parseFloat(action.amount).toFixed(2)}*\n`;
+    if (action.description) {
+      response += `📝 Description: ${action.description}\n`;
+    }
+    response += `${categoryStats}\n\n`;
+    response += `💳 Payment: ${action.paymentMethod}\n`;
+    response += `${paymentStats}`;
 
     await sendTelegramMessage(chatId, response, createMainMenu());
   } else if (action.action === 'create_category') {
