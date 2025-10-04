@@ -21,34 +21,34 @@ export async function handleCallbackQuery(
       const pendingAction = JSON.parse(userState.data || '{}');
       
       try {
-        // If this is from receipt scanning, ask for category selection
+        // If this is from receipt scanning, ask for payment method selection first
         if (pendingAction.action === 'add_expense_from_receipt') {
-          const categories = await storage.getAllCategories();
+          const paymentMethods = await storage.getAllPaymentMethods();
           
-          if (categories.length === 0) {
+          if (paymentMethods.length === 0) {
             await sendTelegramMessage(
               chatId,
-              '❌ No categories found. Please create a category first using the web app or by saying "Create category Food".',
+              '❌ No payment methods found. Please create payment methods first using the web app.',
               createMainMenu()
             );
             await storage.clearUserState(chatId);
             return;
           }
 
-          // Update state to await category selection
-          await storage.setUserState(chatId, 'awaiting_receipt_category', pendingAction);
+          // Update state to await payment method selection
+          await storage.setUserState(chatId, 'awaiting_receipt_payment', pendingAction);
 
-          // Show category selection
+          // Show payment method selection
           const { createInlineKeyboard } = await import('./telegram-bot');
-          const categoryButtons = categories.slice(0, 12).map(cat => ({
-            text: `${cat.icon || '📁'} ${cat.name}`,
-            callback_data: `receipt_cat:${cat.id}`
+          const paymentButtons = paymentMethods.map(pm => ({
+            text: pm.name,
+            callback_data: `receipt_payment:${pm.id}`
           }));
 
           // Arrange buttons in rows of 2
           const buttonRows: Array<Array<{text: string, callback_data: string}>> = [];
-          for (let i = 0; i < categoryButtons.length; i += 2) {
-            buttonRows.push(categoryButtons.slice(i, i + 2));
+          for (let i = 0; i < paymentButtons.length; i += 2) {
+            buttonRows.push(paymentButtons.slice(i, i + 2));
           }
 
           // Add cancel button
@@ -58,7 +58,7 @@ export async function handleCallbackQuery(
 
           await sendTelegramMessage(
             chatId,
-            `📁 *Select Category*\n\nChoose a category for this expense:`,
+            `💳 *Select Payment Method*\n\nChoose a payment method for this expense:`,
             keyboard
           );
           return;
@@ -85,7 +85,7 @@ export async function handleCallbackQuery(
 
   if (callbackData === 'cancel_ai_action') {
     const userState = await storage.getUserState(chatId);
-    if (userState?.state === 'awaiting_confirmation' || userState?.state === 'awaiting_receipt_category') {
+    if (userState?.state === 'awaiting_confirmation' || userState?.state === 'awaiting_receipt_category' || userState?.state === 'awaiting_receipt_payment') {
       await storage.clearUserState(chatId);
       await sendTelegramMessage(
         chatId,
@@ -683,6 +683,69 @@ async function handleSelectionCallback(chatId: string, callbackData: string, sto
     return;
   }
 
+  // Receipt payment method selection
+  if (action === 'receipt_payment') {
+    const userState = await storage.getUserState(chatId);
+    if (!userState || userState.state !== 'awaiting_receipt_payment') {
+      await sendTelegramMessage(chatId, '❌ Session expired. Please start again.', createMainMenu());
+      return;
+    }
+
+    const receiptData = JSON.parse(userState.data || '{}');
+    const paymentMethod = await storage.getPaymentMethod(id);
+
+    if (!paymentMethod) {
+      await sendTelegramMessage(chatId, '❌ Payment method not found.', createMainMenu());
+      await storage.clearUserState(chatId);
+      return;
+    }
+
+    // Now ask for category selection
+    const categories = await storage.getAllCategories();
+    
+    if (categories.length === 0) {
+      await sendTelegramMessage(
+        chatId,
+        '❌ No categories found. Please create a category first using the web app.',
+        createMainMenu()
+      );
+      await storage.clearUserState(chatId);
+      return;
+    }
+
+    // Update state to await category selection with payment method info
+    await storage.setUserState(chatId, 'awaiting_receipt_category', {
+      ...receiptData,
+      paymentMethod: paymentMethod.id,
+      paymentMethodName: paymentMethod.name
+    });
+
+    // Show category selection
+    const { createInlineKeyboard } = await import('./telegram-bot');
+    const categoryButtons = categories.slice(0, 12).map(cat => ({
+      text: `${cat.icon || '📁'} ${cat.name}`,
+      callback_data: `receipt_cat:${cat.id}`
+    }));
+
+    // Arrange buttons in rows of 2
+    const buttonRows: Array<Array<{text: string, callback_data: string}>> = [];
+    for (let i = 0; i < categoryButtons.length; i += 2) {
+      buttonRows.push(categoryButtons.slice(i, i + 2));
+    }
+
+    // Add cancel button
+    buttonRows.push([{ text: '❌ Cancel', callback_data: 'cancel_ai_action' }]);
+
+    const keyboard = createInlineKeyboard(buttonRows);
+
+    await sendTelegramMessage(
+      chatId,
+      `📁 *Select Category*\n\nChoose a category for this expense:`,
+      keyboard
+    );
+    return;
+  }
+
   // Receipt category selection
   if (action === 'receipt_cat') {
     const userState = await storage.getUserState(chatId);
@@ -700,12 +763,13 @@ async function handleSelectionCallback(chatId: string, callbackData: string, sto
       return;
     }
 
-    // Create the expense
+    // Create the expense with the selected payment method
     const { executePendingAction } = await import('./telegram-ai');
     const expenseData = {
       ...receiptData,
       action: 'add_expense',
-      category: category.name
+      category: category.name,
+      paymentMethod: receiptData.paymentMethod || receiptData.paymentMethodName
     };
 
     try {
