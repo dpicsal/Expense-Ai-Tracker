@@ -48,7 +48,7 @@ export async function notifyTelegramExpenseCreated(
       const totalSpent = categoryExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
       const available = totalAllocated - totalSpent;
       
-      categoryInfo = `   ✅ Available: *AED ${available.toFixed(2)}*\n   📊 Total spend: *AED ${totalSpent.toFixed(2)}*`;
+      categoryInfo = `📊 Total spend: *AED ${totalSpent.toFixed(2)}*\n✅ Available: *AED ${available.toFixed(2)}*`;
     }
 
     // Get payment method balance and total spend information
@@ -61,15 +61,17 @@ export async function notifyTelegramExpenseCreated(
       const paymentExpenses = allExpenses.filter(e => e.paymentMethod === paymentMethod.id);
       const paymentTotalSpent = paymentExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
       
-      paymentInfo = `   ✅ Available: *AED ${currentBalance.toFixed(2)}*\n   📊 Total spend: *AED ${paymentTotalSpent.toFixed(2)}*`;
+      paymentInfo = `📊 Total spend: *AED ${paymentTotalSpent.toFixed(2)}*\n✅ Available: *AED ${currentBalance.toFixed(2)}*`;
     }
 
     const message = 
       `💰 *New Expense Added*\n\n` +
-      `💵 Amount: *AED ${parseFloat(expense.amount).toFixed(2)}*\n` +
       `🏷️ Category: ${escapeMarkdown(expense.category)}\n` +
-      `📝 Description: ${escapeMarkdown(expense.description)}\n${categoryInfo}\n` +
-      `${typeEmoji} Payment: ${escapeMarkdown(paymentName)}\n${paymentInfo}\n` +
+      `💵 Amount: *AED ${parseFloat(expense.amount).toFixed(2)}*\n` +
+      `📝 Description: ${escapeMarkdown(expense.description)}\n` +
+      `${categoryInfo}\n\n` +
+      `${typeEmoji} Payment: ${escapeMarkdown(paymentName)}\n` +
+      `${paymentInfo}\n\n` +
       `📅 Date: ${formattedDate}\n\n` +
       `━━━━━━━━━━━━━━━━━━━━`;
 
