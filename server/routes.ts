@@ -911,7 +911,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             'Welcome! Use the menu buttons below to navigate.\n\n' +
             '💡 You can also:\n' +
             '• Type naturally: "Spent 50 AED on groceries"\n' +
-            '• Send receipt photos for auto-scanning\n\n' +
+            '• Send receipt photos for auto-scanning\n' +
+            '• Send voice messages for hands-free entry\n\n' +
             'Your chat ID: ' + chatId,
             createMainMenu()
           );
