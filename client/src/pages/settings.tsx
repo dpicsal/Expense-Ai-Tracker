@@ -477,8 +477,8 @@ export default function Settings() {
             <CardHeader className={isMobile ? 'pb-3 px-4 pt-4' : 'pb-4'}>
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className={`${isMobile ? 'p-1.5' : 'p-2'} rounded-lg bg-purple-100 dark:bg-purple-900`}>
-                    <SiTelegram className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-purple-600 dark:text-purple-400`} />
+                  <div className={`${isMobile ? 'p-1.5' : 'p-2'} rounded-lg bg-sky-100 dark:bg-sky-900`}>
+                    <SiTelegram className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-sky-500 dark:text-sky-400`} />
                   </div>
                   <div className="text-left">
                     <CardTitle className={`${isMobile ? 'text-base' : 'text-lg md:text-xl'} font-semibold`}>Telegram Bot</CardTitle>
