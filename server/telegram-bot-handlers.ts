@@ -71,8 +71,8 @@ export async function handleCallbackQuery(
       const pendingAction = JSON.parse(userState.data || '{}');
       
       try {
-        // If this is from receipt scanning, ask for category selection first
-        if (pendingAction.action === 'add_expense_from_receipt') {
+        // If this is from receipt scanning or voice message, ask for category selection first
+        if (pendingAction.action === 'add_expense_from_receipt' || pendingAction.action === 'add_expense_from_voice') {
           const categories = await storage.getAllCategories();
           
           if (categories.length === 0) {
@@ -86,13 +86,18 @@ export async function handleCallbackQuery(
           }
 
           // Update state to await category selection
-          await storage.setUserState(chatId, 'awaiting_receipt_category_first', pendingAction);
+          const stateKey = pendingAction.action === 'add_expense_from_voice' 
+            ? 'awaiting_voice_category_first' 
+            : 'awaiting_receipt_category_first';
+          await storage.setUserState(chatId, stateKey, pendingAction);
 
           // Show category selection
           const { createInlineKeyboard } = await import('./telegram-bot');
           const categoryButtons = categories.slice(0, 12).map(cat => ({
             text: `${getEmojiForIcon(cat.icon)} ${cat.name}`,
-            callback_data: `receipt_cat_first:${cat.id}`
+            callback_data: pendingAction.action === 'add_expense_from_voice'
+              ? `voice_cat_first:${cat.id}`
+              : `receipt_cat_first:${cat.id}`
           }));
 
           // Arrange buttons in rows of 2
@@ -135,7 +140,12 @@ export async function handleCallbackQuery(
 
   if (callbackData === 'cancel_ai_action') {
     const userState = await storage.getUserState(chatId);
-    if (userState?.state === 'awaiting_confirmation' || userState?.state === 'awaiting_receipt_category' || userState?.state === 'awaiting_receipt_payment' || userState?.state === 'awaiting_receipt_category_first') {
+    if (userState?.state === 'awaiting_confirmation' || 
+        userState?.state === 'awaiting_receipt_category' || 
+        userState?.state === 'awaiting_receipt_payment' || 
+        userState?.state === 'awaiting_receipt_category_first' ||
+        userState?.state === 'awaiting_voice_category_first' ||
+        userState?.state === 'awaiting_voice_payment') {
       await storage.clearUserState(chatId);
       await sendTelegramMessage(
         chatId,
@@ -793,6 +803,110 @@ async function handleSelectionCallback(chatId: string, callbackData: string, sto
       `💳 *Select Payment Method*\n\nChoose a payment method for this expense:`,
       keyboard
     );
+    return;
+  }
+
+  // Voice message category selection (first step)
+  if (action === 'voice_cat_first') {
+    const userState = await storage.getUserState(chatId);
+    if (!userState || userState.state !== 'awaiting_voice_category_first') {
+      await sendTelegramMessage(chatId, '❌ Session expired. Please start again.', createMainMenu());
+      return;
+    }
+
+    const voiceData = JSON.parse(userState.data || '{}');
+    const category = await storage.getCategory(id);
+
+    if (!category) {
+      await sendTelegramMessage(chatId, '❌ Category not found.', createMainMenu());
+      await storage.clearUserState(chatId);
+      return;
+    }
+
+    // Now ask for payment method selection
+    const paymentMethods = await storage.getAllPaymentMethods();
+    
+    if (paymentMethods.length === 0) {
+      await sendTelegramMessage(
+        chatId,
+        '❌ No payment methods found. Please create payment methods first using the web app.',
+        createMainMenu()
+      );
+      await storage.clearUserState(chatId);
+      return;
+    }
+
+    // Update state to await payment method selection with category info
+    await storage.setUserState(chatId, 'awaiting_voice_payment', {
+      ...voiceData,
+      category: category.name,
+      categoryId: category.id
+    });
+
+    // Show payment method selection
+    const { createInlineKeyboard } = await import('./telegram-bot');
+    const paymentButtons = paymentMethods.map(pm => ({
+      text: pm.name,
+      callback_data: `voice_payment:${pm.id}`
+    }));
+
+    // Arrange buttons in rows of 2
+    const buttonRows: Array<Array<{text: string, callback_data: string}>> = [];
+    for (let i = 0; i < paymentButtons.length; i += 2) {
+      buttonRows.push(paymentButtons.slice(i, i + 2));
+    }
+
+    // Add cancel button
+    buttonRows.push([{ text: '❌ Cancel', callback_data: 'cancel_ai_action' }]);
+
+    const keyboard = createInlineKeyboard(buttonRows);
+
+    await sendTelegramMessage(
+      chatId,
+      `💳 *Select Payment Method*\n\nChoose a payment method for this expense:`,
+      keyboard
+    );
+    return;
+  }
+
+  // Voice payment method selection (second step)
+  if (action === 'voice_payment') {
+    const userState = await storage.getUserState(chatId);
+    if (!userState || userState.state !== 'awaiting_voice_payment') {
+      await sendTelegramMessage(chatId, '❌ Session expired. Please start again.', createMainMenu());
+      return;
+    }
+
+    const voiceData = JSON.parse(userState.data || '{}');
+    const paymentMethod = await storage.getPaymentMethod(id);
+
+    if (!paymentMethod) {
+      await sendTelegramMessage(chatId, '❌ Payment method not found.', createMainMenu());
+      await storage.clearUserState(chatId);
+      return;
+    }
+
+    // Create the expense with the selected category and payment method
+    const { executePendingAction } = await import('./telegram-ai');
+    const expenseData = {
+      ...voiceData,
+      action: 'add_expense',
+      category: voiceData.category,
+      paymentMethod: paymentMethod.name
+    };
+
+    try {
+      await executePendingAction(chatId, expenseData, storage);
+      await storage.clearUserState(chatId);
+    } catch (error) {
+      console.error('[Telegram Bot] Error creating expense from voice:', error);
+      await sendTelegramMessage(
+        chatId,
+        '❌ Failed to create expense. Please try again.',
+        createMainMenu()
+      );
+      await storage.clearUserState(chatId);
+    }
     return;
   }
 
