@@ -373,7 +373,7 @@ export default function Settings() {
 
       {/* Telegram Bot Configuration */}
       <Collapsible open={telegramOpen} onOpenChange={setTelegramOpen}>
-        <Card className="shadow-md hover-elevate">
+        <Card className="shadow-md hover-elevate overflow-hidden">
           <CollapsibleTrigger className="w-full" data-testid="toggle-telegram-config">
             <CardHeader className={isMobile ? 'pb-3 px-4 pt-4' : 'pb-4'}>
               <div className="flex items-center justify-between gap-3">
@@ -511,7 +511,7 @@ export default function Settings() {
 
       {/* Gemini AI Configuration */}
       <Collapsible open={geminiOpen} onOpenChange={setGeminiOpen}>
-        <Card className="shadow-md hover-elevate">
+        <Card className="shadow-md hover-elevate overflow-hidden">
           <CollapsibleTrigger className="w-full" data-testid="toggle-gemini-config">
             <CardHeader className={isMobile ? 'pb-3 px-4 pt-4' : 'pb-4'}>
               <div className="flex items-center justify-between gap-3">
@@ -634,7 +634,7 @@ export default function Settings() {
 
       {/* OpenAI Configuration */}
       <Collapsible open={openaiOpen} onOpenChange={setOpenaiOpen}>
-        <Card className="shadow-md hover-elevate">
+        <Card className="shadow-md hover-elevate overflow-hidden">
           <CollapsibleTrigger className="w-full" data-testid="toggle-openai-config">
             <CardHeader className={isMobile ? 'pb-3 px-4 pt-4' : 'pb-4'}>
               <div className="flex items-center justify-between gap-3">
@@ -761,7 +761,7 @@ export default function Settings() {
           setIsDialogOpen(open);
           if (!open) setEditingCategory(null);
         }}>
-          <Card className="shadow-md hover-elevate">
+          <Card className="shadow-md hover-elevate overflow-hidden">
             <CollapsibleTrigger className="w-full" data-testid="toggle-category-management">
               <CardHeader className={isMobile ? 'pb-3 px-4 pt-4' : 'pb-4'}>
                 <div className="flex items-center justify-between gap-3">
@@ -951,7 +951,7 @@ export default function Settings() {
       {/* Reports & Export */}
       {!isMobile && (
         <Collapsible open={exportOpen} onOpenChange={setExportOpen}>
-          <Card className="shadow-md hover-elevate">
+          <Card className="shadow-md hover-elevate overflow-hidden">
             <CollapsibleTrigger className="w-full" data-testid="toggle-export">
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between gap-3">
