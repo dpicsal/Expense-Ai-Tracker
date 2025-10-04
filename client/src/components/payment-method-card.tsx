@@ -143,7 +143,7 @@ export function PaymentMethodCard({ paymentMethod, onEdit }: PaymentMethodCardPr
   };
 
   const formatDueDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}`;
   };
 
   const getBalanceColor = () => {

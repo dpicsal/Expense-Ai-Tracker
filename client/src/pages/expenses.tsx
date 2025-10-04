@@ -137,7 +137,7 @@ export default function Expenses() {
                     data-testid="button-start-date"
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, "PPP") : "Start date"}
+                    {startDate ? format(startDate, "dd/MM/yyyy") : "Start date"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -162,7 +162,7 @@ export default function Expenses() {
                     data-testid="button-end-date"
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, "PPP") : "End date"}
+                    {endDate ? format(endDate, "dd/MM/yyyy") : "End date"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -193,9 +193,9 @@ export default function Expenses() {
 
           {hasDateFilters && (
             <div className="mt-3 text-sm text-muted-foreground" data-testid="text-date-range-info">
-              Showing expenses {startDate && `from ${format(startDate, "PPP")}`}
+              Showing expenses {startDate && `from ${format(startDate, "dd/MM/yyyy")}`}
               {startDate && endDate && " "}
-              {endDate && `to ${format(endDate, "PPP")}`}
+              {endDate && `to ${format(endDate, "dd/MM/yyyy")}`}
             </div>
           )}
         </CardContent>

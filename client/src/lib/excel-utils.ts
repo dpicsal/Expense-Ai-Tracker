@@ -94,8 +94,10 @@ export async function exportToExcel(data: ExcelExportData, categoryName?: string
       const expense = item.data as Expense;
       runningExpenseTotal += parseFloat(expense.amount);
       
+      const expDate = new Date(expense.date);
+      const formattedExpDate = `${expDate.getDate().toString().padStart(2, '0')}/${(expDate.getMonth() + 1).toString().padStart(2, '0')}/${expDate.getFullYear()}`;
       row.values = {
-        date: new Date(expense.date).toLocaleDateString(),
+        date: formattedExpDate,
         amount: `AED ${parseFloat(expense.amount).toFixed(2)}`,
         description: expense.description,
         totalExpenses: `AED ${runningExpenseTotal.toFixed(2)}`,
@@ -107,8 +109,10 @@ export async function exportToExcel(data: ExcelExportData, categoryName?: string
       const fund = item.data as FundHistory;
       runningFundTotal += parseFloat(fund.amount);
       
+      const fundDate = new Date(fund.addedAt);
+      const formattedFundDate = `${fundDate.getDate().toString().padStart(2, '0')}/${(fundDate.getMonth() + 1).toString().padStart(2, '0')}/${fundDate.getFullYear()}`;
       row.values = {
-        date: new Date(fund.addedAt).toLocaleDateString(),
+        date: formattedFundDate,
         amount: '',
         description: fund.description || 'Fund Addition',
         totalExpenses: `AED ${runningExpenseTotal.toFixed(2)}`,
@@ -175,6 +179,7 @@ export async function importFromExcel(file: File): Promise<Expense[]> {
               amount: values[2].toString().replace('AED ', ''),
               description: values[3] as string,
               category: 'Imported', // Default category, can be changed later
+              paymentMethod: 'Imported', // Default payment method
             };
             
             expenses.push(expense);

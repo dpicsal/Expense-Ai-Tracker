@@ -175,7 +175,7 @@ export function ExpenseForm({ onSubmit, initialData, isEditing }: ExpenseFormPro
                           data-testid="button-date-picker"
                         >
                           {field.value ? (
-                            format(toZonedTime(field.value, "Asia/Dubai"), "PPP")
+                            format(toZonedTime(field.value, "Asia/Dubai"), "dd/MM/yyyy")
                           ) : (
                             <span>Pick a date</span>
                           )}

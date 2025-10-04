@@ -147,11 +147,7 @@ export function PaymentReminders() {
   };
 
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString("en-US", { 
-      month: "short", 
-      day: "numeric",
-      year: "numeric" 
-    });
+    return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
   };
 
   return (

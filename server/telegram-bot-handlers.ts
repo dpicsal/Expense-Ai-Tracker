@@ -488,8 +488,10 @@ async function handleExcelExport(chatId: string, storage: IStorage): Promise<voi
   const paymentMethodMap = new Map(allPaymentMethods.map(pm => [pm.id, pm.name]));
   
   allExpenses.forEach(expense => {
+    const expDate = new Date(expense.date);
+    const formattedDate = `${expDate.getDate().toString().padStart(2, '0')}/${(expDate.getMonth() + 1).toString().padStart(2, '0')}/${expDate.getFullYear()}`;
     expensesSheet.addRow({
-      date: new Date(expense.date).toLocaleDateString(),
+      date: formattedDate,
       amount: parseFloat(expense.amount),
       description: expense.description,
       category: expense.category,
