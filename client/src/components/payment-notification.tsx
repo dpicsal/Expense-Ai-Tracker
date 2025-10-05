@@ -75,7 +75,7 @@ export function PaymentNotification() {
             className="relative"
             data-testid="button-payment-notification"
           >
-            <Bell className="h-5 w-5 text-foreground" />
+            <Bell className="h-6 w-6 text-foreground" />
             <span className="absolute top-1.5 right-1.5 flex h-4 w-4">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
               <span className="relative inline-flex rounded-full h-4 w-4 bg-destructive items-center justify-center text-[10px] font-bold text-destructive-foreground" data-testid="badge-payment-count">
