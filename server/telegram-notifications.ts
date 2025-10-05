@@ -121,9 +121,9 @@ export async function notifyTelegramExpenseCreated(
       `📝 Description: ${escapeMarkdown(expense.description)}\n` +
       `${categoryInfo}\n\n` +
       `${typeEmoji} Payment: ${escapeMarkdown(paymentName)}\n` +
-      `${paymentInfo}\n\n` +
-      `📅 Date: ${formattedDate}\n\n` +
-      `━━━━━━━━━━━━━━━━━━━━`;
+      `${paymentInfo}\n` +
+      `━━━━━━━━━━━━━━\n` +
+      `📅 Date: ${formattedDate}`;
 
     for (const chatId of chatWhitelist) {
       try {
