@@ -5,13 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExpenseForm } from "@/components/expense-form";
 import { ExpenseList } from "@/components/expense-list";
-import { PaymentReminders } from "@/components/payment-reminders";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useExpenses, useUpdateExpense, useDeleteExpense, useCreateExpense } from "@/hooks/use-expenses";
 import { useCategories } from "@/hooks/use-categories";
-import { usePaymentMethods } from "@/hooks/use-payment-methods";
 import { type Expense, type InsertExpense, type Category } from "@shared/schema";
 import { formatCurrency } from "@/lib/utils";
 import * as Icons from "lucide-react";
@@ -27,17 +25,9 @@ export default function Dashboard() {
   
   const { data: expenses = [], isLoading } = useExpenses();
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
-  const { data: paymentMethods = [] } = usePaymentMethods();
   const updateExpense = useUpdateExpense();
   const deleteExpense = useDeleteExpense();
   const createExpense = useCreateExpense();
-
-  // Check if there are credit cards with balance that need payment
-  const creditCardsWithBalance = paymentMethods.filter(method => {
-    const balance = parseFloat(method.balance || "0");
-    return method.type === "credit_card" && method.dueDate && balance > 0;
-  });
-  const showPaymentReminders = creditCardsWithBalance.length > 0;
 
   const handleEditExpense = (expense: Expense) => {
     setEditingExpense(expense);
@@ -139,7 +129,7 @@ export default function Dashboard() {
       {/* Summary Cards Row */}
       <div className="flex flex-col md:flex-row gap-4 sm:gap-5 lg:gap-6">
         {/* Total Expenses Card */}
-        <div className={`flex-1 w-full ${!showPaymentReminders ? '' : 'md:max-w-sm'}`}>
+        <div className="flex-1 w-full md:max-w-sm">
           <Card className={`shadow-ios-sm bg-gradient-to-br from-card/95 to-card/80 backdrop-blur-md stagger-fade-in ${isMobile ? 'min-h-[7rem]' : ''}`}>
             <CardHeader className={`flex flex-row items-center justify-between space-y-0 ${isMobile ? 'pb-2 px-4 pt-4' : 'pb-3'}`}>
               <CardTitle className={`text-sm font-medium text-muted-foreground ${isMobile ? 'text-xs' : ''}`}>Total Expenses</CardTitle>
@@ -158,13 +148,6 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
-
-        {/* Payment Reminders - Only show when there are cards with balance */}
-        {showPaymentReminders && (
-          <div className="flex-1 w-full md:max-w-sm">
-            <PaymentReminders />
-          </div>
-        )}
       </div>
 
       {/* Categories Section */}
