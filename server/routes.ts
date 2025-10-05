@@ -6,22 +6,13 @@ import {
   insertExpenseSchema, insertCategorySchema, 
   insertFundHistorySchema, insertPaymentMethodSchema,
   insertPaymentMethodFundHistorySchema, insertTelegramBotConfigSchema,
-  insertWhatsappBotConfigSchema, insertGeminiConfigSchema, insertOpenAIConfigSchema,
+  insertGeminiConfigSchema, insertOpenAIConfigSchema,
   expenses, categories, fundHistory, paymentMethods, paymentMethodFundHistory
 } from "@shared/schema";
 import { z } from "zod";
 import { initializeTelegramBot, restartTelegramBot, sendTelegramMessage } from "./telegram-bot";
 import { handleCallbackQuery, handleTextMessage } from "./telegram-bot-handlers";
 import { createMainMenu } from "./telegram-bot-menus";
-import { 
-  initializeWhatsappBot, 
-  restartWhatsappBot, 
-  sendWhatsappMessage,
-  verifyWebhookSignature,
-  getVerifyToken,
-  markMessageAsRead,
-  getWhatsappWebhookUrl
-} from "./whatsapp-bot";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Get all expenses with optional date range filtering
@@ -946,81 +937,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // =============== WHATSAPP BOT SETTINGS ROUTES ===============
-
-  // Get WhatsApp bot configuration
-  app.get("/api/settings/whatsapp-bot", async (req, res) => {
-    try {
-      const config = await storage.getWhatsappBotConfig();
-      if (!config) {
-        return res.json({
-          isEnabled: false,
-          appId: null,
-          appSecret: null,
-          accessToken: null,
-          phoneNumberId: null,
-          verifyToken: null,
-          chatWhitelist: []
-        });
-      }
-      res.json(config);
-    } catch (error) {
-      console.error("Error fetching WhatsApp bot config:", error);
-      res.status(500).json({ error: "Failed to fetch WhatsApp bot configuration" });
-    }
-  });
-
-  // Create or update WhatsApp bot configuration
-  app.put("/api/settings/whatsapp-bot", async (req, res) => {
-    try {
-      const validatedData = insertWhatsappBotConfigSchema.parse(req.body);
-      const config = await storage.createOrUpdateWhatsappBotConfig(validatedData);
-      
-      // Restart the bot with new configuration
-      await restartWhatsappBot(storage);
-      
-      res.json(config);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: "Validation failed", details: error.errors });
-      }
-      console.error("Error updating WhatsApp bot config:", error);
-      res.status(500).json({ error: "Failed to update WhatsApp bot configuration" });
-    }
-  });
-
-  // Delete WhatsApp bot configuration
-  app.delete("/api/settings/whatsapp-bot", async (req, res) => {
-    try {
-      const success = await storage.deleteWhatsappBotConfig();
-      if (!success) {
-        return res.status(404).json({ error: "WhatsApp bot configuration not found" });
-      }
-      
-      // Stop the bot when configuration is deleted
-      await restartWhatsappBot(storage);
-      
-      res.status(204).send();
-    } catch (error) {
-      console.error("Error deleting WhatsApp bot config:", error);
-      res.status(500).json({ error: "Failed to delete WhatsApp bot configuration" });
-    }
-  });
-
-  // Get WhatsApp webhook URL
-  app.get("/api/settings/whatsapp-bot/webhook-url", async (req, res) => {
-    try {
-      const webhookUrl = getWhatsappWebhookUrl();
-      if (!webhookUrl) {
-        return res.status(500).json({ error: "Unable to generate webhook URL" });
-      }
-      res.json({ webhookUrl });
-    } catch (error) {
-      console.error("Error fetching WhatsApp webhook URL:", error);
-      res.status(500).json({ error: "Failed to fetch webhook URL" });
-    }
-  });
-
   // =============== GEMINI AI SETTINGS ROUTES ===============
 
   // Get Gemini AI configuration
@@ -1117,213 +1033,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // =============== WHATSAPP WEBHOOK ENDPOINT ===============
-
-  // WhatsApp webhook verification endpoint (GET)
-  app.get("/api/integrations/whatsapp/webhook", async (req, res) => {
-    const mode = req.query['hub.mode'];
-    const token = req.query['hub.verify_token'];
-    const challenge = req.query['hub.challenge'];
-
-    console.log('[WhatsApp Webhook] Verification request received');
-    console.log('[WhatsApp Webhook] Mode:', mode);
-    console.log('[WhatsApp Webhook] Token from Meta:', token);
-    console.log('[WhatsApp Webhook] Challenge:', challenge);
-
-    try {
-      const config = await storage.getWhatsappBotConfig();
-      const verifyToken = config?.verifyToken;
-      
-      console.log('[WhatsApp Webhook] Stored verify token:', verifyToken);
-      
-      if (mode === 'subscribe' && token && verifyToken && token === verifyToken) {
-        console.log('[WhatsApp Webhook] ✓ Webhook verified successfully');
-        res.status(200).send(challenge);
-      } else {
-        console.log('[WhatsApp Webhook] ✗ Verification failed - tokens do not match');
-        res.sendStatus(403);
-      }
-    } catch (error) {
-      console.error('[WhatsApp Webhook] Error during verification:', error);
-      res.sendStatus(403);
-    }
-  });
-
-  // WhatsApp webhook to receive messages (POST)
-  app.post("/api/integrations/whatsapp/webhook", async (req, res) => {
-    try {
-      console.log('[WhatsApp Webhook] ===== RECEIVED POST REQUEST =====');
-      console.log('[WhatsApp Webhook] Headers:', JSON.stringify(req.headers, null, 2));
-      console.log('[WhatsApp Webhook] Body:', JSON.stringify(req.body, null, 2));
-      
-      const config = await storage.getWhatsappBotConfig();
-      
-      if (!config || !config.isEnabled) {
-        console.log('[WhatsApp Webhook] Bot is not enabled');
-        return res.status(403).json({ error: "WhatsApp bot is not enabled" });
-      }
-
-      // Verify webhook signature (temporarily disabled for testing)
-      const signature = req.headers['x-hub-signature-256'] as string;
-      if (signature && config.appSecret) {
-        const isValid = verifyWebhookSignature(JSON.stringify(req.body), signature);
-        if (!isValid) {
-          console.log('[WhatsApp Webhook] Warning: Invalid signature - processing anyway for testing');
-          // Temporarily allow through for testing
-          // return res.status(403).json({ error: "Invalid signature" });
-        } else {
-          console.log('[WhatsApp Webhook] Signature verified successfully');
-        }
-      }
-
-      const body = req.body;
-
-      // Check if this is a WhatsApp message
-      if (body.object === 'whatsapp_business_account') {
-        if (body.entry && body.entry[0].changes && body.entry[0].changes[0]) {
-          const change = body.entry[0].changes[0];
-          
-          if (change.value.messages && change.value.messages[0]) {
-            const message = change.value.messages[0];
-            const from = message.from;
-            const messageId = message.id;
-            const messageType = message.type;
-            let text = message.text?.body || '';
-
-            // Handle interactive message responses (button/list selections)
-            if (messageType === 'interactive') {
-              const interactiveType = message.interactive?.type;
-              if (interactiveType === 'button_reply') {
-                text = message.interactive?.button_reply?.id || '';
-              } else if (interactiveType === 'list_reply') {
-                text = message.interactive?.list_reply?.id || '';
-              }
-              console.log('[WhatsApp Webhook] Interactive message received, mapped to:', text);
-            }
-
-            // Check whitelist
-            const chatWhitelist = config.chatWhitelist || [];
-            if (chatWhitelist.length > 0 && !chatWhitelist.includes(from)) {
-              console.log('[WhatsApp Webhook] Phone number not in whitelist:', from);
-              return res.status(200).send("OK");
-            }
-
-            // Mark message as read
-            await markMessageAsRead(messageId);
-
-            // Process message with AI and send response
-            const { 
-              processWhatsAppMessage, 
-              getMainMenuButtons, 
-              getMainMenuData,
-              getCategoryMenuData,
-              getPaymentMenuData 
-            } = await import('./whatsapp-ai');
-            const { sendWhatsappButtons, sendWhatsappMenu } = await import('./whatsapp-bot');
-            let aiResponse: string;
-            let shouldSendButtons = false;
-            let shouldSendMenu = false;
-            let menuType = 'main';
-            
-            if (messageType === 'image') {
-              const imageId = message.image?.id;
-              if (imageId && config.accessToken) {
-                try {
-                  const apiVersion = process.env.WHATSAPP_API_VERSION || 'v21.0';
-                  const mediaUrl = `https://graph.facebook.com/${apiVersion}/${imageId}`;
-                  
-                  const mediaResponse = await fetch(mediaUrl, {
-                    headers: {
-                      'Authorization': `Bearer ${config.accessToken}`
-                    }
-                  });
-                  
-                  const mediaData = await mediaResponse.json() as { url?: string };
-                  
-                  if (mediaData.url) {
-                    const imageResponse = await fetch(mediaData.url, {
-                      headers: {
-                        'Authorization': `Bearer ${config.accessToken}`
-                      }
-                    });
-                    
-                    const imageBuffer = await imageResponse.arrayBuffer();
-                    const base64Image = Buffer.from(imageBuffer).toString('base64');
-                    
-                    console.log(`[WhatsApp Webhook] Processing receipt image from ${from}`);
-                    aiResponse = await processWhatsAppMessage('', storage, base64Image);
-                  } else {
-                    aiResponse = "❌ Could not download the image. Please try again.";
-                  }
-                } catch (error) {
-                  console.error('[WhatsApp Webhook] Error downloading image:', error);
-                  aiResponse = "❌ Failed to process image. Please try again.";
-                }
-              } else {
-                aiResponse = "❌ No image found in message.";
-              }
-            } else {
-              console.log(`[WhatsApp Webhook] Message from ${from}: ${text}`);
-              
-              // Check message type for appropriate response
-              const lowerText = text.toLowerCase().trim();
-              const isGreeting = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening'].some(g => lowerText.includes(g));
-              const isFullMenuRequest = lowerText === 'menu' || lowerText.includes('full menu') || lowerText.includes('main menu');
-              const isCategoryMenu = lowerText === 'category_menu';
-              const isPaymentMenu = lowerText === 'payment_menu';
-              
-              aiResponse = await processWhatsAppMessage(text, storage);
-              
-              // Determine which menu/buttons to send
-              if (isGreeting) {
-                shouldSendButtons = true;
-              } else if (isFullMenuRequest) {
-                shouldSendMenu = true;
-                menuType = 'main';
-              } else if (isCategoryMenu) {
-                shouldSendMenu = true;
-                menuType = 'category';
-              } else if (isPaymentMenu) {
-                shouldSendMenu = true;
-                menuType = 'payment';
-              }
-            }
-            
-            await sendWhatsappMessage(from, aiResponse);
-            
-            // Send appropriate interactive element
-            if (shouldSendButtons) {
-              const buttonsData = getMainMenuButtons();
-              await sendWhatsappButtons(from, buttonsData.bodyText, buttonsData.buttons);
-            } else if (shouldSendMenu) {
-              let menuData;
-              if (menuType === 'category') {
-                menuData = getCategoryMenuData();
-              } else if (menuType === 'payment') {
-                menuData = getPaymentMenuData();
-              } else {
-                menuData = getMainMenuData();
-              }
-              await sendWhatsappMenu(from, menuData.bodyText, menuData.buttonText, menuData.sections);
-            }
-          }
-        }
-      }
-
-      res.status(200).send("OK");
-    } catch (error) {
-      console.error("Error processing WhatsApp webhook:", error);
-      res.status(200).send("OK");
-    }
-  });
-
   const httpServer = createServer(app);
 
   // Initialize Telegram bot on server start
   await initializeTelegramBot(storage);
-
-  // Initialize WhatsApp bot on server start
-  await initializeWhatsappBot(storage);
 
   return httpServer;
 }
