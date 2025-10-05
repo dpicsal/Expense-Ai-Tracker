@@ -176,7 +176,7 @@ export function PaymentReminders() {
           </div>
         ) : (
           <div className="space-y-3">
-            {reminders.slice(0, 5).map((reminder) => {
+            {reminders.slice(0, 3).map((reminder) => {
               const availableCredit = parseFloat(reminder.paymentMethod.balance || "0");
               const creditLimit = parseFloat(reminder.paymentMethod.creditLimit || "0");
               const amountOwed = creditLimit - availableCredit;
