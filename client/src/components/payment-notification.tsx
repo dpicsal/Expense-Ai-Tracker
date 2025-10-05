@@ -75,14 +75,13 @@ export function PaymentNotification() {
             className="relative"
             data-testid="button-payment-notification"
           >
-            <Bell className="h-4 w-4" />
-            <Badge
-              variant="destructive"
-              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
-              data-testid="badge-payment-count"
-            >
-              {urgentReminders.length}
-            </Badge>
+            <Bell className="h-5 w-5 text-foreground" />
+            <span className="absolute top-1.5 right-1.5 flex h-4 w-4">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-4 w-4 bg-destructive items-center justify-center text-[10px] font-bold text-destructive-foreground" data-testid="badge-payment-count">
+                {urgentReminders.length}
+              </span>
+            </span>
             <span className="sr-only">{tooltipText}</span>
           </Button>
         </Link>
