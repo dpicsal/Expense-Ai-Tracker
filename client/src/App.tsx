@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/providers/theme-provider";
 import { AppSidebar } from "@/components/app-sidebar";
 import { BottomNavigation } from "@/components/bottom-navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { PaymentNotification } from "@/components/payment-notification";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
 import { PullToRefreshIndicator } from "@/components/pull-to-refresh-indicator";
@@ -65,6 +66,7 @@ function MobileApp() {
           <h1 className="font-semibold text-lg text-foreground truncate">ExpenseTracker</h1>
         </div>
         <div className="flex items-center gap-2">
+          <PaymentNotification />
           <ThemeToggle />
         </div>
       </header>
@@ -125,6 +127,7 @@ function App() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
+                    <PaymentNotification />
                     <ThemeToggle />
                   </div>
                 </header>
