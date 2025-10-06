@@ -19,15 +19,21 @@ interface InlineKeyboardButton {
 let botToken: string | null = null;
 
 function getWebhookUrl(): string | null {
-  const replitDomains = process.env.REPLIT_DOMAINS;
-  if (!replitDomains) {
-    console.error('[Telegram Bot] REPLIT_DOMAINS not found');
-    return null;
+  const appUrl = process.env.APP_URL;
+  if (appUrl) {
+    const baseUrl = appUrl.replace(/\/$/, '');
+    return `${baseUrl}/api/integrations/telegram/webhook`;
   }
   
-  const domains = replitDomains.split(',');
-  const primaryDomain = domains[0];
-  return `https://${primaryDomain}/api/integrations/telegram/webhook`;
+  const replitDomains = process.env.REPLIT_DOMAINS;
+  if (replitDomains) {
+    const domains = replitDomains.split(',');
+    const primaryDomain = domains[0];
+    return `https://${primaryDomain}/api/integrations/telegram/webhook`;
+  }
+  
+  console.error('[Telegram Bot] APP_URL or REPLIT_DOMAINS environment variable not found');
+  return null;
 }
 
 export async function setWebhook(webhookSecret?: string): Promise<boolean> {
