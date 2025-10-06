@@ -38,7 +38,7 @@ export function AddFundsForm({ category, onClose, onSuccess }: AddFundsFormProps
   const form = useForm<AddFundsFormData>({
     resolver: zodResolver(addFundsSchema),
     defaultValues: {
-      amount: 0,
+      amount: "" as any,
       description: "",
     },
   });
@@ -59,7 +59,7 @@ export function AddFundsForm({ category, onClose, onSuccess }: AddFundsFormProps
       
       // Reset form with proper default values to keep inputs controlled
       form.reset({
-        amount: 0,
+        amount: "" as any,
         description: "",
       });
       onSuccess?.();
@@ -117,7 +117,7 @@ export function AddFundsForm({ category, onClose, onSuccess }: AddFundsFormProps
                         step="0.01"
                         min="0.01"
                         placeholder="0.00"
-                        className="pl-12"
+                        className="pl-12 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                         inputMode="decimal"
                         data-testid="input-add-funds-amount"
                       />
