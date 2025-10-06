@@ -299,8 +299,8 @@ export async function notifyTelegramPaymentMethodFundsAdded(
     const formattedDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
     
     const message = 
-      `${typeEmoji} *New Funds Added*\n` +
-      `📅 Date ${formattedDate}\n\n` +
+      `📅 Date ${formattedDate}\n` +
+      `${typeEmoji} *New Funds Added*\n\n` +
       `${typeEmoji} Payment Method: *${escapeMarkdown(updatedPaymentMethod.name)}*\n` +
       `➕ Amount: *AED ${amountAdded.toFixed(2)}*\n` +
       (fundHistory.description ? `📝 Note: ${escapeMarkdown(fundHistory.description)}\n\n` : '\n') +
