@@ -727,16 +727,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const previousConfig = await storage.getTelegramBotConfig();
       const config = await storage.createOrUpdateTelegramBotConfig(validatedData);
       
-      // Restart the bot with new configuration
-      await restartTelegramBot(storage);
-
-      // Send notification if bot was enabled or disabled
+      // Send notification if bot was enabled or disabled (before restarting)
       const { notifyTelegramBotConfigChanged } = await import('./telegram-notifications');
       if (config.isEnabled && (!previousConfig || !previousConfig.isEnabled)) {
         await notifyTelegramBotConfigChanged(config, 'enabled', storage);
       } else if (!config.isEnabled && previousConfig && previousConfig.isEnabled) {
         await notifyTelegramBotConfigChanged(previousConfig, 'disabled', storage);
       }
+      
+      // Restart the bot with new configuration
+      await restartTelegramBot(storage);
       
       res.json(config);
     } catch (error) {
