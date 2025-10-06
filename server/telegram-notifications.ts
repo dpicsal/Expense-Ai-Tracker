@@ -281,10 +281,6 @@ export async function notifyTelegramPaymentMethodFundsAdded(
       return;
     }
 
-    const allExpenses = await storage.getAllExpenses();
-    const paymentExpenses = allExpenses.filter(e => e.paymentMethod === updatedPaymentMethod.name);
-    const totalSpent = paymentExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
-    
     const currentBalance = parseFloat(updatedPaymentMethod.balance || '0');
     const amountAdded = parseFloat(fundHistory.amount);
 
@@ -296,15 +292,16 @@ export async function notifyTelegramPaymentMethodFundsAdded(
       digital_wallet: '📱'
     }[updatedPaymentMethod.type] || '💰';
 
-    const actionLabel = updatedPaymentMethod.type === 'credit_card' ? 'Payment Made' : 'Funds Added';
+    const date = new Date(fundHistory.addedAt);
+    const formattedDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
     
     const message = 
-      `${typeEmoji} *${actionLabel} to Payment Method*\n\n` +
+      `${typeEmoji} *New Funds Added*\n` +
+      `📅 Date ${formattedDate}\n\n` +
       `${typeEmoji} Payment Method: *${escapeMarkdown(updatedPaymentMethod.name)}*\n` +
       `➕ Amount: *AED ${amountAdded.toFixed(2)}*\n` +
       (fundHistory.description ? `📝 Note: ${escapeMarkdown(fundHistory.description)}\n` : '') +
-      `\n━━━━━━━━━━━━━━\n` +
-      `📊 Total Spent: *AED ${totalSpent.toFixed(2)}*\n` +
+      `━━━━━━━━━━━━━━\n` +
       `✅ Available: *AED ${currentBalance.toFixed(2)}*`;
 
     for (const chatId of chatWhitelist) {
