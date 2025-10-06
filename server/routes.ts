@@ -724,10 +724,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/settings/telegram-bot", async (req, res) => {
     try {
       const validatedData = insertTelegramBotConfigSchema.parse(req.body);
+      const previousConfig = await storage.getTelegramBotConfig();
       const config = await storage.createOrUpdateTelegramBotConfig(validatedData);
       
       // Restart the bot with new configuration
       await restartTelegramBot(storage);
+
+      // Send notification if bot was enabled or disabled
+      const { notifyTelegramBotConfigChanged } = await import('./telegram-notifications');
+      if (config.isEnabled && (!previousConfig || !previousConfig.isEnabled)) {
+        await notifyTelegramBotConfigChanged(config, 'enabled', storage);
+      } else if (!config.isEnabled && previousConfig && previousConfig.isEnabled) {
+        await notifyTelegramBotConfigChanged(config, 'disabled', storage);
+      }
       
       res.json(config);
     } catch (error) {
@@ -973,7 +982,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/settings/gemini", async (req, res) => {
     try {
       const validatedData = insertGeminiConfigSchema.parse(req.body);
+      const previousConfig = await storage.getGeminiConfig();
       const config = await storage.createOrUpdateGeminiConfig(validatedData);
+
+      // Send notification if Gemini was enabled or disabled
+      const { notifyGeminiConfigChanged } = await import('./telegram-notifications');
+      if (config.isEnabled && (!previousConfig || !previousConfig.isEnabled)) {
+        await notifyGeminiConfigChanged(config, 'enabled', storage);
+      } else if (!config.isEnabled && previousConfig && previousConfig.isEnabled) {
+        await notifyGeminiConfigChanged(config, 'disabled', storage);
+      }
+
       res.json(config);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -1021,7 +1040,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/settings/openai", async (req, res) => {
     try {
       const validatedData = insertOpenAIConfigSchema.parse(req.body);
+      const previousConfig = await storage.getOpenAIConfig();
       const config = await storage.createOrUpdateOpenAIConfig(validatedData);
+
+      // Send notification if OpenAI was enabled or disabled
+      const { notifyOpenAIConfigChanged } = await import('./telegram-notifications');
+      if (config.isEnabled && (!previousConfig || !previousConfig.isEnabled)) {
+        await notifyOpenAIConfigChanged(config, 'enabled', storage);
+      } else if (!config.isEnabled && previousConfig && previousConfig.isEnabled) {
+        await notifyOpenAIConfigChanged(config, 'disabled', storage);
+      }
+
       res.json(config);
     } catch (error) {
       if (error instanceof z.ZodError) {
