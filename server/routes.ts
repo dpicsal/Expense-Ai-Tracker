@@ -235,6 +235,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Reset data for a specific category
   app.post("/api/categories/:id/reset", async (req, res) => {
     try {
+      const category = await storage.getCategory(req.params.id);
+      if (!category) {
+        return res.status(404).json({ error: "Category not found" });
+      }
+
+      const { sendCategoryResetExcelToTelegram } = await import('./telegram-notifications');
+      await sendCategoryResetExcelToTelegram(category, storage);
+
       const result = await storage.resetCategory(req.params.id);
       res.json({ 
         message: "Category data reset successfully", 

@@ -1,6 +1,7 @@
 import type { IStorage } from './storage';
 import type { Expense, Category, PaymentMethod, FundHistory, PaymentMethodFundHistory, TelegramBotConfig, GeminiConfig, OpenAIConfig } from '@shared/schema';
-import { sendTelegramMessage } from './telegram-bot';
+import { sendTelegramMessage, sendTelegramDocument } from './telegram-bot';
+import ExcelJS from 'exceljs';
 
 function escapeMarkdown(text: string): string {
   return text.replace(/([_*\[\]()~`>#+=|{}.!])/g, '\\$1');
@@ -449,5 +450,151 @@ export async function notifyOpenAIConfigChanged(
     }
   } catch (error) {
     console.error('[Telegram Notification] Error notifying OpenAI config change:', error);
+  }
+}
+
+export async function sendCategoryResetExcelToTelegram(
+  category: Category,
+  storage: IStorage
+): Promise<void> {
+  try {
+    const telegramConfig = await storage.getTelegramBotConfig();
+    
+    if (!telegramConfig || !telegramConfig.isEnabled || !telegramConfig.botToken) {
+      return;
+    }
+
+    const chatWhitelist = telegramConfig.chatWhitelist || [];
+    if (chatWhitelist.length === 0) {
+      return;
+    }
+
+    const allExpenses = await storage.getAllExpenses();
+    const categoryExpenses = allExpenses.filter(e => e.category.trim() === category.name.trim());
+    
+    const categoryFundHistory = await storage.getFundHistoryByCategory(category.id);
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet(category.name);
+
+    worksheet.columns = [
+      { header: 'Date', key: 'date', width: 12 },
+      { header: 'Amount', key: 'amount', width: 12 },
+      { header: 'Description', key: 'description', width: 20 },
+      { header: 'Total Expenses', key: 'totalExpenses', width: 15 },
+      { header: 'Available Fund', key: 'availableFund', width: 15 },
+      { header: 'Add Funds', key: 'addFunds', width: 12 },
+      { header: 'Total Funds', key: 'totalFunds', width: 15 },
+    ];
+
+    worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFF' } };
+    worksheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: '4472C4' }
+    };
+
+    let runningExpenseTotal = 0;
+    let runningFundTotal = parseFloat(category.allocatedFunds || '0');
+    
+    categoryFundHistory.forEach(fund => {
+      runningFundTotal += parseFloat(fund.amount);
+    });
+
+    const combinedData: Array<{
+      type: 'expense' | 'fund';
+      date: Date;
+      data: Expense | FundHistory;
+    }> = [];
+
+    categoryExpenses.forEach(expense => {
+      combinedData.push({
+        type: 'expense',
+        date: new Date(expense.date),
+        data: expense
+      });
+    });
+
+    categoryFundHistory.forEach(fund => {
+      combinedData.push({
+        type: 'fund',
+        date: new Date(fund.addedAt),
+        data: fund
+      });
+    });
+
+    combinedData.sort((a, b) => a.date.getTime() - b.date.getTime());
+
+    runningFundTotal = parseFloat(category.allocatedFunds || '0');
+    
+    combinedData.forEach(item => {
+      if (item.type === 'expense') {
+        const expense = item.data as Expense;
+        const expenseAmount = parseFloat(expense.amount);
+        runningExpenseTotal += expenseAmount;
+        const availableFund = runningFundTotal - runningExpenseTotal;
+
+        worksheet.addRow({
+          date: item.date.toLocaleDateString('en-GB'),
+          amount: expenseAmount,
+          description: expense.description,
+          totalExpenses: runningExpenseTotal,
+          availableFund: availableFund,
+          addFunds: '',
+          totalFunds: runningFundTotal,
+        });
+      } else {
+        const fund = item.data as FundHistory;
+        const fundAmount = parseFloat(fund.amount);
+        runningFundTotal += fundAmount;
+        const availableFund = runningFundTotal - runningExpenseTotal;
+
+        worksheet.addRow({
+          date: item.date.toLocaleDateString('en-GB'),
+          amount: '',
+          description: fund.description || 'Funds Added',
+          totalExpenses: runningExpenseTotal,
+          availableFund: availableFund,
+          addFunds: fundAmount,
+          totalFunds: runningFundTotal,
+        });
+      }
+    });
+
+    worksheet.columns.forEach(column => {
+      if (column.key === 'amount' || column.key === 'totalExpenses' || 
+          column.key === 'availableFund' || column.key === 'addFunds' || 
+          column.key === 'totalFunds') {
+        column.eachCell?.((cell, rowNumber) => {
+          if (rowNumber > 1 && cell.value !== '') {
+            cell.numFmt = '#,##0.00';
+          }
+        });
+      }
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    
+    const date = new Date();
+    const formattedDate = `${date.getDate().toString().padStart(2, '0')}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getFullYear()}`;
+    const fileName = `${category.name}_${formattedDate}.xlsx`;
+    
+    const categoryIcon = getEmojiForIcon(category.icon);
+    const caption = 
+      `📊 *Category Reset Backup*\n\n` +
+      `${categoryIcon} Category: *${escapeMarkdown(category.name)}*\n` +
+      `📅 Date: ${formattedDate}\n` +
+      `💰 Total Expenses: *${categoryExpenses.length}*\n` +
+      `📈 Fund Entries: *${categoryFundHistory.length}*`;
+
+    for (const chatId of chatWhitelist) {
+      try {
+        await sendTelegramDocument(chatId, fileName, Buffer.from(buffer), caption);
+      } catch (error) {
+        console.error(`[Telegram Notification] Failed to send Excel to ${chatId}:`, error);
+      }
+    }
+  } catch (error) {
+    console.error('[Telegram Notification] Error sending category reset Excel:', error);
   }
 }
