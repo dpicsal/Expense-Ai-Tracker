@@ -1,5 +1,5 @@
 import type { IStorage } from './storage';
-import type { Expense, Category, PaymentMethod } from '@shared/schema';
+import type { Expense, Category, PaymentMethod, FundHistory } from '@shared/schema';
 import { sendTelegramMessage } from './telegram-bot';
 
 function escapeMarkdown(text: string): string {
@@ -214,5 +214,52 @@ export async function notifyTelegramPaymentMethodCreated(
     }
   } catch (error) {
     console.error('[Telegram Notification] Error notifying payment method:', error);
+  }
+}
+
+export async function notifyTelegramFundsAdded(
+  fundHistory: FundHistory,
+  updatedCategory: Category,
+  storage: IStorage
+): Promise<void> {
+  try {
+    const config = await storage.getTelegramBotConfig();
+    
+    if (!config || !config.isEnabled || !config.botToken) {
+      return;
+    }
+
+    const chatWhitelist = config.chatWhitelist || [];
+    if (chatWhitelist.length === 0) {
+      return;
+    }
+
+    const allExpenses = await storage.getAllExpenses();
+    const categoryExpenses = allExpenses.filter(e => e.category.trim() === updatedCategory.name.trim());
+    const totalSpent = categoryExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
+    
+    const available = parseFloat(updatedCategory.allocatedFunds || '0');
+    const amountAdded = parseFloat(fundHistory.amount);
+
+    const icon = getEmojiForIcon(updatedCategory.icon);
+    
+    const message = 
+      `💰 *Funds Added to Category*\n\n` +
+      `${icon} Category: *${escapeMarkdown(updatedCategory.name)}*\n` +
+      `➕ Amount Added: *AED ${amountAdded.toFixed(2)}*\n` +
+      (fundHistory.description ? `📝 Note: ${escapeMarkdown(fundHistory.description)}\n` : '') +
+      `\n━━━━━━━━━━━━━━\n` +
+      `📊 Total Spent: *AED ${totalSpent.toFixed(2)}*\n` +
+      `✅ Available: *AED ${available.toFixed(2)}*`;
+
+    for (const chatId of chatWhitelist) {
+      try {
+        await sendTelegramMessage(chatId, message);
+      } catch (error) {
+        console.error(`[Telegram Notification] Failed to send to ${chatId}:`, error);
+      }
+    }
+  } catch (error) {
+    console.error('[Telegram Notification] Error notifying funds added:', error);
   }
 }
