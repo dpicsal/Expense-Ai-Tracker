@@ -204,8 +204,8 @@ export default function Categories() {
                   
                   <div className="space-y-3">
                     <div className="flex justify-between text-sm items-center">
-                      <span className="text-muted-foreground font-medium">Allocated Funds Spent</span>
-                      <span className="tabular-nums font-bold dark:text-white/90">AED {(totalFundsAdded - total).toFixed(2)}</span>
+                      <span className="text-muted-foreground font-medium">Total Spend</span>
+                      <span className="tabular-nums font-bold dark:text-white/90">AED {total.toFixed(2)}</span>
                     </div>
                     <Progress 
                       value={Math.min(percentage, 100)} 
