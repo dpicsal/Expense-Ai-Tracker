@@ -25,6 +25,7 @@ export default function Categories() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [addFundsDialogOpen, setAddFundsDialogOpen] = useState<string | null>(null);
   const [expandedHistories, setExpandedHistories] = useState<Set<string>>(new Set());
+  const [resettingCategoryId, setResettingCategoryId] = useState<string | null>(null);
   const { toast } = useToast();
   const resetCategory = useResetCategory();
 
@@ -67,10 +68,11 @@ export default function Categories() {
   };
 
   const handleResetCategory = async (categoryId: string, categoryName: string) => {
+    setResettingCategoryId(categoryId);
     try {
       const result = await resetCategory.mutateAsync(categoryId);
       toast({
-        title: "Category Reset Complete",
+        title: "✅ Category Reset Complete",
         description: `Reset ${categoryName}: deleted ${result.deletedExpenses} expenses and ${result.deletedFundHistory} fund entries.`,
       });
     } catch (error) {
@@ -80,6 +82,8 @@ export default function Categories() {
         description: error instanceof Error ? error.message : "Failed to reset category data",
         variant: "destructive",
       });
+    } finally {
+      setResettingCategoryId(null);
     }
   };
 
@@ -154,9 +158,23 @@ export default function Categories() {
             const isExpanded = expandedHistories.has(category);
             
             return (
-              <Card key={category} className="border dark:border-[hsl(45,50%,50%)]/30 dark:bg-gradient-to-br dark:from-[hsl(240,15%,14%)] dark:to-[hsl(240,18%,11%)] bg-gradient-to-r from-card to-card/50 shadow-xl dark:shadow-2xl transition-all duration-500 hover:shadow-2xl dark:hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7),_0_10px_20px_-8px_rgba(217,179,84,0.3)] dark:hover:border-[hsl(45,70%,60%)]/50 overflow-hidden relative backdrop-blur-sm" data-testid={`category-card-${category}`}>
+              <Card 
+                key={category} 
+                className={`border dark:border-[hsl(45,50%,50%)]/30 dark:bg-gradient-to-br dark:from-[hsl(240,15%,14%)] dark:to-[hsl(240,18%,11%)] bg-gradient-to-r from-card to-card/50 shadow-xl dark:shadow-2xl transition-all duration-500 hover:shadow-2xl dark:hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7),_0_10px_20px_-8px_rgba(217,179,84,0.3)] dark:hover:border-[hsl(45,70%,60%)]/50 overflow-hidden relative backdrop-blur-sm ${
+                  resettingCategoryId === categoryData.id ? 'opacity-60 animate-pulse ring-2 ring-primary/50' : ''
+                }`} 
+                data-testid={`category-card-${category}`}
+              >
                 <div className="absolute inset-0 dark:bg-gradient-to-br dark:from-[hsl(45,90%,55%)]/[0.03] dark:via-transparent dark:to-[hsl(270,60%,45%)]/[0.02] pointer-events-none"></div>
                 <div className="absolute top-0 right-0 w-32 h-32 dark:bg-[hsl(45,90%,55%)]/[0.05] blur-3xl rounded-full pointer-events-none"></div>
+                {resettingCategoryId === categoryData.id && (
+                  <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-20 flex items-center justify-center pointer-events-none">
+                    <div className="flex flex-col items-center gap-3 animate-pulse-glow">
+                      <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-ios-spinner"></div>
+                      <p className="text-sm font-semibold text-foreground">Resetting category...</p>
+                    </div>
+                  </div>
+                )}
                 <CardContent className={`${isMobile ? 'p-4' : 'p-6'} relative z-10`}>
                   <div className="flex items-center justify-between mb-5">
                     <div className="flex items-center gap-3">
@@ -300,12 +318,20 @@ export default function Categories() {
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogCancel disabled={resettingCategoryId === categoryData.id}>Cancel</AlertDialogCancel>
                             <AlertDialogAction 
                               onClick={() => handleResetCategory(categoryData.id, category)}
+                              disabled={resettingCategoryId === categoryData.id}
                               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             >
-                              Reset Category
+                              {resettingCategoryId === categoryData.id ? (
+                                <>
+                                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-ios-spinner mr-2"></div>
+                                  Resetting...
+                                </>
+                              ) : (
+                                'Reset Category'
+                              )}
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
