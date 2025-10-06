@@ -78,28 +78,6 @@ export const telegramUserStates = pgTable("telegram_user_states", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-// WhatsApp Bot Configuration table
-export const whatsappBotConfigs = pgTable("whatsapp_bot_configs", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  appId: text("app_id"), // Meta App ID
-  appSecret: text("app_secret"), // Meta App Secret
-  accessToken: text("access_token"), // WhatsApp Access Token
-  phoneNumberId: text("phone_number_id"), // WhatsApp Phone Number ID
-  verifyToken: text("verify_token"), // Webhook verification token
-  chatWhitelist: text("chat_whitelist").array().default(sql`'{}'::text[]`), // Array of allowed phone numbers
-  isEnabled: boolean("is_enabled").default(false),
-  lastSyncedAt: timestamp("last_synced_at"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
-
-// WhatsApp User States - track conversation flows
-export const whatsappUserStates = pgTable("whatsapp_user_states", {
-  phoneNumber: text("phone_number").primaryKey(),
-  state: text("state"), // Current conversation state
-  data: text("data"), // JSON data for the current flow
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
 
 // Gemini AI Configuration table
 export const geminiConfigs = pgTable("gemini_configs", {
@@ -185,20 +163,6 @@ export const insertTelegramBotConfigSchema = createInsertSchema(telegramBotConfi
   isEnabled: z.boolean().optional(),
 });
 
-// WhatsApp Bot Config schemas
-export const insertWhatsappBotConfigSchema = createInsertSchema(whatsappBotConfigs).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-}).extend({
-  appId: z.string().optional(),
-  appSecret: z.string().optional(),
-  accessToken: z.string().optional(),
-  phoneNumberId: z.string().optional(),
-  verifyToken: z.string().optional(),
-  chatWhitelist: z.array(z.string()).optional(),
-  isEnabled: z.boolean().optional(),
-});
 
 // Gemini AI Config schemas
 export const insertGeminiConfigSchema = createInsertSchema(geminiConfigs).omit({
@@ -243,11 +207,6 @@ export type TelegramBotConfig = typeof telegramBotConfigs.$inferSelect;
 export type TelegramUserState = typeof telegramUserStates.$inferSelect;
 export type InsertTelegramUserState = typeof telegramUserStates.$inferInsert;
 
-export type InsertWhatsappBotConfig = z.infer<typeof insertWhatsappBotConfigSchema>;
-export type WhatsappBotConfig = typeof whatsappBotConfigs.$inferSelect;
-
-export type WhatsappUserState = typeof whatsappUserStates.$inferSelect;
-export type InsertWhatsappUserState = typeof whatsappUserStates.$inferInsert;
 
 export type InsertGeminiConfig = z.infer<typeof insertGeminiConfigSchema>;
 export type GeminiConfig = typeof geminiConfigs.$inferSelect;
