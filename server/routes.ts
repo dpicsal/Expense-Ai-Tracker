@@ -457,6 +457,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const result = await storage.addFundsToPaymentMethod(req.params.id, amount, description);
+      
+      // Send notification to Telegram
+      const { notifyTelegramPaymentMethodFundsAdded } = await import('./telegram-notifications');
+      notifyTelegramPaymentMethodFundsAdded(result.fundHistory, result.updatedPaymentMethod, storage).catch(err => {
+        console.error('Failed to send Telegram notification:', err);
+      });
+      
       res.status(200).json(result);
     } catch (error) {
       if (error instanceof Error && error.message === 'Payment method not found') {
