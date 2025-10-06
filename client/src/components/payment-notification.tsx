@@ -18,9 +18,14 @@ export function PaymentNotification() {
     const currentMonth = today.getMonth();
     const currentYear = today.getFullYear();
     
-    const currentMonthDueDate = new Date(currentYear, currentMonth, dueDate);
+    let dueDateObj = new Date(currentYear, currentMonth, dueDate);
     
-    const diffTime = currentMonthDueDate.getTime() - today.getTime();
+    // If the due date has already passed this month, calculate for next month
+    if (currentDay > dueDate) {
+      dueDateObj = new Date(currentYear, currentMonth + 1, dueDate);
+    }
+    
+    const diffTime = dueDateObj.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
     return diffDays;
@@ -55,7 +60,7 @@ export function PaymentNotification() {
       };
     });
 
-  const urgentReminders = reminders.filter(r => r.urgency === "overdue" || r.urgency === "urgent" || r.urgency === "soon");
+  const urgentReminders = reminders.filter(r => r.daysUntilDue <= 7 && r.daysUntilDue >= 0);
 
   if (urgentReminders.length === 0) {
     return null;
