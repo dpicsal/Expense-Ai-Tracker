@@ -304,7 +304,7 @@ export async function notifyTelegramPaymentMethodFundsAdded(
       `${typeEmoji} Payment Method: *${escapeMarkdown(updatedPaymentMethod.name)}*\n` +
       `➕ Amount: *AED ${amountAdded.toFixed(2)}*\n` +
       (fundHistory.description ? `📝 Note: ${escapeMarkdown(fundHistory.description)}\n\n` : '\n') +
-      `📈 Total Funds Add: *AED ${totalFundsAdded.toFixed(2)}*\n` +
+      `📈 Total Funds Added: *AED ${totalFundsAdded.toFixed(2)}*\n` +
       `━━━━━━━━━━━━━━\n` +
       `✅ Available: *AED ${currentBalance.toFixed(2)}*`;
 
