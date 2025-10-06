@@ -1,5 +1,5 @@
 import type { IStorage } from './storage';
-import type { Expense, Category, PaymentMethod, FundHistory } from '@shared/schema';
+import type { Expense, Category, PaymentMethod, FundHistory, PaymentMethodFundHistory } from '@shared/schema';
 import { sendTelegramMessage } from './telegram-bot';
 
 function escapeMarkdown(text: string): string {
@@ -261,5 +261,60 @@ export async function notifyTelegramFundsAdded(
     }
   } catch (error) {
     console.error('[Telegram Notification] Error notifying funds added:', error);
+  }
+}
+
+export async function notifyTelegramPaymentMethodFundsAdded(
+  fundHistory: PaymentMethodFundHistory,
+  updatedPaymentMethod: PaymentMethod,
+  storage: IStorage
+): Promise<void> {
+  try {
+    const config = await storage.getTelegramBotConfig();
+    
+    if (!config || !config.isEnabled || !config.botToken) {
+      return;
+    }
+
+    const chatWhitelist = config.chatWhitelist || [];
+    if (chatWhitelist.length === 0) {
+      return;
+    }
+
+    const allExpenses = await storage.getAllExpenses();
+    const paymentExpenses = allExpenses.filter(e => e.paymentMethod === updatedPaymentMethod.name);
+    const totalSpent = paymentExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
+    
+    const currentBalance = parseFloat(updatedPaymentMethod.balance || '0');
+    const amountAdded = parseFloat(fundHistory.amount);
+
+    const typeEmoji = {
+      cash: '💵',
+      credit_card: '💳',
+      debit_card: '🏦',
+      bank_transfer: '🏛️',
+      digital_wallet: '📱'
+    }[updatedPaymentMethod.type] || '💰';
+
+    const actionLabel = updatedPaymentMethod.type === 'credit_card' ? 'Payment Made' : 'Funds Added';
+    
+    const message = 
+      `${typeEmoji} *${actionLabel} to Payment Method*\n\n` +
+      `${typeEmoji} Payment Method: *${escapeMarkdown(updatedPaymentMethod.name)}*\n` +
+      `➕ Amount: *AED ${amountAdded.toFixed(2)}*\n` +
+      (fundHistory.description ? `📝 Note: ${escapeMarkdown(fundHistory.description)}\n` : '') +
+      `\n━━━━━━━━━━━━━━\n` +
+      `📊 Total Spent: *AED ${totalSpent.toFixed(2)}*\n` +
+      `✅ Available: *AED ${currentBalance.toFixed(2)}*`;
+
+    for (const chatId of chatWhitelist) {
+      try {
+        await sendTelegramMessage(chatId, message);
+      } catch (error) {
+        console.error(`[Telegram Notification] Failed to send to ${chatId}:`, error);
+      }
+    }
+  } catch (error) {
+    console.error('[Telegram Notification] Error notifying payment method funds added:', error);
   }
 }
