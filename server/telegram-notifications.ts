@@ -305,7 +305,7 @@ export async function notifyTelegramPaymentMethodFundsAdded(
       `➕ Amount: *AED ${amountAdded.toFixed(2)}*\n` +
       (fundHistory.description ? `📝 Note: ${escapeMarkdown(fundHistory.description)}\n\n` : '\n') +
       `📈 Total Funds Added: *AED ${totalFundsAdded.toFixed(2)}*\n` +
-      `━━━━━━━━━━━━━━\n` +
+      `━━━━━━━━━━━━━━━━\n` +
       `✅ Available: *AED ${currentBalance.toFixed(2)}*`;
 
     for (const chatId of chatWhitelist) {
