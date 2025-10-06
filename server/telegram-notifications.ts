@@ -353,7 +353,22 @@ export async function notifyTelegramBotConfigChanged(
 
     for (const chatId of chatWhitelist) {
       try {
-        await sendTelegramMessage(chatId, message);
+        const response = await fetch(`https://api.telegram.org/bot${config.botToken}/sendMessage`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: message,
+            parse_mode: 'Markdown',
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error(`[Telegram Notification] Failed to send to ${chatId}:`, errorData);
+        }
       } catch (error) {
         console.error(`[Telegram Notification] Failed to send to ${chatId}:`, error);
       }
