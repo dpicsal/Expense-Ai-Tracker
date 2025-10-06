@@ -319,6 +319,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description
       );
       
+      // Send notification to Telegram
+      const { notifyTelegramFundsAdded } = await import('./telegram-notifications');
+      notifyTelegramFundsAdded(result.fundHistory, result.updatedCategory, storage).catch(err => {
+        console.error('Failed to send Telegram notification:', err);
+      });
+      
       res.status(201).json(result);
     } catch (error) {
       if (error instanceof Error && error.message === 'Category not found') {
