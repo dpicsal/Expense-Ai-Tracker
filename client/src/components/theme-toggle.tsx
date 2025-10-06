@@ -17,9 +17,9 @@ export function ThemeToggle() {
     >
       <div className="relative">
         {theme === "light" ? (
-          <Moon className="h-6 w-6 rotate-0 scale-100 transition-all" />
+          <Moon className="h-7 w-7 rotate-0 scale-100 transition-all" />
         ) : (
-          <Sun className="h-6 w-6 rotate-0 scale-100 transition-all" />
+          <Sun className="h-7 w-7 rotate-0 scale-100 transition-all" />
         )}
       </div>
       <span className="sr-only">Toggle theme</span>
