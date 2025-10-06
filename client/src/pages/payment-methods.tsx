@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Wallet, TrendingUp, AlertTriangle } from "lucide-react";
+import { Plus, Wallet, TrendingUp, AlertTriangle, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PaymentMethodCard } from "@/components/payment-method-card";
 import { PaymentMethodForm } from "@/components/payment-method-form";
 import { usePaymentMethods } from "@/hooks/use-payment-methods";
@@ -57,6 +58,32 @@ export default function PaymentMethodsPage() {
 
   const needsAttention = highUtilizationCards.length + lowBalanceMethods.length;
 
+  // Calculate days until due for credit cards
+  const calculateDaysUntilDue = (dueDate: number) => {
+    const today = new Date();
+    const currentDay = today.getDate();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    
+    let dueDateObj = new Date(currentYear, currentMonth, dueDate);
+    
+    if (currentDay > dueDate) {
+      dueDateObj = new Date(currentYear, currentMonth + 1, dueDate);
+    }
+    
+    const diffTime = dueDateObj.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    return diffDays;
+  };
+
+  // Find credit cards with due dates within 7 days
+  const creditCardsDueSoon = creditCardMethods.filter(method => {
+    if (!method.dueDate) return false;
+    const daysLeft = calculateDaysUntilDue(method.dueDate);
+    return daysLeft <= 7 && daysLeft >= 0;
+  });
+
   if (isLoading) {
     return (
       <div className={isMobile ? 'space-y-4' : 'space-y-6'}>
@@ -96,6 +123,27 @@ export default function PaymentMethodsPage() {
           Add Payment Method
         </Button>
       </div>
+
+      {/* Payment Reminders */}
+      {creditCardsDueSoon.length > 0 && (
+        <Alert className="border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20" data-testid="alert-payment-reminder">
+          <Bell className="h-4 w-4 text-yellow-600 dark:text-yellow-500" />
+          <AlertDescription className="text-yellow-800 dark:text-yellow-300">
+            <span className="font-semibold">Payment Reminder:</span>{" "}
+            {creditCardsDueSoon.length === 1 ? (
+              <>
+                <span className="font-medium">{creditCardsDueSoon[0].name}</span> payment is due in{" "}
+                {calculateDaysUntilDue(creditCardsDueSoon[0].dueDate!)} day
+                {calculateDaysUntilDue(creditCardsDueSoon[0].dueDate!) !== 1 ? "s" : ""}.
+              </>
+            ) : (
+              <>
+                {creditCardsDueSoon.length} credit cards have payments due within 7 days.
+              </>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Summary Cards */}
       <div className={`grid grid-cols-1 md:grid-cols-3 ${isMobile ? 'gap-3' : 'gap-4'}`}>
