@@ -55,15 +55,15 @@ export function PaymentNotification() {
       };
     });
 
-  const urgentReminders = reminders.filter(r => r.urgency === "overdue" || r.urgency === "urgent");
+  const urgentReminders = reminders.filter(r => r.urgency === "overdue" || r.urgency === "urgent" || r.urgency === "soon");
 
   if (urgentReminders.length === 0) {
     return null;
   }
 
   const tooltipText = urgentReminders.length === 1
-    ? "1 payment needs attention"
-    : `${urgentReminders.length} payments need attention`;
+    ? "1 payment due within 7 days"
+    : `${urgentReminders.length} payments due within 7 days`;
 
   return (
     <Tooltip>
