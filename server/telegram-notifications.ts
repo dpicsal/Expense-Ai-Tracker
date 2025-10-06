@@ -1,5 +1,5 @@
 import type { IStorage } from './storage';
-import type { Expense, Category, PaymentMethod, FundHistory, PaymentMethodFundHistory } from '@shared/schema';
+import type { Expense, Category, PaymentMethod, FundHistory, PaymentMethodFundHistory, TelegramBotConfig, GeminiConfig, OpenAIConfig } from '@shared/schema';
 import { sendTelegramMessage } from './telegram-bot';
 
 function escapeMarkdown(text: string): string {
@@ -325,5 +325,114 @@ export async function notifyTelegramPaymentMethodFundsAdded(
     }
   } catch (error) {
     console.error('[Telegram Notification] Error notifying payment method funds added:', error);
+  }
+}
+
+export async function notifyTelegramBotConfigChanged(
+  config: TelegramBotConfig,
+  action: 'enabled' | 'disabled',
+  storage: IStorage
+): Promise<void> {
+  try {
+    if (!config || !config.isEnabled || !config.botToken || action === 'disabled') {
+      return;
+    }
+
+    const chatWhitelist = config.chatWhitelist || [];
+    if (chatWhitelist.length === 0) {
+      return;
+    }
+
+    const date = new Date();
+    const formattedDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+    
+    const message = 
+      `📅 Date ${formattedDate}\n` +
+      `🤖 *Telegram Bot ${action === 'enabled' ? 'Enabled' : 'Disabled'}*\n\n` +
+      `✅ Telegram notifications are now ${action === 'enabled' ? 'active' : 'inactive'}.`;
+
+    for (const chatId of chatWhitelist) {
+      try {
+        await sendTelegramMessage(chatId, message);
+      } catch (error) {
+        console.error(`[Telegram Notification] Failed to send to ${chatId}:`, error);
+      }
+    }
+  } catch (error) {
+    console.error('[Telegram Notification] Error notifying Telegram bot config change:', error);
+  }
+}
+
+export async function notifyGeminiConfigChanged(
+  config: GeminiConfig,
+  action: 'enabled' | 'disabled',
+  storage: IStorage
+): Promise<void> {
+  try {
+    const telegramConfig = await storage.getTelegramBotConfig();
+    
+    if (!telegramConfig || !telegramConfig.isEnabled || !telegramConfig.botToken) {
+      return;
+    }
+
+    const chatWhitelist = telegramConfig.chatWhitelist || [];
+    if (chatWhitelist.length === 0) {
+      return;
+    }
+
+    const date = new Date();
+    const formattedDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+    
+    const message = 
+      `📅 Date ${formattedDate}\n` +
+      `🤖 *Gemini AI ${action === 'enabled' ? 'Enabled' : 'Disabled'}*\n\n` +
+      `${action === 'enabled' ? '✅ Gemini AI is now active for receipt scanning.' : '❌ Gemini AI has been disabled.'}`;
+
+    for (const chatId of chatWhitelist) {
+      try {
+        await sendTelegramMessage(chatId, message);
+      } catch (error) {
+        console.error(`[Telegram Notification] Failed to send to ${chatId}:`, error);
+      }
+    }
+  } catch (error) {
+    console.error('[Telegram Notification] Error notifying Gemini config change:', error);
+  }
+}
+
+export async function notifyOpenAIConfigChanged(
+  config: OpenAIConfig,
+  action: 'enabled' | 'disabled',
+  storage: IStorage
+): Promise<void> {
+  try {
+    const telegramConfig = await storage.getTelegramBotConfig();
+    
+    if (!telegramConfig || !telegramConfig.isEnabled || !telegramConfig.botToken) {
+      return;
+    }
+
+    const chatWhitelist = telegramConfig.chatWhitelist || [];
+    if (chatWhitelist.length === 0) {
+      return;
+    }
+
+    const date = new Date();
+    const formattedDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+    
+    const message = 
+      `📅 Date ${formattedDate}\n` +
+      `🤖 *OpenAI ${action === 'enabled' ? 'Enabled' : 'Disabled'}*\n\n` +
+      `${action === 'enabled' ? '✅ OpenAI is now active for voice transcription.' : '❌ OpenAI has been disabled.'}`;
+
+    for (const chatId of chatWhitelist) {
+      try {
+        await sendTelegramMessage(chatId, message);
+      } catch (error) {
+        console.error(`[Telegram Notification] Failed to send to ${chatId}:`, error);
+      }
+    }
+  } catch (error) {
+    console.error('[Telegram Notification] Error notifying OpenAI config change:', error);
   }
 }
