@@ -334,7 +334,7 @@ export async function notifyTelegramBotConfigChanged(
   storage: IStorage
 ): Promise<void> {
   try {
-    if (!config || !config.isEnabled || !config.botToken || action === 'disabled') {
+    if (!config || !config.botToken) {
       return;
     }
 
@@ -349,7 +349,7 @@ export async function notifyTelegramBotConfigChanged(
     const message = 
       `📅 Date ${formattedDate}\n` +
       `🤖 *Telegram Bot ${action === 'enabled' ? 'Enabled' : 'Disabled'}*\n\n` +
-      `✅ Telegram notifications are now ${action === 'enabled' ? 'active' : 'inactive'}.`;
+      `${action === 'enabled' ? '✅ Telegram notifications are now active.' : '❌ Telegram notifications are now inactive.'}`;
 
     for (const chatId of chatWhitelist) {
       try {
