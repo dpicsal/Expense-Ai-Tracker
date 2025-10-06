@@ -13,6 +13,7 @@ import { z } from "zod";
 import { initializeTelegramBot, restartTelegramBot, sendTelegramMessage } from "./telegram-bot";
 import { handleCallbackQuery, handleTextMessage } from "./telegram-bot-handlers";
 import { createMainMenu } from "./telegram-bot-menus";
+import { setupWebSocket, broadcast } from "./websocket";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Get all expenses with optional date range filtering
@@ -52,6 +53,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create the expense using the new payment method ID approach
       const expense = await storage.createExpense(validatedData);
       
+      // Broadcast to all connected clients
+      broadcast({ type: 'expense:created', data: expense });
+      
       // Send notification to Telegram
       const { notifyTelegramExpenseCreated } = await import('./telegram-notifications');
       notifyTelegramExpenseCreated(expense, storage).catch(err => {
@@ -76,6 +80,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!expense) {
         return res.status(404).json({ error: "Expense not found" });
       }
+      
+      // Broadcast to all connected clients
+      broadcast({ type: 'expense:updated', data: expense });
+      
       res.json(expense);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -93,6 +101,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!success) {
         return res.status(404).json({ error: "Expense not found" });
       }
+      
+      // Broadcast to all connected clients
+      broadcast({ type: 'expense:deleted', data: { id: req.params.id } });
+      
       res.status(204).send();
     } catch (error) {
       console.error("Error deleting expense:", error);
@@ -1084,6 +1096,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+
+  // Setup WebSocket server
+  setupWebSocket(httpServer);
 
   // Initialize Telegram bot on server start
   await initializeTelegramBot(storage);

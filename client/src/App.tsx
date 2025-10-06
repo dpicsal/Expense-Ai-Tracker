@@ -12,6 +12,7 @@ import { PaymentNotification } from "@/components/payment-notification";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
 import { PullToRefreshIndicator } from "@/components/pull-to-refresh-indicator";
+import { useWebSocket } from "@/hooks/use-websocket";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Dashboard from "@/pages/dashboard";
@@ -43,6 +44,8 @@ function Router() {
 function MobileApp() {
   const [location] = useLocation();
   const isMobile = useIsMobile();
+  
+  useWebSocket();
   
   const handleRefresh = async () => {
     await queryClient.invalidateQueries();
@@ -82,64 +85,60 @@ function MobileApp() {
   );
 }
 
-function App() {
+function DesktopApp() {
   const isMobile = useIsMobile();
   
-  // Responsive sidebar configuration for iOS-style layout
+  useWebSocket();
+  
   const style = {
     "--sidebar-width": isMobile ? "18rem" : "20rem",
     "--sidebar-width-icon": isMobile ? "0rem" : "4rem",
   };
 
-  if (isMobile) {
-    return (
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <ThemeProvider>
-            <MobileApp />
-            <Toaster />
-          </ThemeProvider>
-        </TooltipProvider>
-      </QueryClientProvider>
-    );
-  }
+  return (
+    <SidebarProvider 
+      style={style as React.CSSProperties}
+      defaultOpen={!isMobile}
+    >
+      <div className="flex h-screen w-full bg-background overflow-hidden">
+        <AppSidebar />
+        <div className="flex flex-col flex-1 min-w-0">
+          <header className="flex items-center justify-between gap-3 border-b border-border/20 bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 transition-all duration-200 px-6 py-4 min-h-16">
+            <div className="flex items-center gap-4 flex-1 min-w-0">
+              <SidebarTrigger 
+                data-testid="button-sidebar-toggle" 
+                className="hover:bg-accent/50 transition-colors duration-200" 
+              />
+              <div className="flex flex-col">
+                <h1 className="font-semibold text-xl text-foreground leading-tight">Welcome back</h1>
+                <p className="text-sm text-muted-foreground leading-tight">Manage your expenses effectively</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <PaymentNotification />
+              <ThemeToggle />
+            </div>
+          </header>
+          <main className="flex-1 overflow-auto bg-muted/20 ios-transition">
+            <div className="container mx-auto max-w-7xl px-8 py-8">
+              <Router />
+            </div>
+          </main>
+        </div>
+      </div>
+      <Toaster />
+    </SidebarProvider>
+  );
+}
+
+function App() {
+  const isMobile = useIsMobile();
 
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <ThemeProvider>
-          <SidebarProvider 
-            style={style as React.CSSProperties}
-            defaultOpen={!isMobile}
-          >
-            <div className="flex h-screen w-full bg-background overflow-hidden">
-              <AppSidebar />
-              <div className="flex flex-col flex-1 min-w-0">
-                <header className="flex items-center justify-between gap-3 border-b border-border/20 bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 transition-all duration-200 px-6 py-4 min-h-16">
-                  <div className="flex items-center gap-4 flex-1 min-w-0">
-                    <SidebarTrigger 
-                      data-testid="button-sidebar-toggle" 
-                      className="hover:bg-accent/50 transition-colors duration-200" 
-                    />
-                    <div className="flex flex-col">
-                      <h1 className="font-semibold text-xl text-foreground leading-tight">Welcome back</h1>
-                      <p className="text-sm text-muted-foreground leading-tight">Manage your expenses effectively</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <PaymentNotification />
-                    <ThemeToggle />
-                  </div>
-                </header>
-                <main className="flex-1 overflow-auto bg-muted/20 ios-transition">
-                  <div className="container mx-auto max-w-7xl px-8 py-8">
-                    <Router />
-                  </div>
-                </main>
-              </div>
-            </div>
-            <Toaster />
-          </SidebarProvider>
+          {isMobile ? <MobileApp /> : <DesktopApp />}
         </ThemeProvider>
       </TooltipProvider>
     </QueryClientProvider>
