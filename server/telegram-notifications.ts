@@ -284,6 +284,9 @@ export async function notifyTelegramPaymentMethodFundsAdded(
     const currentBalance = parseFloat(updatedPaymentMethod.balance || '0');
     const amountAdded = parseFloat(fundHistory.amount);
 
+    const allFundHistory = await storage.getPaymentMethodFundHistoryByPaymentMethod(updatedPaymentMethod.id);
+    const totalFundsAdded = allFundHistory.reduce((sum, f) => sum + parseFloat(f.amount), 0);
+
     const typeEmoji = {
       cash: '💵',
       credit_card: '💳',
@@ -300,7 +303,8 @@ export async function notifyTelegramPaymentMethodFundsAdded(
       `📅 Date ${formattedDate}\n\n` +
       `${typeEmoji} Payment Method: *${escapeMarkdown(updatedPaymentMethod.name)}*\n` +
       `➕ Amount: *AED ${amountAdded.toFixed(2)}*\n` +
-      (fundHistory.description ? `📝 Note: ${escapeMarkdown(fundHistory.description)}\n` : '') +
+      (fundHistory.description ? `📝 Note: ${escapeMarkdown(fundHistory.description)}\n\n` : '\n') +
+      `📈 Total Funds Add: *AED ${totalFundsAdded.toFixed(2)}*\n` +
       `━━━━━━━━━━━━━━\n` +
       `✅ Available: *AED ${currentBalance.toFixed(2)}*`;
 
