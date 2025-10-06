@@ -4,6 +4,7 @@ import {
   createMainMenu, createFundsMenu, createPaymentsMenu, createBackupMenu, 
   createSelectionKeyboard, createCancelMenu, createBackButton 
 } from './telegram-bot-menus';
+import { broadcast } from './websocket';
 import ExcelJS from 'exceljs';
 
 // Map Lucide icon names to emoji icons for Telegram
@@ -1003,6 +1004,9 @@ export async function handleTextMessage(chatId: string, text: string, storage: I
       paymentMethod: data.paymentMethodId,
       date: new Date()
     });
+
+    // Broadcast to all connected web clients
+    broadcast({ type: 'expense:created', data: expense });
 
     await sendTelegramMessage(
       chatId,
