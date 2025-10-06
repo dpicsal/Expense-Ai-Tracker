@@ -1,0 +1,66 @@
+Welcome to Ubuntu 24.04.3 LTS (GNU/Linux 6.8.0-79-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Mon Oct  6 13:06:57 UTC 2025
+
+  System load:  0.12              Processes:             116
+  Usage of /:   6.9% of 47.39GB   Users logged in:       1
+  Memory usage: 12%               IPv4 address for eth0: 72.60.210.231
+  Swap usage:   0%                IPv6 address for eth0: 2a02:4780:5e:b64c::1
+
+ * Strictly confined Kubernetes makes edge and IoT secure. Learn how MicroK8s
+   just raised the bar for easy, resilient and secure K8s cluster deployment.
+
+   https://ubuntu.com/engage/secure-kubernetes-at-the-edge
+
+Expanded Security Maintenance for Applications is not enabled.
+
+0 updates can be applied immediately.
+
+Enable ESM Apps to receive additional future security updates.
+See https://ubuntu.com/esm or run: sudo pro status
+
+
+1 updates could not be installed automatically. For more details,
+see /var/log/unattended-upgrades/unattended-upgrades.log
+
+*** System restart required ***
+Last login: Mon Oct  6 13:05:32 2025 from 169.254.0.1
+root@srv1047995:~# cd /var/www/expense-tracker
+root@srv1047995:/var/www/expense-tracker# node --version
+npm --version
+v20.19.5
+10.8.2
+root@srv1047995:/var/www/expense-tracker# sudo systemctl status postgresql
+● postgresql.service - PostgreSQL RDBMS
+     Loaded: loaded (/usr/lib/systemd/system/postgresql.service; enabled; preset: enabled)
+     Active: active (exited) since Mon 2025-10-06 11:30:04 UTC; 1h 39min ago
+   Main PID: 19385 (code=exited, status=0/SUCCESS)
+        CPU: 1ms
+
+Oct 06 11:30:04 srv1047995 systemd[1]: Starting postgresql.service - PostgreSQL RDBMS...
+Oct 06 11:30:04 srv1047995 systemd[1]: Finished postgresql.service - PostgreSQL RDBMS.
+root@srv1047995:/var/www/expense-tracker# sudo -u postgres psql -c "\l" | grep expense_tracker
+ expense_tracker | postgres | UTF8     | libc            | C.UTF-8 | C.UTF-8 |            |           | =Tc/postgres            +
+root@srv1047995:/var/www/expense-tracker# cd /var/www/expense-tracker
+cat .env
+cat: .env: No such file or directory
+root@srv1047995:/var/www/expense-tracker# cd /var/www/expense-tracker
+ls node_modules | wc -l
+ls: cannot access 'node_modules': No such file or directory
+0
+root@srv1047995:/var/www/expense-tracker# cd /var/www/expense-tracker
+ls -la dist
+ls: cannot access 'dist': No such file or directory
+root@srv1047995:/var/www/expense-tracker# pm2 status
+pm2 logs expense-tracker --lines 20
+┌────┬───────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name      │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+└────┴───────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+[TAILING] Tailing last 20 lines for [expense-tracker] process (change the value with --lines option)
+sudo systemctl status nginx
+sudo nginx -t
+ls -la /etc/nginx/sites-enabled/ | grep expense
