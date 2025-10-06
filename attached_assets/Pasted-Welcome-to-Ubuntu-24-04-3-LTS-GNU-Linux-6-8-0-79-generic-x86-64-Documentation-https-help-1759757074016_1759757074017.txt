@@ -1,0 +1,218 @@
+Welcome to Ubuntu 24.04.3 LTS (GNU/Linux 6.8.0-79-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Mon Oct  6 13:23:25 UTC 2025
+
+  System load:  0.0               Processes:             123
+  Usage of /:   8.2% of 47.39GB   Users logged in:       1
+  Memory usage: 14%               IPv4 address for eth0: 72.60.210.231
+  Swap usage:   0%                IPv6 address for eth0: 2a02:4780:5e:b64c::1
+
+ * Strictly confined Kubernetes makes edge and IoT secure. Learn how MicroK8s
+   just raised the bar for easy, resilient and secure K8s cluster deployment.
+
+   https://ubuntu.com/engage/secure-kubernetes-at-the-edge
+
+Expanded Security Maintenance for Applications is not enabled.
+
+0 updates can be applied immediately.
+
+Enable ESM Apps to receive additional future security updates.
+See https://ubuntu.com/esm or run: sudo pro status
+
+
+1 updates could not be installed automatically. For more details,
+see /var/log/unattended-upgrades/unattended-upgrades.log
+
+*** System restart required ***
+Last login: Mon Oct  6 13:21:11 2025 from 169.254.0.1
+root@srv1047995:~# cd /var/www/expense-tracker
+root@srv1047995:/var/www/expense-tracker# pm2 delete expense-tracker
+pm2 start npm --name "expense-tracker" -- start
+sleep 5
+pm2 status
+pm2 logs expense-tracker --lines 30
+[PM2] Applying action deleteProcessId on app [expense-tracker](ids: [ 0 ])
+[PM2] [expense-tracker](0) ✓
+┌────┬───────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name      │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+└────┴───────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+[PM2] Starting /usr/bin/npm in fork_mode (1 instance)
+[PM2] Done.
+┌────┬────────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name               │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼────────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0  │ expense-tracker    │ default     │ N/A     │ fork    │ 23161    │ 0s     │ 0    │ online    │ 0%       │ 19.0mb   │ root     │ disabled │
+└────┴────────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+┌────┬────────────────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐
+│ id │ name               │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │
+├────┼────────────────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤
+│ 0  │ expense-tracker    │ default     │ N/A     │ fork    │ 23301    │ 0s     │ 6    │ online    │ 0%       │ 60.8mb   │ root     │ disabled │
+└────┴────────────────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘
+[TAILING] Tailing last 30 lines for [expense-tracker] process (change the value with --lines option)
+/root/.pm2/logs/expense-tracker-out.log last 30 lines:
+0|expense- | > NODE_ENV=production node dist/index.js
+0|expense- | 
+0|expense- | 
+0|expense- | > rest-express@1.0.0 start
+0|expense- | > NODE_ENV=production node dist/index.js
+0|expense- | 
+0|expense- | 
+0|expense- | > rest-express@1.0.0 start
+0|expense- | > NODE_ENV=production node dist/index.js
+0|expense- | 
+0|expense- | 
+0|expense- | > rest-express@1.0.0 start
+0|expense- | > NODE_ENV=production node dist/index.js
+0|expense- | 
+0|expense- | 
+0|expense- | > rest-express@1.0.0 start
+0|expense- | > NODE_ENV=production node dist/index.js
+0|expense- | 
+0|expense- | 
+0|expense- | > rest-express@1.0.0 start
+0|expense- | > NODE_ENV=production node dist/index.js
+0|expense- | 
+0|expense- | 
+0|expense- | > rest-express@1.0.0 start
+0|expense- | > NODE_ENV=production node dist/index.js
+0|expense- | 
+0|expense- | 
+0|expense- | > rest-express@1.0.0 start
+0|expense- | > NODE_ENV=production node dist/index.js
+0|expense- | 
+
+/root/.pm2/logs/expense-tracker-error.log last 30 lines:
+0|expense- | 
+0|expense- | Error: DATABASE_URL must be set. Did you forget to provision a database?
+0|expense- |     at file:///var/www/expense-tracker/dist/index.js:1927:9
+0|expense- |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+0|expense- |     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+0|expense- |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+0|expense- | 
+0|expense- | Node.js v20.19.5
+0|expense- | file:///var/www/expense-tracker/dist/index.js:1927
+0|expense- |   throw new Error(
+0|expense- |         ^
+0|expense- | 
+0|expense- | Error: DATABASE_URL must be set. Did you forget to provision a database?
+0|expense- |     at file:///var/www/expense-tracker/dist/index.js:1927:9
+0|expense- |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+0|expense- |     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+0|expense- |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+0|expense- | 
+0|expense- | Node.js v20.19.5
+0|expense- | file:///var/www/expense-tracker/dist/index.js:1927
+0|expense- |   throw new Error(
+0|expense- |         ^
+0|expense- | 
+0|expense- | Error: DATABASE_URL must be set. Did you forget to provision a database?
+0|expense- |     at file:///var/www/expense-tracker/dist/index.js:1927:9
+0|expense- |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+0|expense- |     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+0|expense- |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+0|expense- | 
+0|expense- | Node.js v20.19.5
+
+0|expense-tracker  | > rest-express@1.0.0 start
+0|expense-tracker  | > NODE_ENV=production node dist/index.js
+0|expense-tracker  | file:///var/www/expense-tracker/dist/index.js:1927
+0|expense-tracker  |   throw new Error(
+0|expense-tracker  |         ^
+0|expense-tracker  | Error: DATABASE_URL must be set. Did you forget to provision a database?
+0|expense-tracker  |     at file:///var/www/expense-tracker/dist/index.js:1927:9
+0|expense-tracker  |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+0|expense-tracker  |     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+0|expense-tracker  |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+0|expense-tracker  | Node.js v20.19.5
+0|expense-tracker  | > rest-express@1.0.0 start
+0|expense-tracker  | > NODE_ENV=production node dist/index.js
+0|expense-tracker  | file:///var/www/expense-tracker/dist/index.js:1927
+0|expense-tracker  |   throw new Error(
+0|expense-tracker  |         ^
+0|expense-tracker  | Error: DATABASE_URL must be set. Did you forget to provision a database?
+0|expense-tracker  |     at file:///var/www/expense-tracker/dist/index.js:1927:9
+0|expense-tracker  |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+0|expense-tracker  |     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+0|expense-tracker  |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+0|expense-tracker  | Node.js v20.19.5
+0|expense-tracker  | > rest-express@1.0.0 start
+0|expense-tracker  | > NODE_ENV=production node dist/index.js
+0|expense-tracker  | file:///var/www/expense-tracker/dist/index.js:1927
+0|expense-tracker  |   throw new Error(
+0|expense-tracker  |         ^
+0|expense-tracker  | Error: DATABASE_URL must be set. Did you forget to provision a database?
+0|expense-tracker  |     at file:///var/www/expense-tracker/dist/index.js:1927:9
+0|expense-tracker  |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+0|expense-tracker  |     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+0|expense-tracker  |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+0|expense-tracker  | Node.js v20.19.5
+0|expense-tracker  | > rest-express@1.0.0 start
+0|expense-tracker  | > NODE_ENV=production node dist/index.js
+0|expense-tracker  | file:///var/www/expense-tracker/dist/index.js:1927
+0|expense-tracker  |   throw new Error(
+0|expense-tracker  |         ^
+0|expense-tracker  | Error: DATABASE_URL must be set. Did you forget to provision a database?
+0|expense-tracker  |     at file:///var/www/expense-tracker/dist/index.js:1927:9
+0|expense-tracker  |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+0|expense-tracker  |     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+0|expense-tracker  |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+0|expense-tracker  | Node.js v20.19.5
+0|expense-tracker  | > rest-express@1.0.0 start
+0|expense-tracker  | > NODE_ENV=production node dist/index.js
+0|expense-tracker  | file:///var/www/expense-tracker/dist/index.js:1927
+0|expense-tracker  |   throw new Error(
+0|expense-tracker  |         ^
+0|expense-tracker  | Error: DATABASE_URL must be set. Did you forget to provision a database?
+0|expense-tracker  |     at file:///var/www/expense-tracker/dist/index.js:1927:9
+0|expense-tracker  |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+0|expense-tracker  |     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+0|expense-tracker  |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+0|expense-tracker  | Node.js v20.19.5
+0|expense-tracker  | > rest-express@1.0.0 start
+0|expense-tracker  | > NODE_ENV=production node dist/index.js
+0|expense-tracker  | file:///var/www/expense-tracker/dist/index.js:1927
+0|expense-tracker  |   throw new Error(
+0|expense-tracker  |         ^
+0|expense-tracker  | Error: DATABASE_URL must be set. Did you forget to provision a database?
+0|expense-tracker  |     at file:///var/www/expense-tracker/dist/index.js:1927:9
+0|expense-tracker  |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+0|expense-tracker  |     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+0|expense-tracker  |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+0|expense-tracker  | Node.js v20.19.5
+0|expense-tracker  | > rest-express@1.0.0 start
+0|expense-tracker  | > NODE_ENV=production node dist/index.js
+0|expense-tracker  | file:///var/www/expense-tracker/dist/index.js:1927
+0|expense-tracker  |   throw new Error(
+0|expense-tracker  |         ^
+0|expense-tracker  | Error: DATABASE_URL must be set. Did you forget to provision a database?
+0|expense-tracker  |     at file:///var/www/expense-tracker/dist/index.js:1927:9
+0|expense-tracker  |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+0|expense-tracker  |     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+0|expense-tracker  |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+0|expense-tracker  | Node.js v20.19.5
+0|expense-tracker  | > rest-express@1.0.0 start
+0|expense-tracker  | > NODE_ENV=production node dist/index.js
+0|expense-tracker  | file:///var/www/expense-tracker/dist/index.js:1927
+0|expense-tracker  |   throw new Error(
+0|expense-tracker  |         ^
+0|expense-tracker  | Error: DATABASE_URL must be set. Did you forget to provision a database?
+0|expense-tracker  |     at file:///var/www/expense-tracker/dist/index.js:1927:9
+0|expense-tracker  |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+0|expense-tracker  |     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+0|expense-tracker  |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+0|expense-tracker  | Node.js v20.19.5
+0|expense-tracker  | > rest-express@1.0.0 start
+0|expense-tracker  | > NODE_ENV=production node dist/index.js
+0|expense-tracker  | file:///var/www/expense-tracker/dist/index.js:1927
+0|expense-tracker  |   throw new Error(
+0|expense-tracker  |         ^
+0|expense-tracker  | Error: DATABASE_URL must be set. Did you forget to provision a database?
+0|expense-tracker  |     at file:///var/www/expense-tracker/dist/index.js:1927:9
+0|expense-tracker  |     at ModuleJob.run (node:internal/modules/esm/module_job:325:25)
+0|expense-tracker  |     at async ModuleLoader.import (node:internal/modules/esm/loader:606:24)
+0|expense-tracker  |     at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+0|expense-tracker  | Node.js v20.19.5
