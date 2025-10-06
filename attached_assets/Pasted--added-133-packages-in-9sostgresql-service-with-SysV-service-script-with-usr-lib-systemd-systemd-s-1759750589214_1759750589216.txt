@@ -1,0 +1,52 @@
+
+added 133 packages in 9sostgresql.service with SysV service script with /usr/lib/systemd/systemd-sysv-install.
+
+13 packages are looking for funding
+  run `npm fund` for details
+npm notice
+npm notice New major version of npm available! 10.8.2 -> 11.6.1 1min 45s ago
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.6.1
+npm notice To update run: npm install -g npm@11.6.1
+npm notice
+root@srv1047995:~# pm2 -v
+Oct 06 11:30:04 srv1047995 systemd[1]: Finished postgresql.service - PostgreSQL RDBMS.
+                        -------------sql
+psql (16.10 (Ubuntu 16.10-0ubuntu0.24.04.1))
+__/\\\\\\\\\\\\\____/\\\\____________/\\\\____/\\\\\\\\\_____
+ _\/\\\/////////\\\_\/\\\\\\________/\\\\\\__/\\\///////\\\___
+  _\/\\\_______\/\\\_\/\\\//\\\____/\\\//\\\_\///______\//\\\__ongPassword123!';
+   _\/\\\\\\\\\\\\\/__\/\\\\///\\\/\\\/_\/\\\___________/\\\/___
+    _\/\\\/////////____\/\\\__\///\\\/___\/\\\________/\\\//_____
+     _\/\\\_____________\/\\\____\///_____\/\\\_____/\\\//________
+      _\/\\\_____________\/\\\_____________\/\\\___/\\\/___________024!';
+       _\/\\\_____________\/\\\_____________\/\\\__/\\\\\\\\\\\\\\\_
+        _\///______________\///______________\///__\///////////////__
+GRANT
+postgres=# GRANT ALL PRIVILEGES ON DATABASE expense_tracker TO expense_app;
+                          Runtime Edition
+postgres=# \c expense_tracker
+        PM2 is a Production Process Manager for Node.js applicationss".
+                     with a built-in Load Balancer.ense_app;
+GRANT
+                Start and Daemonize any application: IN SCHEMA public TO expense_app;
+                $ pm2 start app.js
+expense_tracker=# GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO expense_app;
+                Load Balance 4 instances of api.js:
+                $ pm2 start api.js -i 4GES IN SCHEMA public GRANT ALL ON TABLES TO expense_app;
+ALTER DEFAULT PRIVILEGES
+                Monitor in production:EGES IN SCHEMA public GRANT ALL ON SEQUENCES TO expense_app;
+                $ pm2 monitor
+expense_tracker=# \q
+                Make pm2 auto-boot at server restart:
+                $ pm2 startup
+
+                To go further checkout:
+                http://pm2.io/
+
+
+                        -------------
+
+[PM2] Spawning PM2 daemon with pm2_home=/root/.pm2
+[PM2] PM2 Successfully daemonized
+6.0.13
+root@srv1047995:~#
