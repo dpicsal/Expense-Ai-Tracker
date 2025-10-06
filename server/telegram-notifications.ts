@@ -295,12 +295,20 @@ export async function notifyTelegramPaymentMethodFundsAdded(
       digital_wallet: '📱'
     }[updatedPaymentMethod.type] || '💰';
 
+    const typeTitle = {
+      cash: 'New Funds Added',
+      credit_card: 'Credit Card Payment',
+      debit_card: 'New Deposit',
+      bank_transfer: 'Bank Transfer',
+      digital_wallet: 'Digital Wallet Deposit'
+    }[updatedPaymentMethod.type] || 'New Funds Added';
+
     const date = new Date(fundHistory.addedAt);
     const formattedDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
     
     const message = 
       `📅 Date ${formattedDate}\n` +
-      `${typeEmoji} *New Funds Added*\n\n` +
+      `${typeEmoji} *${typeTitle}*\n\n` +
       `${typeEmoji} Payment Method: *${escapeMarkdown(updatedPaymentMethod.name)}*\n` +
       `➕ Amount: *AED ${amountAdded.toFixed(2)}*\n` +
       (fundHistory.description ? `📝 Note: ${escapeMarkdown(fundHistory.description)}\n\n` : '\n') +
