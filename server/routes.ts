@@ -735,7 +735,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (config.isEnabled && (!previousConfig || !previousConfig.isEnabled)) {
         await notifyTelegramBotConfigChanged(config, 'enabled', storage);
       } else if (!config.isEnabled && previousConfig && previousConfig.isEnabled) {
-        await notifyTelegramBotConfigChanged(config, 'disabled', storage);
+        await notifyTelegramBotConfigChanged(previousConfig, 'disabled', storage);
       }
       
       res.json(config);
